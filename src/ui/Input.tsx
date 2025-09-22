@@ -1,22 +1,12 @@
 import styled from 'styled-components'
 
-interface InputProps {
-  type: string
-  placeholder: string
-  id: string
-}
-
-const StyledInput = styled.input`
+const Input = styled.input`
   border-radius: 10rem;
   border-color: grey;
   border: 2px solid gray;
   width: 25rem;
   height: 3rem;
-  padding: 20px;
+  padding: 0rem 0rem 0rem 2rem;
 `
-
-function Input({ type, placeholder, id }: InputProps) {
-  return <StyledInput type={type} id={id} placeholder={placeholder} />
-}
 
 export default Input
