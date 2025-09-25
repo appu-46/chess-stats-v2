@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiStats } from '../services/apiStats'
+import { apiProfile } from '../services/apiStats'
 
-function useStats(username?: string) {
+function useProfile(username?: string) {
   const { data, isPending, error } = useQuery({
     queryKey: ['stats', username],
-    queryFn: () => apiStats(username!),
+    queryFn: () => apiProfile(username!),
     enabled: !!username,
   })
 
   return { data, isPending, error }
 }
 
-export default useStats
+export default useProfile

@@ -1,12 +1,10 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useNavigate } from '@tanstack/react-router'
 import styled from 'styled-components'
 import Input from '../ui/Input'
 import Button from '../ui/Button'
 import Form from '../ui/Form'
 import ErrorMessage from '../ui/ErrorMessage'
-import useStats from '../hooks/useStats'
-import Spinner from '../ui/Spinner'
 
 const StyledLogin = styled.div`
   margin: 1.5rem 0rem 1.5rem 0rem;
@@ -20,24 +18,20 @@ type Inputs = {
 }
 
 function Login() {
-  const [username, setUsername] = useState<string>('appu_46')
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<Inputs>()
 
-  function onSubmit(data: Inputs) {
-    setUsername(data.username)
+  function onSubmit(data: { username: string }) {
+    navigate({ to: '/stats/$username', params: { username: data.username } })
   }
-  const { data: stats, isPending: isFetchingStats } = useStats(username)
-  console.log(stats)
-
-  if (isFetchingStats) return <Spinner size="large" />
 
   return (
     <StyledLogin>
-      <Form onSubmit={handleSubmit(onSubmit)}>
+      <Form onSubmit={() => handleSubmit(onSubmit)}>
         <Input
           placeholder="Enter your username"
           {...register('username', { required: true })}

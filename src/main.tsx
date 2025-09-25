@@ -8,16 +8,29 @@ import {
   createRouter,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import './styles.css'
 // import reportWebVitals from './reportWebVitals.ts'
 
 import App from './App.tsx'
 import PageNotFound from './ui/PageNotFound.tsx'
+import Stats from './pages/Stats.tsx'
+import Profile from './pages/Profile.tsx'
+import Header from './components/Header.tsx'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60,
+    },
+  },
+})
 
 const rootRoute = createRootRoute({
   component: () => (
     <>
+      <Header />
       <Outlet />
       <TanStackRouterDevtools />
     </>
@@ -30,15 +43,20 @@ const indexRoute = createRoute({
   path: '/',
   component: App,
 })
-/*
-  const homeRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/home',
-  component: AppLayout,
-}) 
-*/
 
-const routeTree = rootRoute.addChildren([indexRoute])
+const statRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/stats/$username',
+  component: Stats,
+})
+
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/profile/$username',
+  component: Profile,
+})
+
+const routeTree = rootRoute.addChildren([indexRoute, statRoute, profileRoute])
 
 const router = createRouter({
   routeTree,
@@ -60,7 +78,9 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     </StrictMode>,
   )
 }
