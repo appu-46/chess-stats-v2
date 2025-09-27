@@ -31,7 +31,7 @@ function Login() {
 
   return (
     <StyledLogin>
-      <Form onSubmit={() => handleSubmit(onSubmit)}>
+      <Form onSubmit={handleSubmit(onSubmit)}>
         <Input
           placeholder="Enter your username"
           {...register('username', { required: true })}
