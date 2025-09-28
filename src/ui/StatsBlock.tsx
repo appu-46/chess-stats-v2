@@ -10,7 +10,6 @@ const StatsBlock = styled.div`
   height: 21.5rem;
   border: 1.5px solid #444;
   border-radius: 20px;
-  background-color: #eee;
   font-size: 22px;
   padding: 1rem;
   justify-items: start;

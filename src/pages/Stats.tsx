@@ -90,26 +90,6 @@ function Stats() {
           <PieGraph record={recordBullet} />
         </div>
       </StatsBlock>
-      <StatsBlock>
-        <Title>Daily Rating: </Title>
-        <FaMedal />: {chess_daily?.best?.rating}
-        <LuRefreshCw />: {chess_daily?.last?.rating}
-        <div style={{ width: '350px', height: '250px' }}>
-          <PieGraph record={recordDaily} />
-        </div>
-      </StatsBlock>
-      <div>Tactics stats: {tactics?.highest?.rating}</div>
-      <div style={{ width: '450px', height: '300px', alignItems: 'center' }}>
-        <h1>Rapid Records:</h1>
-      </div>
-      <div style={{ width: '450px', height: '450px' }}>
-        <h1>Bullet Records:</h1>
-        <PieGraph record={recordBullet} />
-      </div>
-      <div style={{ width: '450px', height: '450px' }}>
-        <h1>Blitz Records:</h1>
-        <PieGraph record={recordBlitz} />
-      </div>
     </StyledStats>
   )
 }

@@ -140,7 +140,6 @@ export default function PieGraph({ record }: PieGraphProps) {
     { name: 'Losses', value: percentageLosses },
     { name: 'Draws', value: percentageDraws },
   ]
-  console.log(data)
   return (
     <>
       <ResponsiveContainer width="100%" height="100%">
