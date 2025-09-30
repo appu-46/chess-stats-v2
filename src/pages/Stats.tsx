@@ -19,7 +19,7 @@ const StyledStats = styled.div`
 `
 const Title = styled.h2`
   font-size: 22px;
-  color: ##233b46;
+  color: 'blue.4';
 `
 
 function Stats() {
@@ -68,7 +68,7 @@ function Stats() {
     <StyledStats>
       <StatsBlock>
         <Title>Rapid Rating: </Title>
-        <FaMedal />: {chess_rapid?.best?.rating}
+        <FaMedal />: {chess_rapid?.last?.rating}
         <LuRefreshCw />: {chess_rapid?.last?.rating}
         <div style={{ width: '350px', height: '250px' }}>
           <PieGraph record={recordRapid} />
@@ -88,6 +88,14 @@ function Stats() {
         <LuRefreshCw />: {chess_bullet?.last?.rating}
         <div style={{ width: '350px', height: '250px' }}>
           <PieGraph record={recordBullet} />
+        </div>
+      </StatsBlock>{' '}
+      <StatsBlock>
+        <Title>Daily Rating: </Title>
+        <FaMedal />: {chess_daily?.best?.rating}
+        <LuRefreshCw />: {chess_daily?.last?.rating}
+        <div style={{ width: '350px', height: '250px' }}>
+          <PieGraph record={recordDaily} />
         </div>
       </StatsBlock>
     </StyledStats>

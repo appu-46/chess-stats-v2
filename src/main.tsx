@@ -9,12 +9,7 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  MantineProvider,
-  createTheme,
-  type MantineColorScheme,
-} from '@mantine/core'
-import { useLocalStorage } from '@mantine/hooks'
+import { MantineProvider, createTheme } from '@mantine/core'
 
 import './styles.css'
 // import reportWebVitals from './reportWebVitals.ts'
@@ -62,9 +57,15 @@ const profileRoute = createRoute({
   component: Profile,
 })
 
+// const theme = useMantineTheme()
+
 const theme = createTheme({
   fontFamily: 'Open Sans, sans-serif',
-  primaryColor: 'cyan',
+  // primaryColor: 'aqua',
+  shadows: {
+    md: '1px 1px 3px rgba(0, 0, 0, .25)',
+    xl: '5px 5px 3px rgba(0, 0, 0, .25)',
+  },
 })
 
 const routeTree = rootRoute.addChildren([indexRoute, statRoute, profileRoute])
