@@ -11,6 +11,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MantineProvider, createTheme } from '@mantine/core'
 
+import '@mantine/core/styles.css'
 import './styles.css'
 // import reportWebVitals from './reportWebVitals.ts'
 

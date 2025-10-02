@@ -28,10 +28,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-div {
-  margin: 10px 0px 10px 0px;
-}
-
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
@@ -62,14 +58,18 @@ code {
 h1,
 h2,
 span {
-  color: var(--mantine-color-cyan-6);
+  color: var(--mantine-color-text);
   transition: color 0.3s ease !important;
 }
 
-[data-mantine-color-scheme='dark'] h1 {
-  color: var(--mantine-color-cyan-1);
+[data-mantine-color-scheme='dark'] h1,
+h2,
+span {
+  color: var(--mantine-color-text);
 }
 
-[data-mantine-color-scheme='light'] h1 {
-  color: var(--mantine-color-cyan-9);
+[data-mantine-color-scheme='light'] h1,
+h2,
+span {
+  color: var(--mantine-color-text);
 }

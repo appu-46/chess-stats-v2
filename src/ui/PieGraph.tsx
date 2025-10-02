@@ -4,17 +4,18 @@ import {
   Pie,
   PieChart,
   ResponsiveContainer,
-  Sector,
+  // Sector,
 } from 'recharts'
 
 const RADIAN = Math.PI / 180
 
-const COLORS = ['#77DD77', '#FF6961', '#CFCFC4']
+// const COLORS = ['#77DD77', '#FF6961', '#CFCFC4']
+const COLORS = ['#00FF00', '#DC143C', '#F0E68C']
+/*
 type Coordinate = {
   x: number
   y: number
 }
-
 type PieSectorData = {
   percent?: number
   name?: string | number
@@ -94,7 +95,7 @@ const renderActiveShape = ({
     </g>
   )
 }
-
+*/
 interface PieGraphProps {
   record:
     | {
@@ -158,7 +159,7 @@ export default function PieGraph({ record }: PieGraphProps) {
             label={renderCustomizedLabel}
             animationBegin={0}
             animationDuration={800}
-            activeShape={renderActiveShape}
+            // activeShape={renderActiveShape}
           >
             {data.map((entry, index) => (
               <Cell
