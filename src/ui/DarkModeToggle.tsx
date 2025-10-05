@@ -3,8 +3,8 @@ import { IconMoonStars, IconSun } from '@tabler/icons-react'
 import styled from 'styled-components'
 
 const StyledDarkModeToggle = styled.div`
-  position: fixed;
-  right: 3.5rem;
+  position: relative;
+  left: 25rem;
 `
 
 function DarkModeToggle() {

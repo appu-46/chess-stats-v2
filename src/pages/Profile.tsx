@@ -11,7 +11,7 @@ import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
 import FloatingTab from '../ui/FloatingTab'
 
-const StyledContainer = styled.div`
+export const StyledContainer = styled.div`
   display: grid;
   grid-gap: 0.25rem;
   align-items: ceter;
@@ -31,6 +31,7 @@ const StyledProfile = styled.div`
 
 function Profile() {
   const { username } = useParams({ from: '/profile/$username' })
+
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
   const { data: countryDetail } = useCountry(profile?.country)
 

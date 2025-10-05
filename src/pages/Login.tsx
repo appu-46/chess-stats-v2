@@ -6,6 +6,7 @@ import Button from '../ui/Button'
 import Form from '../ui/Form'
 import ErrorMessage from '../ui/ErrorMessage'
 import FloatingTab from '../ui/FloatingTab'
+import { useTabContext } from '../contexts/TabContext'
 
 const StyledLogin = styled.div`
   margin: 1.5rem 0rem 1.5rem 0rem;
@@ -25,9 +26,20 @@ function Login() {
     handleSubmit,
     formState: { errors },
   } = useForm<Inputs>()
+  const { activeTab } = useTabContext()
 
   function onSubmit(data: { username: string }) {
-    navigate({ to: '/profile/$username', params: { username: data.username } })
+    if (activeTab === 0) {
+      navigate({
+        to: '/profile/$username',
+        params: { username: data.username },
+      })
+    } else {
+      navigate({
+        to: '/stats/$username',
+        params: { username: data.username },
+      })
+    }
   }
 
   return (

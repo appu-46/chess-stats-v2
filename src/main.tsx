@@ -20,6 +20,7 @@ import PageNotFound from './ui/PageNotFound.tsx'
 import Stats from './pages/Stats.tsx'
 import Profile from './pages/Profile.tsx'
 import Header from './components/Header.tsx'
+import { TabProvider } from './contexts/TabContext.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,9 +93,11 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme} defaultColorScheme="dark">
-          <RouterProvider router={router} />
-        </MantineProvider>
+        <TabProvider>
+          <MantineProvider theme={theme} defaultColorScheme="dark">
+            <RouterProvider router={router} />
+          </MantineProvider>
+        </TabProvider>
       </QueryClientProvider>
     </StrictMode>,
   )

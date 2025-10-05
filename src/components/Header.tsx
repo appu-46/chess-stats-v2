@@ -28,6 +28,7 @@ const Title = styled.h1`
 
 export default function Header() {
   const { colorScheme } = useMantineColorScheme()
+
   return (
     <>
       <StyledHeader>
@@ -36,6 +37,7 @@ export default function Header() {
           alt="webapp logo"
         />
         <Title> Chess Stats </Title>
+
         <DarkModeToggle />
       </StyledHeader>
     </>
