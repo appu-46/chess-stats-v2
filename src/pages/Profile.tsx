@@ -1,6 +1,8 @@
 import styled from 'styled-components'
 import { FaChessPawn, FaTwitch } from 'react-icons/fa'
 import { MdDateRange, MdUpdate } from 'react-icons/md'
+import { HiUserGroup } from 'react-icons/hi'
+import { FaLocationDot } from 'react-icons/fa6'
 import { TbPremiumRights } from 'react-icons/tb'
 import { useParams } from '@tanstack/react-router'
 import useProfile from '../hooks/useProfile'
@@ -10,6 +12,7 @@ import InfoBlock from '../ui/InfoBlock'
 import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
 import FloatingTab from '../ui/FloatingTab'
+import StyledProfilething from '../ui/Profilething'
 
 export const StyledContainer = styled.div`
   display: grid;
@@ -21,12 +24,53 @@ export const StyledContainer = styled.div`
 `
 const StyledProfile = styled.div`
   display: grid;
-  grid-template-columns: 15rem 15rem;
-  grid-gap: 0.25rem;
-  align-items: ceter;
+  grid-template-columns: 20rem 20rem;
+  grid-gap: 1rem;
   min-width: 50rem;
   justify-items: center;
   justify-content: center;
+`
+const StyledName = styled.h1`
+  font-size: 54px;
+  font-weight: 500;
+`
+
+const StyledCountry = styled.h2`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  font-size: 42px;
+  font-weight: 400;
+`
+const StyledOnline = styled.h2`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  font-size: 24px;
+  font-weight: 200;
+`
+const StyledHeader = styled.div`
+  margin: 2rem 0rem 2rem 0rem;
+  display: flex;
+  flex-direction: column;
+  justify-items: center;
+  max-width: 100rem;
+`
+
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 1rem 0;
+  width: 100%;
+`
+
+const TitleBG = styled.span`
+  border-radius: 2.5rem;
+  background-color: #7d2828;
+  padding: 0.1rem 0.95rem;
+}
 `
 
 function Profile() {
@@ -39,53 +83,65 @@ function Profile() {
 
   const {
     avatar: playerAvatar = null,
-    // player_id = null,
-    // url = null,
+    player_id = null,
+    url = null,
     name: playerName = null,
-    // title = null,
-    // followers = null,
-    // location = null,
+    title = null,
+    followers = null,
+    location = null,
     last_online = null,
     joined = null,
     status = null,
     is_streamer = null,
     twitch_url = null,
-    // league = null,
+    league = null,
   } = profile ?? {}
 
   return (
     <StyledContainer>
       <FloatingTab />
-      <StyledProfile>
+      <StyledProfilething>
         <PlayerAvatar src={playerAvatar} alt="user-avatar" />
-        <InfoBlock>
-          <FaChessPawn />
-          {playerName}
-        </InfoBlock>
-        <InfoBlock>
-          <img
-            src={`https://flagsapi.com/${countryDetail?.code}/flat/24.png`}
-            alt="country-flag"
-          />
-          {countryDetail?.name}
-        </InfoBlock>
-        <InfoBlock>
-          <MdUpdate />
-          {formatDate(last_online)}
-        </InfoBlock>
+        <StyledHeader>
+          {
+            <StyledName>
+              {title && <TitleBG>{title}</TitleBG>} {playerName}
+            </StyledName>
+          }
+          <StyledCountry>
+            <img
+              style={{ height: '48px' }}
+              src={`https://flagsapi.com/${countryDetail?.code}/flat/32.png`}
+              alt="country-flag"
+            />
+            {countryDetail?.name}
+          </StyledCountry>
+          <StyledOnline>
+            <MdUpdate />
+            {formatDate(last_online)}
+          </StyledOnline>
+          <StyledOnline>
+            <HiUserGroup /> {followers.toLocaleString('en-IN')}
+          </StyledOnline>
+        </StyledHeader>
+      </StyledProfilething>
+      <Divider />
+      <StyledProfile>
         <InfoBlock>
           <MdDateRange />
           {formatDate(joined)}
         </InfoBlock>
         <InfoBlock>
-          <TbPremiumRights /> {status}
+          <TbPremiumRights /> {status.toUpperCase()}
         </InfoBlock>
-
         {is_streamer === true && (
           <InfoBlock>
-            <FaTwitch /> {twitch_url}
+            <FaTwitch /> <a href={twitch_url}>{twitch_url}</a>
           </InfoBlock>
         )}
+        <InfoBlock>
+          <FaLocationDot /> {location}
+        </InfoBlock>
       </StyledProfile>
     </StyledContainer>
   )

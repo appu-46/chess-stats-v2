@@ -5,7 +5,6 @@ function useStats(username?: string) {
   const { data, isPending, error } = useQuery({
     queryKey: ['stats', username],
     queryFn: () => apiStats(username!),
-    enabled: !!username,
   })
 
   return { data, isPending, error }

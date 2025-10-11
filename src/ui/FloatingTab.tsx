@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { FloatingIndicator, UnstyledButton } from '@mantine/core'
 // import classes from './Demo.module.css'
 
@@ -10,6 +11,7 @@ const data = ['Profile', 'Stats']
 
 function FloatingTab() {
   const { activeTab, setActiveTab } = useTabContext()
+  const queryClient = useQueryClient()
   const [rootRef, setRootRef] = useState<HTMLDivElement | null>(null)
   const [controlsRefs, setControlsRefs] = useState<
     Record<string, HTMLButtonElement | null>
@@ -31,8 +33,10 @@ function FloatingTab() {
 
     if (index === 0) {
       navigate({ to: '/profile/$username', params: { username } })
+      queryClient.invalidateQueries({ queryKey: ['profile', username] })
     } else {
       navigate({ to: '/stats/$username', params: { username } })
+      queryClient.invalidateQueries({ queryKey: ['stats', username] })
     }
   }
 

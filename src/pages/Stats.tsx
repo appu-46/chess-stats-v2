@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { FaMedal } from 'react-icons/fa'
 import { LuRefreshCw } from 'react-icons/lu'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 import useStats from '../hooks/useStats'
 import Spinner from '../ui/Spinner'
 import { RecordPercentageCalc } from '../helpers/RecordPercentageCalc'
@@ -27,10 +27,10 @@ const Title = styled.h2`
 `
 
 function Stats() {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
   const { username } = useParams({ from: '/stats/$username' })
   const { data: stats, isPending: isFetchingStats } = useStats(username)
-  const { activeTab } = useTabContext()
+  const { setActiveTab } = useTabContext()
 
   console.log(stats)
   const {
@@ -56,10 +56,6 @@ function Stats() {
   )
 
   if (isFetchingStats) return <Spinner size="large" />
-
-  if (activeTab === 0) {
-    navigate({ to: '/profile/$username', params: { username } })
-  }
 
   const recordBlitz = chess_blitz?.record
     ? RecordPercentageCalc(chess_blitz.record)
