@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { FaChessPawn, FaTwitch } from 'react-icons/fa'
+import { FaChessPawn, FaGlobe, FaTwitch } from 'react-icons/fa'
 import { MdDateRange, MdUpdate } from 'react-icons/md'
 import { HiUserGroup } from 'react-icons/hi'
 import { FaLocationDot } from 'react-icons/fa6'
@@ -101,19 +101,29 @@ function Profile() {
     <StyledContainer>
       <FloatingTab />
       <StyledProfilething>
-        <PlayerAvatar src={playerAvatar} alt="user-avatar" />
+        {playerAvatar === null ? (
+          <FaChessPawn size="14rem" />
+        ) : (
+          <PlayerAvatar src={playerAvatar} alt="user-avatar" />
+        )}
         <StyledHeader>
           {
             <StyledName>
-              {title && <TitleBG>{title}</TitleBG>} {playerName}
+              {title && <TitleBG>{title}</TitleBG>}{' '}
+              <a href={url}>{playerName}</a>
             </StyledName>
           }
           <StyledCountry>
-            <img
-              style={{ height: '48px' }}
-              src={`https://flagsapi.com/${countryDetail?.code}/flat/32.png`}
-              alt="country-flag"
-            />
+            {countryDetail?.code == 'XX' ? (
+              <FaGlobe />
+            ) : (
+              <img
+                style={{ height: '48px' }}
+                src={`https://flagsapi.com/${countryDetail?.code}/flat/32.png`}
+                alt="country-flag"
+              />
+            )}
+
             {countryDetail?.name}
           </StyledCountry>
           <StyledOnline>

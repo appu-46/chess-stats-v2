@@ -1,4 +1,5 @@
 import { useMantineColorScheme } from '@mantine/core'
+import { useNavigate } from '@tanstack/react-router'
 import '@mantine/core/styles.css'
 import styled from 'styled-components'
 import DarkModeToggle from '../ui/DarkModeToggle'
@@ -19,6 +20,7 @@ const Logo = styled.img`
     transform 0.3s ease !important;
   width: 5rem;
   height: 5rem;
+  cursor: pointer;
 `
 const Title = styled.h1`
   font-family: 'Cantarell';
@@ -28,6 +30,11 @@ const Title = styled.h1`
 
 export default function Header() {
   const { colorScheme } = useMantineColorScheme()
+  const navigate = useNavigate()
+
+  function handleClick() {
+    navigate({ to: '/' })
+  }
 
   return (
     <>
@@ -35,6 +42,7 @@ export default function Header() {
         <Logo
           src={colorScheme === 'dark' ? '/knight-dark.svg' : '/knight.svg'}
           alt="webapp logo"
+          onClick={() => handleClick()}
         />
         <Title> Chess Stats </Title>
 
