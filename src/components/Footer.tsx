@@ -1,12 +1,14 @@
 import styled from 'styled-components'
-import { FaGithub, FaLinkedin, FaInstagram } from 'react-icons/fa'
+import { FaGithub, FaInstagram, FaLinkedin } from 'react-icons/fa'
 import { FaSquareXTwitter } from 'react-icons/fa6'
 
 const StyledFooter = styled.footer`
+  margin-top: 2rem;
   padding: 2rem 1rem;
   background: rgba(0, 0, 0, 0.3);
   border-top: 1.5px solid rgba(255, 255, 255, 0.1);
   text-align: center;
+  height: 100%;
 `
 
 const FooterContent = styled.div`
@@ -15,10 +17,10 @@ const FooterContent = styled.div`
   flex-direction: column;
   gap: 1rem;
   align-items: center;
+  min-height: 50vh;
 `
 
 const FooterText = styled.span`
-  // color: rgba(255, 255, 255, 0.6);
   font-size: 0.875rem;
   margin: 0;
 `
@@ -30,7 +32,6 @@ const SocialLinks = styled.div`
 `
 
 const SocialLink = styled.a`
-  // color: rgba(255, 255, 255, 0.5);
   font-size: 1.25rem;
   transition:
     color 0.2s ease,
