@@ -15,6 +15,7 @@
     border-color 0.3s ease !important;
 }
 body {
+  height: 100%;
   [data-mantine-color-scheme] {
     transition:
       background-color 0.3s ease,
@@ -57,19 +58,22 @@ code {
 /* Automatic color change based on theme */
 h1,
 h2,
-span {
+span,
+a {
   color: var(--mantine-color-text);
   transition: color 0.3s ease !important;
 }
 
 [data-mantine-color-scheme='dark'] h1,
 h2,
-span {
+span,
+a {
   color: var(--mantine-color-text);
 }
 
 [data-mantine-color-scheme='light'] h1,
 h2,
-span {
+span,
+a {
   color: var(--mantine-color-text);
 }

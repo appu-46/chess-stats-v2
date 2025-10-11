@@ -110,7 +110,9 @@ function Profile() {
           {
             <StyledName>
               {title && <TitleBG>{title}</TitleBG>}{' '}
-              <a href={url}>{playerName}</a>
+              <a href={url} target="blank">
+                {playerName}
+              </a>
             </StyledName>
           }
           <StyledCountry>
@@ -131,7 +133,7 @@ function Profile() {
             {formatDate(last_online)}
           </StyledOnline>
           <StyledOnline>
-            <HiUserGroup /> {followers.toLocaleString('en-IN')}
+            <HiUserGroup /> {followers?.toLocaleString('en-IN')}
           </StyledOnline>
         </StyledHeader>
       </StyledProfilething>
@@ -142,11 +144,14 @@ function Profile() {
           {formatDate(joined)}
         </InfoBlock>
         <InfoBlock>
-          <TbPremiumRights /> {status.toUpperCase()}
+          <TbPremiumRights /> {status?.toUpperCase()}
         </InfoBlock>
         {is_streamer === true && (
           <InfoBlock>
-            <FaTwitch /> <a href={twitch_url}>{twitch_url}</a>
+            <FaTwitch />{' '}
+            <a href={twitch_url} target="blank">
+              {twitch_url === null ? 'No channel found' : twitch_url}
+            </a>
           </InfoBlock>
         )}
         <InfoBlock>

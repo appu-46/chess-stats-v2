@@ -9,7 +9,6 @@ import FloatingTab from '../ui/FloatingTab'
 import { useTabContext } from '../contexts/TabContext'
 
 const StyledLogin = styled.div`
-  margin: 1.5rem 0rem 1.5rem 0rem;
   display: flex;
   align-items: center;
   flex-direction: column;

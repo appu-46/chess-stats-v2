@@ -21,6 +21,7 @@ import Stats from './pages/Stats.tsx'
 import Profile from './pages/Profile.tsx'
 import Header from './components/Header.tsx'
 import { TabProvider } from './contexts/TabContext.tsx'
+import Footer from './components/Footer.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +36,7 @@ const rootRoute = createRootRoute({
     <>
       <Header />
       <Outlet />
+      <Footer />
       <TanStackRouterDevtools />
     </>
   ),
