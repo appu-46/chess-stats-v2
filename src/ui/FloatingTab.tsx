@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { FloatingIndicator, UnstyledButton } from '@mantine/core'
-// import classes from './Demo.module.css'
 
 import classes from '../css/FloatingTab.module.css'
 import { useTabContext } from '../contexts/TabContext'
@@ -28,7 +27,6 @@ function FloatingTab() {
   const handleTabClick = (index: number) => {
     setActiveTab(index)
 
-    // Otherwise, handle navigation automatically (Profile/Stats pages)
     if (!username) return
 
     if (index === 0) {

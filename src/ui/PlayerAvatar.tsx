@@ -6,7 +6,7 @@ const PlayerAvatar = styled.img`
   height: 13.5rem;
   // width: 10rem;
   border-radius: 2.5rem;
-  border: 2.5px solid aqua;
+  border: 1.5px solid aqua;
 
   svg {
     font-size: 1.25rem;

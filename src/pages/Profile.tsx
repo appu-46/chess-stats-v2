@@ -1,8 +1,7 @@
 import styled from 'styled-components'
-import { FaChessPawn, FaGlobe, FaTwitch } from 'react-icons/fa'
+import { FaChessPawn, FaGlobe, FaTrophy, FaTwitch } from 'react-icons/fa'
 import { MdDateRange, MdUpdate } from 'react-icons/md'
 import { HiUserGroup } from 'react-icons/hi'
-import { FaLocationDot } from 'react-icons/fa6'
 import { TbPremiumRights } from 'react-icons/tb'
 import { useParams } from '@tanstack/react-router'
 import useProfile from '../hooks/useProfile'
@@ -52,7 +51,7 @@ const StyledOnline = styled.h2`
   font-weight: 200;
 `
 const StyledHeader = styled.div`
-  margin: 2rem 0rem 2rem 0rem;
+  margin: 1rem 0rem 1rem 0rem;
   display: flex;
   flex-direction: column;
   justify-items: center;
@@ -83,12 +82,11 @@ function Profile() {
 
   const {
     avatar: playerAvatar = null,
-    player_id = null,
+    // player_id = null,
     url = null,
     name: playerName = null,
     title = null,
     followers = null,
-    location = null,
     last_online = null,
     joined = null,
     status = null,
@@ -155,7 +153,7 @@ function Profile() {
           </InfoBlock>
         )}
         <InfoBlock>
-          <FaLocationDot /> {location}
+          <FaTrophy /> {league}
         </InfoBlock>
       </StyledProfile>
     </StyledContainer>

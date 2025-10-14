@@ -3,12 +3,13 @@ import { FaMedal } from 'react-icons/fa'
 import { LuRefreshCw } from 'react-icons/lu'
 import { useParams } from '@tanstack/react-router'
 import useStats from '../hooks/useStats'
+import useGames from '../hooks/useGames'
+import AreaGraph from '../ui/AreaGraph'
 import Spinner from '../ui/Spinner'
 import { RecordPercentageCalc } from '../helpers/RecordPercentageCalc'
 import PieGraph from '../ui/PieGraph'
 import StatsBlock from '../ui/StatsBlock'
 import FloatingTab from '../ui/FloatingTab'
-import { useTabContext } from '../contexts/TabContext'
 import { StyledContainer } from './Profile'
 
 const StyledStats = styled.div`
@@ -27,12 +28,20 @@ const Title = styled.h2`
 `
 
 function Stats() {
-  // const navigate = useNavigate()
   const { username } = useParams({ from: '/stats/$username' })
-  const { data: stats, isPending: isFetchingStats } = useStats(username)
-  const { setActiveTab } = useTabContext()
+  const {
+    data: stats,
+    isPending: isFetchingStats,
+    error: errorStats,
+  } = useStats(username)
 
-  console.log(stats)
+  const {
+    data: games,
+    isPending: isFetchingGames,
+    // error: errorGames,
+  } = useGames(username, 2023, 1)
+  console.log(games)
+
   const {
     chess960_daily = null,
     chess_blitz = null,
@@ -55,7 +64,8 @@ function Stats() {
     fide,
   )
 
-  if (isFetchingStats) return <Spinner size="large" />
+  if (errorStats) return <p>{`${errorStats.message}`}</p>
+  if (isFetchingStats || isFetchingGames) return <Spinner size="large" />
 
   const recordBlitz = chess_blitz?.record
     ? RecordPercentageCalc(chess_blitz.record)
@@ -71,43 +81,49 @@ function Stats() {
     : null
 
   return (
-    <StyledContainer>
-      <FloatingTab />
-      <StyledStats>
-        <StatsBlock>
-          <Title>Rapid Rating: </Title>
-          <FaMedal />: {chess_rapid?.last?.rating}
-          <LuRefreshCw />: {chess_rapid?.last?.rating}
-          <div style={{ width: '350px', height: '250px' }}>
-            <PieGraph record={recordRapid} />
-          </div>
-        </StatsBlock>
-        <StatsBlock>
-          <Title>Blitz Rating: </Title>
-          <FaMedal />: {chess_blitz?.best?.rating}
-          <LuRefreshCw />: {chess_blitz?.last?.rating}
-          <div style={{ width: '350px', height: '250px' }}>
-            <PieGraph record={recordBlitz} />
-          </div>
-        </StatsBlock>
-        <StatsBlock>
-          <Title>Bullet Rating: </Title>
-          <FaMedal />: {chess_bullet?.best?.rating}
-          <LuRefreshCw />: {chess_bullet?.last?.rating}
-          <div style={{ width: '350px', height: '250px' }}>
-            <PieGraph record={recordBullet} />
-          </div>
-        </StatsBlock>{' '}
-        <StatsBlock>
-          <Title>Daily Rating: </Title>
-          <FaMedal />: {chess_daily?.best?.rating}
-          <LuRefreshCw />: {chess_daily?.last?.rating}
-          <div style={{ width: '350px', height: '250px' }}>
-            <PieGraph record={recordDaily} />
-          </div>
-        </StatsBlock>
-      </StyledStats>
-    </StyledContainer>
+    <>
+      <StyledContainer>
+        <FloatingTab />
+        <StyledStats>
+          <StatsBlock>
+            <Title>Rapid Rating: </Title>
+            <FaMedal />: {chess_rapid?.last?.rating}
+            <LuRefreshCw />: {chess_rapid?.last?.rating}
+            <div style={{ width: '350px', height: '250px' }}>
+              <PieGraph record={recordRapid} />
+            </div>
+          </StatsBlock>
+          <StatsBlock>
+            <Title>Blitz Rating: </Title>
+            <FaMedal />: {chess_blitz?.best?.rating}
+            <LuRefreshCw />: {chess_blitz?.last?.rating}
+            <div style={{ width: '350px', height: '250px' }}>
+              <PieGraph record={recordBlitz} />
+            </div>
+          </StatsBlock>
+          <StatsBlock>
+            <Title>Bullet Rating: </Title>
+            <FaMedal />: {chess_bullet?.best?.rating}
+            <LuRefreshCw />: {chess_bullet?.last?.rating}
+            <div style={{ width: '350px', height: '250px' }}>
+              <PieGraph record={recordBullet} />
+            </div>
+          </StatsBlock>
+          <StatsBlock>
+            <Title>Daily Rating: </Title>
+            <FaMedal />: {chess_daily?.best?.rating}
+            <LuRefreshCw />: {chess_daily?.last?.rating}
+            <div style={{ width: '350px', height: '250px' }}>
+              <PieGraph record={recordDaily} />
+            </div>
+          </StatsBlock>
+        </StyledStats>
+      </StyledContainer>
+      <>
+        {/* <Title> Area Chart: </Title> */}
+        <AreaGraph />
+      </>
+    </>
   )
 }
 

@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { apiStats } from '../services/apiStats'
 
 function useStats(username?: string) {
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error, isSuccess } = useQuery({
     queryKey: ['stats', username],
     queryFn: () => apiStats(username!),
   })
 
-  return { data, isPending, error }
+  return { data, isPending, error, isSuccess }
 }
 
 export default useStats

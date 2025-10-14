@@ -1,5 +1,5 @@
 .root {
-  margin: 1rem 0rem 1rem 0rem;
+  margin: 0.5rem 0rem 0.5rem 0rem;
   position: relative;
   background-color: light-dark(
     var(--mantine-color-gray-2),
