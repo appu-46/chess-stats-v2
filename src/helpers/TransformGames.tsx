@@ -1,4 +1,5 @@
 type Game = {
+  url: string
   timecontrol: number
   black: { username: string; result: string }
   white: { username: string; result: string }
@@ -21,6 +22,7 @@ export function transformGames(input: GameResponse | null, userame: string) {
     pgn: game.pgn,
     timecontrol: game.timecontrol,
     datetime: game.end_time,
+    gameURL: game.url,
   }))
 
   return { gamesData }
