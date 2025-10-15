@@ -3,7 +3,9 @@ import { FaMedal } from 'react-icons/fa'
 import { LuRefreshCw } from 'react-icons/lu'
 import { useParams } from '@tanstack/react-router'
 import useStats from '../hooks/useStats'
-import useGames from '../hooks/useGames'
+// import useGames from '../hooks/useGames'
+import useProfile from '../hooks/useProfile'
+import useGames90days from '../hooks/useGames90days'
 import AreaGraph from '../ui/AreaGraph'
 import Spinner from '../ui/Spinner'
 import { RecordPercentageCalc } from '../helpers/RecordPercentageCalc'
@@ -23,7 +25,7 @@ const StyledStats = styled.div`
   gap: 1rem;
 `
 const Title = styled.h2`
-  font-size: 22px;
+  font-size: 34px;
   color: 'blue.4';
 `
 
@@ -35,13 +37,17 @@ function Stats() {
     error: errorStats,
   } = useStats(username)
 
+  const { data: profile, isPending: isFetchingProfile } = useProfile(username)
+
+  const { name: playerName = null } = profile ?? {}
+
   const {
-    data: games,
+    transformedData: games,
     isPending: isFetchingGames,
     // error: errorGames,
-  } = useGames(username, 2023, 1)
-  console.log(games)
+  } = useGames90days(username)
 
+  console.log(games)
   const {
     chess960_daily = null,
     chess_blitz = null,
@@ -53,19 +59,9 @@ function Stats() {
     fide = null,
   } = stats ?? {}
 
-  console.log(
-    chess960_daily,
-    chess_blitz,
-    chess_bullet,
-    chess_daily,
-    chess_rapid,
-    puzzle_rush,
-    tactics,
-    fide,
-  )
-
   if (errorStats) return <p>{`${errorStats.message}`}</p>
-  if (isFetchingStats || isFetchingGames) return <Spinner size="large" />
+  if (isFetchingStats || isFetchingGames || isFetchingProfile)
+    return <Spinner size="large" />
 
   const recordBlitz = chess_blitz?.record
     ? RecordPercentageCalc(chess_blitz.record)
@@ -84,14 +80,15 @@ function Stats() {
     <>
       <StyledContainer>
         <FloatingTab />
+        <Title>{`${playerName}'s Stats`}</Title>
         <StyledStats>
           <StatsBlock>
             <Title>Rapid Rating: </Title>
-            <FaMedal />: {chess_rapid?.last?.rating}
+            <FaMedal />: {chess_rapid?.best?.rating}
             <LuRefreshCw />: {chess_rapid?.last?.rating}
-            <div style={{ width: '350px', height: '250px' }}>
+            <>
               <PieGraph record={recordRapid} />
-            </div>
+            </>
           </StatsBlock>
           <StatsBlock>
             <Title>Blitz Rating: </Title>

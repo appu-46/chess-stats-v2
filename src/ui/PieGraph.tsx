@@ -142,7 +142,7 @@ export default function PieGraph({ record }: PieGraphProps) {
     { name: 'Draws', value: percentageDraws },
   ]
   return (
-    <>
+    <div style={{ width: '350px', height: '250px' }}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart width={400} height={400}>
           <Pie
@@ -171,6 +171,6 @@ export default function PieGraph({ record }: PieGraphProps) {
           <Legend align="right" layout="vertical" verticalAlign="middle" />
         </PieChart>
       </ResponsiveContainer>
-    </>
+    </div>
   )
 }

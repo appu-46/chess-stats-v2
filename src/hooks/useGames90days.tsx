@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiGames } from '../services/apiStats'
+import { apiGamesLast90Days } from '../services/apiStats'
 import { transformGames } from '../helpers/TransformGames'
 // import { Chess } from 'chess.js'
 
-function useGames(username: string, year: number, month: number) {
+function useGames90days(username: string) {
   const { data, isPending, error } = useQuery({
-    queryKey: ['games', username, month, year],
-    queryFn: () => apiGames(username, year, month),
+    queryKey: ['games', username],
+    queryFn: () => apiGamesLast90Days(username),
   })
 
   const transformedData = transformGames(data, username)
@@ -14,4 +14,4 @@ function useGames(username: string, year: number, month: number) {
   return { transformedData, isPending, error }
 }
 
-export default useGames
+export default useGames90days
