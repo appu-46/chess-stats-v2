@@ -7,6 +7,7 @@ import useStats from '../hooks/useStats'
 import useProfile from '../hooks/useProfile'
 import useGames90days from '../hooks/useGames90days'
 import AreaGraph from '../ui/AreaGraph'
+import { gamesDateWise } from '../helpers/gamesDateWise'
 import Spinner from '../ui/Spinner'
 import { RecordPercentageCalc } from '../helpers/RecordPercentageCalc'
 import PieGraph from '../ui/PieGraph'
@@ -47,7 +48,8 @@ function Stats() {
     // error: errorGames,
   } = useGames90days(username)
 
-  console.log(games)
+  const groupedByDate = gamesDateWise(games?.standardgamesData)
+
   const {
     chess960_daily = null,
     chess_blitz = null,
@@ -116,10 +118,10 @@ function Stats() {
           </StatsBlock>
         </StyledStats>
       </StyledContainer>
-      <>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
         {/* <Title> Area Chart: </Title> */}
-        <AreaGraph />
-      </>
+        <AreaGraph data={groupedByDate} />
+      </div>
     </>
   )
 }
