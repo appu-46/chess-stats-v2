@@ -45,8 +45,11 @@ export function transformGames(input: GameResponse | null, username: string) {
         WhiteElo,
         EndDate: gameEndDate,
         TimeControl,
+        Termination,
         Result,
       } = headers
+
+      console.log(headers)
 
       const isWhite = whitePlayer.toLowerCase() === playusername.toLowerCase()
 
@@ -69,7 +72,8 @@ export function transformGames(input: GameResponse | null, username: string) {
         BlackElo,
         WhiteElo,
         TimeControl,
-        moveCount: chess.history().length,
+        Termination,
+        moveCount: Math.round(chess.history().length / 2),
         // pgn: game.pgn,
         PlayerELO: isWhite ? WhiteElo : BlackElo,
         url: game.url,

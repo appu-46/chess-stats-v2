@@ -22,6 +22,8 @@ import Profile from './pages/Profile.tsx'
 import Header from './components/Header.tsx'
 import { TabProvider } from './contexts/TabContext.tsx'
 import Footer from './components/Footer.tsx'
+import DashBoard from './pages/DashBoard.tsx'
+import Games from './pages/Games.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +63,23 @@ const profileRoute = createRoute({
   component: Profile,
 })
 
+const dashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/dashboard/$username',
+  component: DashBoard,
+})
+
+const gamesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/games/$username',
+  component: Games,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      date: search.date as string | undefined,
+    }
+  },
+})
+
 // const theme = useMantineTheme()
 
 const theme = createTheme({
@@ -72,7 +91,13 @@ const theme = createTheme({
   },
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, statRoute, profileRoute])
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  statRoute,
+  profileRoute,
+  dashboardRoute,
+  gamesRoute,
+])
 
 const router = createRouter({
   routeTree,

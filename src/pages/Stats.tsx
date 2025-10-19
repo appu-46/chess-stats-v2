@@ -1,13 +1,10 @@
 import styled from 'styled-components'
+import { useParams } from '@tanstack/react-router'
 import { FaMedal } from 'react-icons/fa'
 import { LuRefreshCw } from 'react-icons/lu'
-import { useParams } from '@tanstack/react-router'
 import useStats from '../hooks/useStats'
 // import useGames from '../hooks/useGames'
 import useProfile from '../hooks/useProfile'
-import useGames90days from '../hooks/useGames90days'
-import AreaGraph from '../ui/AreaGraph'
-import { gamesDateWise } from '../helpers/gamesDateWise'
 import Spinner from '../ui/Spinner'
 import { RecordPercentageCalc } from '../helpers/RecordPercentageCalc'
 import PieGraph from '../ui/PieGraph'
@@ -32,6 +29,7 @@ const Title = styled.h2`
 
 function Stats() {
   const { username } = useParams({ from: '/stats/$username' })
+
   const {
     data: stats,
     isPending: isFetchingStats,
@@ -43,27 +41,18 @@ function Stats() {
   const { name: playerName = null } = profile ?? {}
 
   const {
-    transformedData: games,
-    isPending: isFetchingGames,
-    // error: errorGames,
-  } = useGames90days(username)
-
-  const groupedByDate = gamesDateWise(games?.standardgamesData)
-
-  const {
-    chess960_daily = null,
+    // chess960_daily = null,
     chess_blitz = null,
     chess_bullet = null,
     chess_daily = null,
     chess_rapid = null,
-    puzzle_rush = null,
-    tactics = null,
-    fide = null,
+    // puzzle_rush = null,
+    // tactics = null,
+    // fide = null,
   } = stats ?? {}
 
   if (errorStats) return <p>{`${errorStats.message}`}</p>
-  if (isFetchingStats || isFetchingGames || isFetchingProfile)
-    return <Spinner size="large" />
+  if (isFetchingStats || isFetchingProfile) return <Spinner size="large" />
 
   const recordBlitz = chess_blitz?.record
     ? RecordPercentageCalc(chess_blitz.record)
@@ -118,10 +107,6 @@ function Stats() {
           </StatsBlock>
         </StyledStats>
       </StyledContainer>
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        {/* <Title> Area Chart: </Title> */}
-        <AreaGraph data={groupedByDate} />
-      </div>
     </>
   )
 }

@@ -13,3 +13,24 @@ export function formatDate(ts: number): string {
 
   return result
 }
+
+export function queryFormatDate(ts: string) {
+  const date = ts.replaceAll('.', '-')
+  return date
+}
+
+export function formatGameDateList(dateStr: string): string {
+  const [datePart, timePart] = dateStr.split(' ')
+  const [day, month, year] = datePart.split('-')
+
+  const fullYear = `20${year}`
+  const date = new Date(`${fullYear}-${month}-${day}`)
+
+  const formattedDate = date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+
+  return `${formattedDate} ${timePart}`
+}

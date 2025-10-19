@@ -6,5 +6,5 @@ export function gamesDateWise(games: any) {
     acc[date].push(game)
     return acc
   }, {})
-  return { groupedByDate }
+  return groupedByDate
 }
