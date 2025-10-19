@@ -1,11 +1,12 @@
 import styled from 'styled-components'
-import { useLocation, useParams } from '@tanstack/react-router'
+import { useLocation, useNavigate, useParams } from '@tanstack/react-router'
 import { Title } from '@mantine/core'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
 import { formatGameDateList, queryFormatDate } from '../helpers/DateFormat'
+import Button from '../ui/Button'
 
-export const StyledContainer = styled.div`
+const StyledContainer = styled.div`
   display: grid;
   min-width: 50rem;
   justify-items: center;
@@ -45,7 +46,6 @@ const StyledGamesList = styled.div`
   flex-direction: column;
   border-radius: 0rem 0rem 1rem 1rem;
 `
-
 const StyledGameCard = styled.div<{ result: 'win' | 'loss' | 'draw' }>`
   display: grid;
   grid-template-columns: 1.3fr 0.5fr 1.3fr 1fr 1fr;
@@ -83,13 +83,11 @@ const StyledGameCard = styled.div<{ result: 'win' | 'loss' | 'draw' }>`
   &:last-child {
   }
 `
-
 const PlayersColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 `
-
 const PlayerRow = styled.div<{ isWinner?: boolean }>`
   display: flex;
   align-items: center;
@@ -98,7 +96,6 @@ const PlayerRow = styled.div<{ isWinner?: boolean }>`
   font-weight: ${(props) => (props.isWinner ? '600' : '400')};
   font-size: 1.24rem;
 `
-
 const ColorIndicator = styled.div<{ color: 'white' | 'black' }>`
   width: 15px;
   height: 15px;
@@ -110,7 +107,6 @@ const ColorIndicator = styled.div<{ color: 'white' | 'black' }>`
       : '1px solid rgba(255, 255, 255, 0.5)'};
   flex-shrink: 0;
 `
-
 const ResultBadge = styled.div<{ result: 'win' | 'loss' | 'draw' }>`
   display: flex;
   align-items: center;
@@ -123,20 +119,17 @@ const ResultBadge = styled.div<{ result: 'win' | 'loss' | 'draw' }>`
     return '#f0ad4e'
   }};
 `
-
 const Stat = styled.div`
   padding-left: 4rem;
   font-size: 1.3rem;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
 `
-
 const DateText = styled.div`
   font-size: 1.12rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.75);
 `
-
 interface StandardGame {
   BlackElo: string
   PlayerELO: string
@@ -158,6 +151,7 @@ interface LocationState {
 }
 
 function Games() {
+  const navigate = useNavigate()
   const { username } = useParams({ from: '/games/$username' })
   const location = useLocation()
   const games = (location.state as LocationState).games
@@ -167,6 +161,14 @@ function Games() {
     isPending: isFetchingProfile,
     error: errorProfile,
   } = useProfile(username)
+
+  if (!username || !games || games.length === 0) {
+    return (
+      <StyledContainer>
+        <p>No games selected. Please select a date from the dashboard.</p>
+      </StyledContainer>
+    )
+  }
 
   const playerName = profile?.name
 
@@ -180,12 +182,21 @@ function Games() {
       </StyledContainer>
     )
   }
+  function handleBackNavigation() {
+    navigate({ to: '/dashboard/$username', params: { username } })
+  }
 
-  // const selectedDateGames = date ? transformGames[date] : null
-
+  const gameDate = games[0]?.gameEndDate || ''
   return (
     <StyledContainer>
-      <Title>{`Games for ${playerName} on ${queryFormatDate(games?.at(1).gameEndDate)}`}</Title>
+      <Title>
+        <Button onClick={() => handleBackNavigation()}>
+          {' '}
+          &larr; Back to Dashboard
+        </Button>
+        {`            `}
+        {`Games for ${playerName} on ${queryFormatDate(gameDate)}`}
+      </Title>
       <StyledGamesHeader>
         <span>Players</span>
         <span>Result</span>
@@ -235,8 +246,12 @@ function Games() {
               >
                 {game.Termination}
               </ResultBadge>
-              <Stat>{game.moveCount}</Stat>
-              <DateText>{formatGameDateList(game.date_time)}</DateText>
+              <Stat>
+                <span>{game.moveCount}</span>
+              </Stat>
+              <DateText>
+                <span>{formatGameDateList(game.date_time)}</span>
+              </DateText>
             </StyledGameCard>
           </a>
         ))}

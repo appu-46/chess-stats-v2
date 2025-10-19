@@ -36,29 +36,8 @@ const StyledGames = styled.div`
   }
 `
 
-interface StandardGame {
-  BlackElo: string
-  PlayerELO: string
-  Result: string
-  TimeControl: string
-  WhiteElo: string
-  blackPlayer: string
-  date_time: string
-  gameEndDate: string
-  moveCount: number
-  resultForPlayer: string
-  time_class: string
-  url: string
-  whitePlayer: string
-}
-
-interface GroupedGames {
-  [date: string]: Array<StandardGame>
-}
-
 function DashBoard() {
   const { username } = useParams({ from: '/dashboard/$username' })
-  // const searchParams = useSearch({ from: '/games/$username' })
 
   const {
     data: profile,
@@ -67,8 +46,6 @@ function DashBoard() {
   } = useProfile(username)
 
   const playerName = profile?.name
-
-  // const date = searchParams.date
 
   const {
     data: games,
@@ -87,18 +64,12 @@ function DashBoard() {
     )
   }
 
-  // const result = gamesDateWise(games?.standardgamesData) || {
-  //   groupedByDate: {},
-  // }
   const transformedData = transformGames(games, username)
-
-  console.log(transformedData)
-
   const result = gamesDateWise(transformedData?.standardgamesData)
 
   return (
     <StyledContainer>
-      <h1>{`Games for ${playerName}`}</h1>
+      <h1>{`Games of ${playerName}`}</h1>
       <StyledGames>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <AreaGraph data={result} />
