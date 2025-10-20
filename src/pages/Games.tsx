@@ -1,10 +1,12 @@
 import styled from 'styled-components'
 import { useLocation, useNavigate, useParams } from '@tanstack/react-router'
 import { Title } from '@mantine/core'
+import { FaArrowLeftLong } from 'react-icons/fa6'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
 import { formatGameDateList, queryFormatDate } from '../helpers/DateFormat'
 import Button from '../ui/Button'
+import useGames30days from '../hooks/useGames30days'
 
 const StyledContainer = styled.div`
   display: grid;
@@ -12,7 +14,13 @@ const StyledContainer = styled.div`
   justify-items: center;
   justify-content: center;
 `
-
+const TitleContainer = styled.div`
+  display: flex;
+  align-content: center;
+  justify-content: space-between;
+  align-items: center;
+  width: 69rem;
+`
 const StyledGamesHeader = styled.div`
   display: grid;
   margin-top: 1rem;
@@ -64,7 +72,7 @@ const StyledGameCard = styled.div<{ result: 'win' | 'loss' | 'draw' }>`
     }};
   // border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s !important;
   align-items: center;
 
   &:hover {
@@ -165,7 +173,7 @@ function Games() {
   if (!username || !games || games.length === 0) {
     return (
       <StyledContainer>
-        <p>No games selected. Please select a date from the dashboard.</p>
+        <span>No games selected. Please select a date from the dashboard.</span>
       </StyledContainer>
     )
   }
@@ -189,14 +197,14 @@ function Games() {
   const gameDate = games[0]?.gameEndDate || ''
   return (
     <StyledContainer>
-      <Title>
+      <TitleContainer>
         <Button onClick={() => handleBackNavigation()}>
-          {' '}
-          &larr; Back to Dashboard
+          <FaArrowLeftLong />
         </Button>
-        {`            `}
-        {`Games for ${playerName} on ${queryFormatDate(gameDate)}`}
-      </Title>
+        <Title style={{ fontSize: '32px', paddingRight: '12rem' }}>
+          {`Games for ${playerName} on ${queryFormatDate(gameDate)}`}
+        </Title>
+      </TitleContainer>
       <StyledGamesHeader>
         <span>Players</span>
         <span>Result</span>

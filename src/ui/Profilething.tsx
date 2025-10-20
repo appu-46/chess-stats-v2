@@ -6,7 +6,8 @@ const StyledProfilething = styled.div`
   grid-template-rows: auto auto auto;
   align-items: center;
   gap: 2rem;
-  // min-height: 15rem;
+  min-height: 15rem;
+  align-content: center;
 `
 
 export default StyledProfilething

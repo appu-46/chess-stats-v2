@@ -5,7 +5,7 @@ import Input from '../ui/Input'
 import Button from '../ui/Button'
 import Form from '../ui/Form'
 import ErrorMessage from '../ui/ErrorMessage'
-import FloatingTab from '../ui/FloatingTab'
+// import FloatingTab from '../ui/FloatingTab'
 import { useTabContext } from '../contexts/TabContext'
 
 const StyledLogin = styled.div`
@@ -43,7 +43,7 @@ function Login() {
 
   return (
     <StyledLogin>
-      <FloatingTab />
+      {/* <FloatingTab /> */}
       <Form onSubmit={handleSubmit(onSubmit)}>
         <Input
           placeholder="Enter your username"

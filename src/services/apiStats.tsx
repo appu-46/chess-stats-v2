@@ -27,16 +27,18 @@ export async function apiGames(username: string, year: number, month: number) {
   return data
 }
 
-export async function apiGamesLast90Days(username: string) {
+export async function apiGamesLast30Days(username: string) {
   const date = new Date()
-  date.setDate(date.getDate() - 90)
+  date.setDate(date.getDate() - 30)
 
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
 
   const response = await fetch(`${API_URL}${username}/games/${year}/${month}`)
 
-  if (!response.ok) throw new Error(`Failed to fetch the Games!`)
+  if (!response.ok) {
+    throw (new Error(`Failed to fetch the Games`), console.error(response))
+  }
 
   const data = response.json()
   return data

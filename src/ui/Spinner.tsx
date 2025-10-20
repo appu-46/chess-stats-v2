@@ -18,7 +18,12 @@ function Spinner({
   return (
     <div
       className={`${sizeClasses[size]} border-gray-200 border-t-transparent rounded-full animate-spin ${className}`}
-      style={{ borderTopColor: color }}
+      style={{
+        borderTopColor: color,
+        display: 'flex',
+        justifyContent: 'center',
+        alignContent: 'center',
+      }}
       role="status"
       aria-label="Loading"
     >

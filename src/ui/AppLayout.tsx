@@ -7,6 +7,39 @@ const Container = styled.div`
   align-item: center;
 `
 
+export const StyledAppLayout = styled.div`
+  display: grid;
+  grid-template-areas:
+    'sidebar header'
+    'sidebar main'
+    'footer footer';
+  grid-template-columns: 150px 1fr; /* sidebar width + main content */
+  grid-template-rows: auto 1fr auto; /* header height, content fills, footer height */
+  min-height: 100vh;
+
+  /* optional: gap between sidebar and content */
+  gap: 0;
+
+  /* make content scrollable if needed */
+  overflow: hidden;
+
+  > header {
+    grid-area: header;
+  }
+
+  > nav {
+    grid-area: sidebar;
+  }
+
+  > main {
+    grid-area: main;
+    overflow-y: auto; /* scrollable main content */
+  }
+
+  > footer {
+    grid-area: footer;
+  }
+`
 function AppLayout() {
   return (
     <Container>

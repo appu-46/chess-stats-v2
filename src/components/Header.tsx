@@ -4,7 +4,7 @@ import '@mantine/core/styles.css'
 import styled from 'styled-components'
 import DarkModeToggle from '../ui/DarkModeToggle'
 
-const StyledHeader = styled.div`
+const StyledHeader = styled.header`
   margin: 2rem 0rem 2rem 0rem;
   display: flex;
   flex-direction: row;
@@ -13,7 +13,7 @@ const StyledHeader = styled.div`
   max-width: 120rem;
 `
 
-const Logo = styled.img`
+export const Logo = styled.img`
   transition:
     opacity 0.3s ease,
     filter 0.3s ease,

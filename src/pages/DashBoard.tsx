@@ -1,8 +1,8 @@
 import styled from 'styled-components'
 import { useParams } from '@tanstack/react-router'
 import useProfile from '../hooks/useProfile'
+import useGames30days from '../hooks/useGames30days'
 import { transformGames } from '../helpers/TransformGames'
-import useGames90days from '../hooks/useGames90days'
 import { gamesDateWise } from '../helpers/gamesDateWise'
 import AreaGraph from '../ui/AreaGraph'
 import Spinner from '../ui/Spinner'
@@ -44,14 +44,13 @@ function DashBoard() {
     isPending: isFetchingProfile,
     error: errorProfile,
   } = useProfile(username)
-
-  const playerName = profile?.name
-
   const {
     data: games,
     isPending: isFetchingGames,
     error: errorGames,
-  } = useGames90days(username)
+  } = useGames30days(username)
+
+  const playerName = profile?.name
 
   if (isFetchingGames || isFetchingProfile) return <Spinner />
 
@@ -66,6 +65,8 @@ function DashBoard() {
 
   const transformedData = transformGames(games, username)
   const result = gamesDateWise(transformedData?.standardgamesData)
+
+  console.log(result)
 
   return (
     <StyledContainer>

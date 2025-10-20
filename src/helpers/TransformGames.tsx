@@ -49,8 +49,6 @@ export function transformGames(input: GameResponse | null, username: string) {
         Result,
       } = headers
 
-      console.log(headers)
-
       const isWhite = whitePlayer.toLowerCase() === playusername.toLowerCase()
 
       // Parse result

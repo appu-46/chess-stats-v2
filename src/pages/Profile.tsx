@@ -10,7 +10,6 @@ import PlayerAvatar from '../ui/PlayerAvatar'
 import InfoBlock from '../ui/InfoBlock'
 import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
-import FloatingTab from '../ui/FloatingTab'
 import StyledProfilething from '../ui/Profilething'
 
 export const StyledContainer = styled.div`
@@ -21,10 +20,20 @@ export const StyledContainer = styled.div`
   justify-items: center;
   justify-content: center;
 `
+export const StyledProfiler = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 2px 30rem;
+  align-items: ceter;
+  min-width: 50rem;
+  justify-items: center;
+  justify-content: center;
+`
 const StyledProfile = styled.div`
   display: grid;
-  grid-template-columns: 20rem 20rem;
+  grid-template-columns: 20rem;
+  grid-template-rows: 5rem 5rem 5rem;
   grid-gap: 1rem;
+  align-content: center;
   min-width: 50rem;
   justify-items: center;
   justify-content: center;
@@ -59,10 +68,10 @@ const StyledHeader = styled.div`
 `
 
 const Divider = styled.hr`
-  border: none;
-  border-top: 1px solid #ccc;
-  margin: 1rem 0;
-  width: 100%;
+  width: 2px;
+  background-color: white; /* or use theme color */
+  height: 100%;
+  opacity: 0.2;
 `
 
 const TitleBG = styled.span`
@@ -96,8 +105,7 @@ function Profile() {
   } = profile ?? {}
 
   return (
-    <StyledContainer>
-      <FloatingTab />
+    <StyledProfiler>
       <StyledProfilething>
         {playerAvatar === null ? (
           <FaChessPawn size="14rem" />
@@ -145,18 +153,18 @@ function Profile() {
           <TbPremiumRights /> {status?.toUpperCase()}
         </InfoBlock>
         {is_streamer === true && (
-          <InfoBlock>
-            <FaTwitch />{' '}
-            <a href={twitch_url} target="blank">
+          <a href={twitch_url} target="blank">
+            <InfoBlock>
+              <FaTwitch />{' '}
               {twitch_url === null ? 'No channel found' : twitch_url}
-            </a>
-          </InfoBlock>
+            </InfoBlock>
+          </a>
         )}
         <InfoBlock>
           <FaTrophy /> {league}
         </InfoBlock>
       </StyledProfile>
-    </StyledContainer>
+    </StyledProfiler>
   )
 }
 

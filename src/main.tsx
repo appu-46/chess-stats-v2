@@ -24,6 +24,8 @@ import { TabProvider } from './contexts/TabContext.tsx'
 import Footer from './components/Footer.tsx'
 import DashBoard from './pages/DashBoard.tsx'
 import Games from './pages/Games.tsx'
+import SideBar from './components/SideBar.tsx'
+import { StyledAppLayout } from './ui/AppLayout.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,10 +38,13 @@ const queryClient = new QueryClient({
 const rootRoute = createRootRoute({
   component: () => (
     <>
-      <Header />
-      <Outlet />
-      <Footer />
-      <TanStackRouterDevtools />
+      <StyledAppLayout>
+        <Header />
+        <SideBar />
+        <Outlet />
+        <Footer />
+        <TanStackRouterDevtools />
+      </StyledAppLayout>
     </>
   ),
   notFoundComponent: PageNotFound,
