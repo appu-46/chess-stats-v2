@@ -10,7 +10,7 @@ import {
 const RADIAN = Math.PI / 180
 
 // const COLORS = ['#77DD77', '#FF6961', '#CFCFC4']
-const COLORS = ['#00FF00', '#DC143C', '#F0E68C']
+const COLORS = ['#2ecc71', '#e74c3c', '#f1c40f']
 /*
 type Coordinate = {
   x: number
