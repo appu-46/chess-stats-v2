@@ -124,7 +124,9 @@ const renderCustomizedLabel = ({
       x={x}
       y={y}
       fill="#111"
-      fontSize={9.5}
+      fontSize={15}
+      fontWeight={400}
+      stroke="#111"
       textAnchor={x > cx ? 'start' : 'end'}
       dominantBaseline="central"
     >
@@ -151,7 +153,7 @@ export default function PieGraph({ record }: PieGraphProps) {
             cy="50%"
             labelLine={false}
             innerRadius={60}
-            outerRadius={90}
+            outerRadius={100}
             paddingAngle={4.6}
             legendType="circle"
             dataKey="value"

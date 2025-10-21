@@ -15,7 +15,7 @@ const StyledContainer = styled.div`
   display: grid;
   grid-gap: 0.25rem;
   align-items: center;
-  min-width: 50rem;
+  max-width: 83rem;
   justify-items: center;
   justify-content: center;
 `
@@ -26,14 +26,19 @@ const StyledStats = styled.div`
   align-items: center;
   max-width: 100rem;
   justify-content: center;
-  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(20.5rem, 1fr));
   justify-items: center;
   gap: 1.5rem;
 `
-
-const Title = styled.h2`
-  font-size: 34px;
+const TitleMain = styled.h2`
+  font-size: 42px;
   text-align: center;
+  font-weight: 700;
+`
+const Title = styled.h2`
+  font-size: 28px;
+  text-align: center;
+  font-weight: 500;
 `
 const Divider = styled.div`
   width: 80%;
@@ -47,7 +52,7 @@ const TitleBadge = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: 15rem;
+  width: 12rem;
 `
 const Badge = styled.div`
   display: flex;
@@ -80,7 +85,7 @@ function Stats() {
 
   return (
     <StyledContainer>
-      <Title>{`${playerName}'s Stats`}</Title>
+      <TitleMain>{`${playerName}'s Stats`}</TitleMain>
 
       <StyledStats>
         {timeControls.map(({ key, label, icon }) => {

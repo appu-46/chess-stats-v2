@@ -1,10 +1,13 @@
-export function gamesDateWise(games: any) {
-  if (!games) return
-  const groupedByDate = games.reduce((acc: any, game: any) => {
+export function gamesDateWise(games: Array<any> | undefined) {
+  if (!games?.length) return {}
+
+  const groupedByDate: Record<string, Array<any>> = {}
+
+  for (const game of games) {
     const date = game.gameEndDate
-    if (!acc[date]) acc[date] = []
-    acc[date].push(game)
-    return acc
-  }, {})
+    // Use ||= to fix ESLint error - cleaner than if-else
+    ;(groupedByDate[date] ||= []).push(game)
+  }
+
   return groupedByDate
 }

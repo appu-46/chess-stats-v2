@@ -56,7 +56,6 @@ function SideBar() {
     .filter(Boolean)[0]
 
   const [active, setActive] = useState(pages.indexOf(currentParentPath))
-  console.log(currentParentPath)
   const isOnHomePage = currentPath === '/'
   const { username } = isOnHomePage
     ? ''
@@ -96,11 +95,6 @@ function SideBar() {
     <nav className={classes.navbar}>
       <Center>
         <GiHamburgerMenu />
-        {/* <Logo
-          src={colorScheme === 'dark' ? '/knight-dark.svg' : '/knight.svg'}
-          alt="webapp logo"
-          onClick={() => handleClick()}
-        /> */}
       </Center>
 
       <div className={classes.navbarMain}>
@@ -108,11 +102,6 @@ function SideBar() {
           {links}
         </Stack>
       </div>
-
-      {/* <Stack justify="center" gap={0}>
-        <NavbarLink icon={IconSwitchHorizontal} label="Change account" />
-        <NavbarLink icon={IconLogout} label="Logout" />
-      </Stack> */}
     </nav>
   )
 }

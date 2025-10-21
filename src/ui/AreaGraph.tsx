@@ -9,27 +9,31 @@ import {
 } from 'recharts'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { queryFormatDate } from '../helpers/DateFormat'
+import { TitleMain } from '../pages/DashBoard'
 
-type Game = {
-  BlackElo: string
-  PlayerELO: string
-  Result: string
-  TimeControl: string
-  WhiteElo: string
-  blackPlayer: string
-  date_time: string
-  gameEndDate: string
-  moveCount: number
-  resultForPlayer: string
-  time_class: string
-  url: string
-  whitePlayer: string
-}
+type Game =
+  | {
+      BlackElo: string
+      PlayerELO: string
+      Result: string
+      TimeControl: string
+      WhiteElo: string
+      blackPlayer: string
+      date_time: string
+      gameEndDate: string
+      moveCount: number
+      resultForPlayer: string
+      time_class: string
+      url: string
+      whitePlayer: string
+    }
+  | {}
 
 type GroupedByDate = Record<string, Array<Game>>
 
 function AreaGraph({ data }: { data?: GroupedByDate }) {
-  if (!data) return
+  if (Object.keys(data)[0] === undefined)
+    return <TitleMain> No data available</TitleMain>
 
   const { username } = useParams({ from: '/dashboard/$username' })
   const navigate = useNavigate()
