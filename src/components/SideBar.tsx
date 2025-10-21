@@ -6,13 +6,7 @@ import { FaChartArea } from 'react-icons/fa'
 import { TiHome } from 'react-icons/ti'
 import { GiHamburgerMenu } from 'react-icons/gi'
 import { IoStatsChart } from 'react-icons/io5'
-import {
-  Center,
-  Stack,
-  Tooltip,
-  UnstyledButton,
-  useMantineColorScheme,
-} from '@mantine/core'
+import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core'
 // import { MantineLogo } from '@mantinex/mantine-logo';
 import classes from '../css/NavbarMinimal.module.css'
 
@@ -57,29 +51,32 @@ function SideBar() {
 
   const [active, setActive] = useState(pages.indexOf(currentParentPath))
   const isOnHomePage = currentPath === '/'
-  const { username } = isOnHomePage
-    ? ''
-    : useParams({ from: `/${currentParentPath}/$username` })
-  // const { colorScheme } = useMantineColorScheme()
+  const params = isOnHomePage ? null : useParams({ strict: false })
+  const username = params?.username || ''
+
   const navigate = useNavigate()
 
   function handleClick(index: number) {
-    if (isOnHomePage) return
+    if (isOnHomePage || !username) return
 
-    if (index === 0) navigate({ to: '/' })
-    else if (index === 1)
-      (navigate({ to: '/profile/$username', params: { username } }),
-        setActive(index))
-    else if (index === 2)
-      (navigate({ to: '/stats/$username', params: { username } }),
-        setActive(index))
-    else if (index === 3)
-      (navigate({ to: '/dashboard/$username', params: { username } }),
-        setActive(index))
-    else if (index === 4)
-      (navigate({ to: '/games/$username', params: { username } }),
-        setActive(index))
-    else setActive(0)
+    setActive(index)
+
+    // Fix 2: Simplified navigation logic
+    const routes = [
+      { to: '/' as const },
+      { to: '/profile/$username' as const, params: { username } },
+      { to: '/stats/$username' as const, params: { username } },
+      { to: '/dashboard/$username' as const, params: { username } },
+      { to: '/games/$username' as const, params: { username } },
+    ]
+
+    const route = routes[index]
+
+    if (index === 0) {
+      navigate({ to: route.to })
+    } else {
+      navigate(route as any) // Type assertion needed for TanStack Router
+    }
   }
 
   const links = mockdata.map((link, index) => (

@@ -6,7 +6,6 @@ import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
 import { formatGameDateList, queryFormatDate } from '../helpers/DateFormat'
 import Button from '../ui/Button'
-import useGames30days from '../hooks/useGames30days'
 
 const StyledContainer = styled.div`
   display: grid;
