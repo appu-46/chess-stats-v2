@@ -1,4 +1,8 @@
-@import 'tailwindcss';
+// src/styles/GlobalStyle.js
+import { createGlobalStyle, css } from 'styled-components'
+
+export const GlobalStyle = createGlobalStyle`
+  @import 'tailwindcss';
 
 [data-mantine-color-scheme='dark'],
 [data-mantine-color-scheme='light'] {
@@ -114,3 +118,4 @@ body,
 html {
   overflow-x: hidden;
 }
+`

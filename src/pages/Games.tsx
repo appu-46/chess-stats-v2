@@ -22,29 +22,15 @@ const TitleContainer = styled.div`
 `
 const StyledGamesHeader = styled.div`
   display: grid;
-  margin-top: 1rem;
-  align-items: center;
-  width: 69rem;
-  border-bottom: 3px solid rgba(0, 0, 0, 0.5);
-  font-size: 22px;
   grid-template-columns: 1.3fr 0.5fr 1.3fr 1fr 1fr;
-  // gap: 1rem;
-  border-radius: 1rem 1rem 0rem 0rem;
-  padding: 1.25rem 1.5rem;
-  justify-items: start;
-  background: rgba(255, 255, 255, 0.05);
-  font-weight: 600;
+  width: 100%;
+  max-width: 69rem;
+  font-size: 1.1rem;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 255, 255, 0.5);
-    // transform: translateY(-2px);
-  }
-
-  svg {
-    font-size: 1.25rem;
-    color: rgba(0, 255, 255, 0.8);
-    flex-shrink: 0;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    font-size: 0.9rem;
+    text-align: center;
   }
 `
 const StyledGamesList = styled.div`
@@ -56,7 +42,12 @@ const StyledGamesList = styled.div`
 const StyledGameCard = styled.div<{ result: 'win' | 'loss' | 'draw' }>`
   display: grid;
   grid-template-columns: 1.3fr 0.5fr 1.3fr 1fr 1fr;
+  width: 100%;
 
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    padding: 0.75rem;
+  }
   padding: 1.25rem 1.5rem;
   background: ${(props) => {
     if (props.result === 'win') return 'rgba(92, 184, 92, 0.15)'

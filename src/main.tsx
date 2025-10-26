@@ -26,6 +26,7 @@ import DashBoard from './pages/DashBoard.tsx'
 import Games from './pages/Games.tsx'
 import SideBar from './components/SideBar.tsx'
 import { StyledAppLayout } from './ui/AppLayout.tsx'
+import { GlobalStyle } from './styles/GlobalStyle'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -124,6 +125,7 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
+      <GlobalStyle />
       <QueryClientProvider client={queryClient}>
         <TabProvider>
           <MantineProvider theme={theme} defaultColorScheme="dark">
