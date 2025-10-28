@@ -2,8 +2,6 @@
 import { createGlobalStyle } from 'styled-components'
 
 export const GlobalStyle = createGlobalStyle`
-  @import 'tailwindcss';
-
 [data-mantine-color-scheme='dark'],
 [data-mantine-color-scheme='light'] {
   transition:
