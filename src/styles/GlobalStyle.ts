@@ -1,5 +1,5 @@
 // src/styles/GlobalStyle.js
-import { createGlobalStyle, css } from 'styled-components'
+import { createGlobalStyle } from 'styled-components'
 
 export const GlobalStyle = createGlobalStyle`
   @import 'tailwindcss';
@@ -23,7 +23,9 @@ body {
   [data-mantine-color-scheme] {
     transition:
       background-color 0.3s ease,
-      color 0.3s ease !important;
+      color 0.3s ease,
+      border-color 0.3s ease,
+      width 0.5s ease !important;
   }
 
   font-family:

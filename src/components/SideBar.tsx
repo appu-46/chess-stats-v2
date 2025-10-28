@@ -7,27 +7,40 @@ import { TiHome } from 'react-icons/ti'
 import { GiHamburgerMenu } from 'react-icons/gi'
 import { IoStatsChart } from 'react-icons/io5'
 import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core'
-// import { MantineLogo } from '@mantinex/mantine-logo';
 import classes from '../css/NavbarMinimal.module.css'
-
-// import { Logo } from './Header'
 
 interface NavbarLinkProps {
   icon: typeof TiHome
   label: string
   active?: boolean
   onClick?: () => void
+  collapsed?: boolean
+  disabled?: boolean
 }
 
-function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
+function NavbarLink({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+  collapsed,
+  disabled,
+}: NavbarLinkProps) {
   return (
-    <Tooltip label={label} position="right" transitionProps={{ duration: 0 }}>
+    <Tooltip
+      label={label}
+      position="right"
+      transitionProps={{ duration: 0 }}
+      disabled={!collapsed}
+    >
       <UnstyledButton
         onClick={onClick}
         className={classes.link}
         data-active={active || undefined}
+        data-disabled={disabled || undefined}
       >
         <Icon size={20} stroke="1.5" />
+        {!collapsed && <span style={{ marginLeft: '12px' }}>{label}</span>}
       </UnstyledButton>
     </Tooltip>
   )
@@ -40,6 +53,7 @@ const mockdata = [
   { icon: FaChartArea, label: 'Dashboard' },
   { icon: MdGames, label: 'Games' },
 ]
+
 const pages = ['/', 'profile', 'stats', 'dashboard', 'games']
 
 function SideBar() {
@@ -48,20 +62,19 @@ function SideBar() {
   const currentParentPath = routerState.location.pathname
     .split('/')
     .filter(Boolean)[0]
-
   const [active, setActive] = useState(pages.indexOf(currentParentPath))
+  const [collapsed, setCollapsed] = useState(true)
+
   const isOnHomePage = currentPath === '/'
   const params = isOnHomePage ? null : useParams({ strict: false })
   const username = params?.username || ''
-
   const navigate = useNavigate()
 
   function handleClick(index: number) {
     if (isOnHomePage || !username) return
-
     setActive(index)
+    setCollapsed(true)
 
-    // Fix 2: Simplified navigation logic
     const routes = [
       { to: '/' as const },
       { to: '/profile/$username' as const, params: { username } },
@@ -71,11 +84,10 @@ function SideBar() {
     ]
 
     const route = routes[index]
-
     if (index === 0) {
       navigate({ to: route.to })
     } else {
-      navigate(route as any) // Type assertion needed for TanStack Router
+      navigate(route as any)
     }
   }
 
@@ -84,16 +96,24 @@ function SideBar() {
       {...link}
       key={link.label}
       active={index === active}
+      disabled={isOnHomePage}
       onClick={() => handleClick(index)}
+      collapsed={collapsed}
     />
   ))
 
   return (
-    <nav className={classes.navbar}>
+    <nav
+      className={`${classes.navbar} ${collapsed ? classes.collapsed : classes.expanded}`}
+    >
       <Center>
-        <GiHamburgerMenu />
+        <UnstyledButton
+          onClick={() => setCollapsed(!collapsed)}
+          className={classes.hamburger}
+        >
+          <GiHamburgerMenu />
+        </UnstyledButton>
       </Center>
-
       <div className={classes.navbarMain}>
         <Stack justify="center" gap={0}>
           {links}
