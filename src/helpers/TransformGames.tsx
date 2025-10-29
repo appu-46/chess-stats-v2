@@ -59,7 +59,7 @@ export function transformGames(input: GameResponse | null, username: string) {
 
   // Process chess960 games (no Chess.js needed)
   const chess960Games: Array<Chess960Game> = chess960.map((game) => ({
-    date: formatDate(game.end_time),
+    date: formatDate(game.end_time).formattedDateTime,
     result: game.result,
     whitePlayer: game.white.username,
     blackPlayer: game.black.username,
@@ -73,7 +73,7 @@ export function transformGames(input: GameResponse | null, username: string) {
   // Process standard games
   const chess = new Chess()
   const standardgamesData: Array<TransformedGame> = standard.map((game) => {
-    const formattedDate = formatDate(game.end_time)
+    const formattedDate = formatDate(game.end_time).formattedDateTime
     chess.loadPgn(game.pgn)
     const headers = chess.getHeaders()
 
