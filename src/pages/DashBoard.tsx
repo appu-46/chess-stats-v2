@@ -15,8 +15,10 @@ const StyledContainer = styled.div`
   grid-gap: 0.25rem;
   align-items: ceter;
   min-width: 83rem;
+  height: 65vh;
   justify-items: center;
   justify-content: center;
+  overflow-y: auto;
 `
 
 export const TitleMain = styled.h2`
@@ -93,8 +95,6 @@ function DashBoard() {
   const graphdataRapid = gamesDateWise(transformedData.rapidGames)
   const graphdataBullet = gamesDateWise(transformedData.bulletGames)
   const graphdataDaily = gamesDateWise(transformedData.dailyGames)
-
-  console.log(graphdataBlitz)
 
   const timeControls = [
     { key: graphdataBlitz, label: 'Blitz', icon: <SiStackblitz size={35} /> },

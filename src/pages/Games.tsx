@@ -1,11 +1,15 @@
 import styled from 'styled-components'
 import { useLocation, useNavigate, useParams } from '@tanstack/react-router'
 import { Title } from '@mantine/core'
+import dayjs from 'dayjs'
+import { useState } from 'react'
+import { MonthPicker } from '@mantine/dates'
 import { FaArrowLeftLong } from 'react-icons/fa6'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
-import { formatGameDateList, queryFormatDate } from '../helpers/DateFormat'
+import { formatDate, queryFormatDate } from '../helpers/DateFormat'
 import Button from '../ui/Button'
+import '@mantine/dates/styles.css'
 
 const StyledContainer = styled.div`
   display: grid;
@@ -13,41 +17,60 @@ const StyledContainer = styled.div`
   justify-items: center;
   justify-content: center;
 `
+const StyledCalendar = styled.div`
+  display: flex;
+  // min-width: 50rem;
+  flex-direction: column;
+  // align-items: center;
+  align-content: center;
+`
+const StyledInput = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+  border-radius: 2rem;
+  padding: 2rem;
+  width: fit-content;
+  background-color: var(--mantine-color-dark-6);
+`
 const TitleContainer = styled.div`
   display: flex;
   align-content: center;
   justify-content: space-between;
   align-items: center;
   width: 69rem;
+  height: 5rem;
 `
 const StyledGamesHeader = styled.div`
   display: grid;
   grid-template-columns: 1.3fr 0.5fr 1.3fr 1fr 1fr;
   width: 100%;
+  background-color: var(--mantine-color-dark-9);
   max-width: 69rem;
-  font-size: 1.1rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-    font-size: 0.9rem;
-    text-align: center;
-  }
+  border-radius: 1rem 1rem 0rem 0rem;
+  font-size: 1.3rem;
+  font-color: var(--mantine-color-text)
+  align-items: center;
+  align-content: center;
+  padding-left: 1rem;
+  height: 3rem;
+  border: 2px solid var(--mantine-color-gray-5);
 `
 const StyledGamesList = styled.div`
   width: 69rem;
   display: flex;
+  height: 55vh;
   flex-direction: column;
   border-radius: 0rem 0rem 1rem 1rem;
+  overflow-y: auto;
+  border: 2px solid var(--mantine-color-gray-5);
+  border-top: none;
 `
 const StyledGameCard = styled.div<{ result: 'win' | 'loss' | 'draw' }>`
   display: grid;
   grid-template-columns: 1.3fr 0.5fr 1.3fr 1fr 1fr;
   width: 100%;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-    padding: 0.75rem;
-  }
   padding: 1.25rem 1.5rem;
   background: ${(props) => {
     if (props.result === 'win') return 'rgba(92, 184, 92, 0.15)'
@@ -160,15 +183,38 @@ function Games() {
     error: errorProfile,
   } = useProfile(username)
 
-  if (!username || !games || games.length === 0) {
+  const { playerName, joined } = profile ?? {}
+  const mindate = formatDate(joined).formattedDate
+
+  function onSubmit() {}
+
+  function InputGames() {
+    const [value, setValue] = useState<string | null>(null)
+    console.log(value)
     return (
-      <StyledContainer>
-        <span>No games selected. Please select a date from the dashboard.</span>
-      </StyledContainer>
+      <StyledCalendar>
+        <TitleContainer>
+          <Title>Which month are we diving into for game analysis?</Title>
+        </TitleContainer>
+        <StyledInput>
+          <MonthPicker
+            minDate={mindate}
+            maxDate={dayjs().format('YYYY-MM-DD')}
+            value={value}
+            onChange={setValue}
+            defaultValue={dayjs().format('DD-MM-YY')}
+            size="md"
+          />
+          <Button disabled={value === null} onClick={() => onSubmit()}>
+            Submit
+          </Button>
+        </StyledInput>
+      </StyledCalendar>
     )
   }
-
-  const playerName = profile?.name
+  if (!username || !games || games.length === 0) {
+    return <InputGames />
+  }
 
   if (isFetchingProfile) return <Spinner />
 
@@ -248,7 +294,7 @@ function Games() {
                 <span>{game.moveCount}</span>
               </Stat>
               <DateText>
-                <span>{formatGameDateList(game.date_time)}</span>
+                <span>{game.date_time}</span>
               </DateText>
             </StyledGameCard>
           </a>

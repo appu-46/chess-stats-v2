@@ -82,40 +82,4 @@ a {
   color: var(--mantine-color-text);
 }
 
-/* Responsive container */
-.container {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1rem; /* for breathing room */
-}
-
-/* Typography scaling */
-h1 {
-  font-size: clamp(1.5rem, 5vw, 2.5rem);
-}
-
-h2 {
-  font-size: clamp(1.2rem, 4vw, 2rem);
-}
-
-p,
-span,
-a {
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-}
-
-/* Make images and videos scale */
-img,
-video {
-  max-width: 100%;
-  height: auto;
-  border-radius: 0.5rem;
-}
-
-/* Prevent overflow */
-body,
-html {
-  overflow-x: hidden;
-}
 `

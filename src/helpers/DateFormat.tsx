@@ -1,17 +1,11 @@
-export function formatDate(ts: number): string {
-  const date = new Date(ts * 1000)
+import dayjs from 'dayjs'
 
-  const dd = String(date.getDate()).padStart(2, '0')
-  const mm = String(date.getMonth() + 1).padStart(2, '0') // months are 0-based
-  const yy = String(date.getFullYear()).slice(-2)
+export function formatDate(ts: number) {
+  const date = dayjs(ts * 1000)
+  const formattedDateTime = date.format('DD-MMM-YYYY HH:mm:ss')
+  const formattedDate = date.format('YYYY-MM-DD')
 
-  const hh = String(date.getHours()).padStart(2, '0')
-  const min = String(date.getMinutes()).padStart(2, '0')
-  const ss = String(date.getSeconds()).padStart(2, '0')
-
-  const result = `${dd}-${mm}-${yy} ${hh}:${min}:${ss}`
-
-  return result
+  return { formattedDateTime, formattedDate }
 }
 
 export function queryFormatDate(ts: string) {
@@ -19,7 +13,7 @@ export function queryFormatDate(ts: string) {
 
   const date = new Date(`${year}-${month}-${day}`)
 
-  const formattedDate = date.toLocaleDateString('en-GB', {
+  const formattedDate = date.toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -34,7 +28,7 @@ export function formatGameDateList(dateStr: string): string {
   const fullYear = `20${year}`
   const date = new Date(`${fullYear}-${month}-${day}`)
 
-  const formattedDate = date.toLocaleDateString('en-GB', {
+  const formattedDate = date.toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

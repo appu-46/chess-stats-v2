@@ -107,16 +107,18 @@ function Profile() {
   return (
     <StyledProfiler>
       <StyledProfilething>
-        {playerAvatar === null ? (
-          <FaChessPawn size="14rem" />
-        ) : (
-          <PlayerAvatar src={playerAvatar} alt="user-avatar" />
-        )}
+        <a href={url} target="_blank">
+          {playerAvatar === null ? (
+            <FaChessPawn size="14rem" />
+          ) : (
+            <PlayerAvatar src={playerAvatar} alt="user-avatar" />
+          )}
+        </a>
         <StyledHeader>
           {
             <StyledName>
               {title && <TitleBG>{title}</TitleBG>}{' '}
-              <a href={url} target="blank">
+              <a href={url} target="_blank">
                 {playerName}
               </a>
             </StyledName>
@@ -136,7 +138,7 @@ function Profile() {
           </StyledCountry>
           <StyledOnline>
             <MdUpdate />
-            {formatDate(last_online)}
+            {formatDate(last_online).formattedDateTime}
           </StyledOnline>
           <StyledOnline>
             <HiUserGroup /> {followers?.toLocaleString('en-IN')}
@@ -146,22 +148,24 @@ function Profile() {
       <Divider />
       <StyledProfile>
         <InfoBlock>
-          <MdDateRange />
-          {formatDate(joined)}
+          <MdDateRange size={30} />
+          {formatDate(joined).formattedDateTime}
         </InfoBlock>
         <InfoBlock>
-          <TbPremiumRights /> {status?.toUpperCase()}
+          <TbPremiumRights size={30} /> {status?.toUpperCase()}
         </InfoBlock>
         {is_streamer === true && (
-          <a href={twitch_url} target="blank">
+          <a href={twitch_url} target="_blank">
             <InfoBlock>
-              <FaTwitch />{' '}
-              {twitch_url === null ? 'No channel found' : twitch_url}
+              <FaTwitch size={30} />{' '}
+              {twitch_url === null
+                ? 'No channel found'
+                : twitch_url.replace('https://twitch.tv', '')}
             </InfoBlock>
           </a>
         )}
         <InfoBlock>
-          <FaTrophy /> {league}
+          <FaTrophy size={30} /> {league}
         </InfoBlock>
       </StyledProfile>
     </StyledProfiler>
