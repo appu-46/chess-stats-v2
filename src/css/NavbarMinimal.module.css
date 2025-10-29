@@ -1,6 +1,6 @@
 .navbar {
   width: 80px; /* collapsed width */
-  height: 100vh;
+  height: 80vh;
   padding: var(--mantine-spacing-md);
   display: flex;
   align-items: center;
@@ -19,8 +19,8 @@
 }
 
 .navbar.expanded {
-  width: 35vh;
-  height: 100vh;
+  width: 20vh;
+  height: 80vh;
   padding: var(--mantine-spacing-md);
   display: flex;
   align-items: start;

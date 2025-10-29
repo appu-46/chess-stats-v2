@@ -2,15 +2,15 @@ import { useMantineColorScheme } from '@mantine/core'
 import { useNavigate } from '@tanstack/react-router'
 import '@mantine/core/styles.css'
 import styled from 'styled-components'
-import DarkModeToggle from '../ui/DarkModeToggle'
 
 const StyledHeader = styled.header`
   margin: 1rem 0;
   display: flex;
+  max-width: 75rem;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap; /* allows wrapping */
+  flex-wrap: wrap;
   gap: 1rem;
 
   @media (max-width: 768px) {
@@ -57,8 +57,6 @@ export default function Header() {
           onClick={() => handleClick()}
         />
         <Title> Chess Stats </Title>
-
-        <DarkModeToggle />
       </StyledHeader>
     </>
   )

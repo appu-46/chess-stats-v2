@@ -8,6 +8,7 @@ import { GiHamburgerMenu } from 'react-icons/gi'
 import { IoStatsChart } from 'react-icons/io5'
 import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core'
 import classes from '../css/NavbarMinimal.module.css'
+import DarkModeToggle from '../ui/DarkModeToggle'
 
 interface NavbarLinkProps {
   icon: typeof TiHome
@@ -103,23 +104,26 @@ function SideBar() {
   ))
 
   return (
-    <nav
-      className={`${classes.navbar} ${collapsed ? classes.collapsed : classes.expanded}`}
-    >
-      <Center>
-        <UnstyledButton
-          onClick={() => setCollapsed(!collapsed)}
-          className={classes.hamburger}
-        >
-          <GiHamburgerMenu />
-        </UnstyledButton>
-      </Center>
-      <div className={classes.navbarMain}>
-        <Stack justify="center" gap={0}>
-          {links}
-        </Stack>
-      </div>
-    </nav>
+    <>
+      <nav
+        className={`${classes.navbar} ${collapsed ? classes.collapsed : classes.expanded}`}
+      >
+        <Center>
+          <UnstyledButton
+            onClick={() => setCollapsed(!collapsed)}
+            className={classes.hamburger}
+          >
+            <GiHamburgerMenu />
+          </UnstyledButton>
+        </Center>
+        <div className={classes.navbarMain}>
+          <Stack justify="center" gap={0}>
+            {links}
+          </Stack>
+          <DarkModeToggle />
+        </div>
+      </nav>
+    </>
   )
 }
 

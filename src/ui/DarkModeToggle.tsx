@@ -3,8 +3,7 @@ import { IconMoonStars, IconSun } from '@tabler/icons-react'
 import styled from 'styled-components'
 
 const StyledDarkModeToggle = styled.div`
-  position: relative;
-  left: 25rem;
+  margin-top: 5rem;
 `
 
 function DarkModeToggle() {
@@ -17,7 +16,7 @@ function DarkModeToggle() {
   return (
     <StyledDarkModeToggle>
       <Switch
-        size="xl"
+        size="md"
         color="dark.4"
         onChange={() => handleClick()}
         checked={colorScheme === 'dark'}
@@ -31,15 +30,15 @@ function DarkModeToggle() {
         }}
         onLabel={
           <IconSun
-            size={30}
-            stroke={1.75}
+            size={20}
+            stroke={1.5}
             color="var(--mantine-color-yellow-4)"
           />
         }
         offLabel={
           <IconMoonStars
-            size={30}
-            stroke={1.75}
+            size={20}
+            stroke={1.5}
             color="var(--mantine-color-blue-6)"
           />
         }

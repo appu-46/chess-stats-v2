@@ -17,7 +17,7 @@ const FooterContent = styled.div`
   flex-direction: column;
   gap: 1rem;
   align-items: center;
-  min-height: 40vh;
+  min-height: 10vh;
 `
 
 const FooterText = styled.span`

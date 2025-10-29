@@ -13,9 +13,9 @@ export const StyledAppLayout = styled.div`
     'sidebar header'
     'sidebar main'
     'footer footer';
-  grid-template-columns: 35vh 1fr;
+  grid-template-columns: 20vh 1fr;
   grid-template-rows: auto 1fr auto;
-  min-height: 100vh;
+  // min-height: 45vh;
 
   /* optional: gap between sidebar and content */
   gap: 0;

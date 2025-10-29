@@ -15,20 +15,35 @@ const StyledContainer = styled.div`
   display: grid;
   grid-gap: 0.25rem;
   align-items: center;
-  max-width: 83rem;
+  max-width: 75rem;
+  max-height: 40vh;
   justify-items: center;
   justify-content: center;
 `
 
+// const StyledStats = styled.div`
+//   display: grid;
+//   grid-template-rows: auto;
+//   align-items: center;
+//   width: 100%;
+//   justify-content: start;
+//   grid-template-columns: repeat(auto-fit, minmax(20.5rem, 1fr));
+//   justify-items: center;
+//   gap: 1.5rem;
+//   overflow-x: auto;
+//   height: 77vh;
+//   overflow-y: hidden;
+// `
+
 const StyledStats = styled.div`
-  display: grid;
-  grid-template-rows: auto;
+  display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  max-width: 100rem;
-  justify-content: center;
-  grid-template-columns: repeat(auto-fit, minmax(20.5rem, 1fr));
-  justify-items: center;
+  width: 100%;
   gap: 1.5rem;
+  overflow-x: auto;
+  height: 50vh;
+  overflow-y: hidden;
 `
 const TitleMain = styled.h2`
   font-size: 42px;
