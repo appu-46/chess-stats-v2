@@ -67,7 +67,7 @@ const TitleBadge = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: 12rem;
+  width: fit-content;
 `
 const Badge = styled.div`
   display: flex;
