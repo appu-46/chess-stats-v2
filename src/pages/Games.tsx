@@ -118,12 +118,12 @@ const PlayersColumn = styled.div`
   flex-direction: column;
   gap: 0.5rem;
 `
-const PlayerRow = styled.div<{ isWinner?: boolean }>`
+const PlayerRow = styled.div<{ $isWinner?: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: ${(props) => (props.isWinner ? '#fff' : 'rgba(255, 255, 255, 0.6)')};
-  font-weight: ${(props) => (props.isWinner ? '600' : '400')};
+  color: ${(props) => (props.$isWinner ? '#fff' : 'rgba(255, 255, 255, 0.6)')};
+  font-weight: ${(props) => (props.$isWinner ? '600' : '400')};
   font-size: 1.24rem;
 `
 const ColorIndicator = styled.div<{ color: 'white' | 'black' }>`
@@ -195,8 +195,7 @@ function Games() {
     error: errorProfile,
   } = useProfile(username)
 
-  const { playerName, joined } = profile ?? {}
-  const mindate = formatDate(joined).formattedDate
+  const mindate = formatDate(profile?.joined).formattedDate
 
   if (isFetchingProfile) return <Spinner />
 
@@ -281,7 +280,7 @@ function Games() {
           <FaArrowLeftLong />
         </Button>
         <Title style={{ fontSize: '32px', paddingRight: '12rem' }}>
-          {`Games for ${playerName} on ${queryFormatDate(gameDate).entireDate}`}
+          {`Games for ${profile?.name} on ${queryFormatDate(gameDate).entireDate}`}
         </Title>
       </TitleContainer>
       <StyledGamesHeader>
@@ -293,13 +292,14 @@ function Games() {
       </StyledGamesHeader>
       <StyledGamesList>
         {games.map((game) => (
-          <a href={game.url} target="_blank">
+          <a key={game.url} href={game.url} target="_blank">
             <StyledGameCard
+              // key={game.date_time}
               result={game.resultForPlayer as 'win' | 'loss' | 'draw'}
             >
               <PlayersColumn>
                 <PlayerRow
-                  isWinner={
+                  $isWinner={
                     game.whitePlayer === username &&
                     game.resultForPlayer === 'win'
                   }
@@ -311,7 +311,7 @@ function Games() {
                   </span>
                 </PlayerRow>
                 <PlayerRow
-                  isWinner={
+                  $isWinner={
                     game.blackPlayer === username &&
                     game.resultForPlayer === 'win'
                   }
