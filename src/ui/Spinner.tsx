@@ -17,17 +17,30 @@ function Spinner({
 
   return (
     <div
-      className={`${sizeClasses[size]} border-gray-200 border-t-transparent rounded-full animate-spin ${className}`}
       style={{
-        borderTopColor: color,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         display: 'flex',
         justifyContent: 'center',
-        alignContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.35)',
+        backdropFilter: 'blur(3px)',
+        zIndex: 9999,
       }}
-      role="status"
-      aria-label="Loading"
     >
-      <span className="sr-only">Loading...</span>
+      <div
+        className={`${sizeClasses[size]} border-gray-200 border-t-transparent rounded-full animate-spin ${className}`}
+        style={{
+          borderTopColor: color,
+        }}
+        role="status"
+        aria-label="Loading"
+      >
+        <span className="sr-only">Loading...</span>
+      </div>
     </div>
   )
 }
