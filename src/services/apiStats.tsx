@@ -18,7 +18,7 @@ export async function apiProfile(username: string) {
   return data
 }
 
-export async function apiGames(username: string, year: number, month: number) {
+export async function apiGames(username: string, year: string, month: string) {
   const response = await fetch(`${API_URL}${username}/games/${year}/${month}`)
 
   if (!response.ok) throw new Error(`Failed to fetch the Games!`)

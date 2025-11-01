@@ -11,14 +11,17 @@ export function formatDate(ts: number) {
 export function queryFormatDate(ts: string) {
   const [year, month, day] = ts.split('.')
 
-  const date = new Date(`${year}-${month}-${day}`)
+  const entireDate = new Date(`${year}-${month}-${day}`).toLocaleDateString(
+    'en-IN',
+    {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    },
+  )
 
-  const formattedDate = date.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  })
-  return formattedDate
+  const formattedDate = `${year}-${month}`
+  return { formattedDate, entireDate, year, month }
 }
 
 export function formatGameDateList(dateStr: string): string {

@@ -73,6 +73,12 @@ const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard/$username',
   component: DashBoard,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      year: search.year as string | undefined,
+      month: search.month as string | undefined,
+    }
+  },
 })
 
 const gamesRoute = createRoute({
@@ -81,7 +87,8 @@ const gamesRoute = createRoute({
   component: Games,
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      date: search.date as string | undefined,
+      year: search.year as string | undefined,
+      month: search.month as string | undefined,
     }
   },
 })

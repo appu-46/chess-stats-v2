@@ -2,18 +2,19 @@ import styled from 'styled-components'
 import { FaStopwatch, FaSun } from 'react-icons/fa'
 import { SiStackblitz } from 'react-icons/si'
 import { GiBulletBill } from 'react-icons/gi'
-import { useParams } from '@tanstack/react-router'
+import { useParams, useSearch } from '@tanstack/react-router'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
 import useGames30days from '../hooks/useGames30days'
 import { transformGames } from '../helpers/TransformGames'
 import { gamesDateWise } from '../helpers/gamesDateWise'
 import AreaGraph from '../ui/AreaGraph'
+import useGames from '../hooks/useGames'
 
 const StyledContainer = styled.div`
   display: grid;
   grid-gap: 0.25rem;
-  align-items: ceter;
+  align-items: center;
   min-width: 83rem;
   height: 65vh;
   justify-items: center;
@@ -65,12 +66,69 @@ const StyledGames = styled.div`
 
 function DashBoard() {
   const { username } = useParams({ from: '/dashboard/$username' })
-
+  const { year, month } = useSearch({ from: '/dashboard/$username' })
   const {
     data: profile,
     isPending: isFetchingProfile,
     error: errorProfile,
   } = useProfile(username)
+
+  if (year && month != null) {
+    const {
+      data: games,
+      isPending: isFetchingGames,
+      error: errorGames,
+    } = useGames(username, year, month)
+
+    if (isFetchingGames || isFetchingProfile) return <Spinner />
+
+    if (errorGames || errorProfile) {
+      return (
+        <StyledContainer>
+          <h1>Error</h1>
+          <p>Could not load game data. Please try again.</p>
+        </StyledContainer>
+      )
+    }
+
+    const playerName = profile.name
+
+    const transformedData = transformGames(games, username)
+    const graphdataBlitz = gamesDateWise(transformedData.blitzGames)
+    const graphdataRapid = gamesDateWise(transformedData.rapidGames)
+    const graphdataBullet = gamesDateWise(transformedData.bulletGames)
+    const graphdataDaily = gamesDateWise(transformedData.dailyGames)
+
+    const timeControls = [
+      { key: graphdataBlitz, label: 'Blitz', icon: <SiStackblitz size={35} /> },
+      {
+        key: graphdataBullet,
+        label: 'Bullet',
+        icon: <GiBulletBill size={35} />,
+      },
+      { key: graphdataRapid, label: 'Rapid', icon: <FaStopwatch size={35} /> },
+      { key: graphdataDaily, label: 'Daily', icon: <FaSun size={35} /> },
+    ] as const
+
+    return (
+      <StyledContainer>
+        <TitleMain>{`Games of ${playerName}`}</TitleMain>
+        {timeControls.map(({ key, label, icon }) => {
+          return (
+            <StyledGames key={label}>
+              <TitleBadge>
+                {icon}
+                <Title>{`${label} Graph`}</Title>
+              </TitleBadge>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <AreaGraph data={key} />
+              </div>
+            </StyledGames>
+          )
+        })}
+      </StyledContainer>
+    )
+  }
   const {
     data: games,
     isPending: isFetchingGames,

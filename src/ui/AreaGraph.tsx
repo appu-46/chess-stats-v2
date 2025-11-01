@@ -43,13 +43,17 @@ function AreaGraph({ data }: { data?: GroupedByDate }) {
 
   function handleClick(clickedData: any) {
     if (clickedData?.activeLabel) {
-      const clickedDate = queryFormatDate(clickedData.activeLabel)
+      const clickedDate = queryFormatDate(
+        clickedData.activeLabel,
+      ).formattedDate.split('-')
       const gamesForDate = data?.[clickedData.activeLabel]
+      const year = clickedDate[0]
+      const month = clickedDate[1]
 
       navigate({
         to: '/games/$username',
         params: { username },
-        search: { date: clickedDate },
+        search: { year: year, month: month },
         state: { games: gamesForDate } as any,
       })
     }

@@ -27,6 +27,14 @@ const Button = styled.button`
     background: #1864a8;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #a5a5a5;
+    color: #f2f2f2;
+    transform: none;
+    box-shadow: none;
+  }
 `
 
 export default Button

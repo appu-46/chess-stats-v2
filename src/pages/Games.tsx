@@ -1,6 +1,10 @@
 import styled from 'styled-components'
-import { useLocation, useNavigate, useParams } from '@tanstack/react-router'
-import { Title } from '@mantine/core'
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearch,
+} from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { MonthPicker } from '@mantine/dates'
@@ -11,6 +15,11 @@ import { formatDate, queryFormatDate } from '../helpers/DateFormat'
 import Button from '../ui/Button'
 import '@mantine/dates/styles.css'
 
+const Title = styled.div`
+  font-size: 1.5rem;
+  font-wieght: 500;
+  padding-left: 0.75rem;
+`
 const StyledContainer = styled.div`
   display: grid;
   min-width: 50rem;
@@ -174,6 +183,9 @@ interface LocationState {
 function Games() {
   const navigate = useNavigate()
   const { username } = useParams({ from: '/games/$username' })
+  const { year: yearsearch, month: monthsearch } = useSearch({
+    from: '/games/$username',
+  })
   const location = useLocation()
   const games = (location.state as LocationState).games
 
@@ -186,36 +198,6 @@ function Games() {
   const { playerName, joined } = profile ?? {}
   const mindate = formatDate(joined).formattedDate
 
-  function onSubmit() {}
-
-  function InputGames() {
-    const [value, setValue] = useState<string | null>(null)
-    console.log(value)
-    return (
-      <StyledCalendar>
-        <TitleContainer>
-          <Title>Which month are we diving into for game analysis?</Title>
-        </TitleContainer>
-        <StyledInput>
-          <MonthPicker
-            minDate={mindate}
-            maxDate={dayjs().format('YYYY-MM-DD')}
-            value={value}
-            onChange={setValue}
-            defaultValue={dayjs().format('DD-MM-YY')}
-            size="md"
-          />
-          <Button disabled={value === null} onClick={() => onSubmit()}>
-            Submit
-          </Button>
-        </StyledInput>
-      </StyledCalendar>
-    )
-  }
-  if (!username || !games || games.length === 0) {
-    return <InputGames />
-  }
-
   if (isFetchingProfile) return <Spinner />
 
   if (errorProfile) {
@@ -226,8 +208,69 @@ function Games() {
       </StyledContainer>
     )
   }
+
+  function onSubmit(month: string) {
+    const DashBoardInput = month.split('-')
+    const year = DashBoardInput[0]
+    const inputmonth = DashBoardInput[1]
+
+    navigate({
+      to: '/dashboard/$username',
+      params: { username },
+      search: { year: year, month: inputmonth },
+    })
+  }
+
+  function InputGames() {
+    const [month, setMonth] = useState<string | null>(null)
+
+    if (isFetchingProfile) return <Spinner />
+
+    if (errorProfile) {
+      return (
+        <StyledContainer>
+          <h1>Error</h1>
+          <p>Could not load game data. Please try again.</p>
+        </StyledContainer>
+      )
+    }
+    return (
+      <StyledCalendar>
+        <TitleContainer>
+          <Title>Which month are we diving into for game analysis?</Title>
+        </TitleContainer>
+        <StyledInput>
+          <MonthPicker
+            allowDeselect
+            minDate={mindate}
+            maxDate={dayjs().format('YYYY-MM-DD')}
+            value={month}
+            onChange={setMonth}
+            defaultValue={dayjs().format('DD-MM-YY')}
+            size="md"
+          />
+          <Button
+            disabled={month === null}
+            onClick={() => {
+              if (month) onSubmit(month)
+            }}
+          >
+            Submit
+          </Button>
+        </StyledInput>
+      </StyledCalendar>
+    )
+  }
+  if (!username || !games || games.length === 0) {
+    return <InputGames />
+  }
+
   function handleBackNavigation() {
-    navigate({ to: '/dashboard/$username', params: { username } })
+    navigate({
+      to: '/dashboard/$username',
+      params: { username },
+      search: { year: yearsearch, month: monthsearch },
+    })
   }
 
   const gameDate = games[0]?.gameEndDate || ''
@@ -238,7 +281,7 @@ function Games() {
           <FaArrowLeftLong />
         </Button>
         <Title style={{ fontSize: '32px', paddingRight: '12rem' }}>
-          {`Games for ${playerName} on ${queryFormatDate(gameDate)}`}
+          {`Games for ${playerName} on ${queryFormatDate(gameDate).entireDate}`}
         </Title>
       </TitleContainer>
       <StyledGamesHeader>
