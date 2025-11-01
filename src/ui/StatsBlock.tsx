@@ -6,7 +6,7 @@ const StatsBlock = styled.div`
   grid-template-columns: 1fr;
   grid-template-rows: auto auto auto;
   align-items: center;
-  width: 21rem;
+  width: fit-content;
   height: auto;
   border: 1.5px solid #666;
   border-radius: 20px;
