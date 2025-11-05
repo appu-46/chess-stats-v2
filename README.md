@@ -47,7 +47,7 @@ A comprehensive chess statistics visualization tool that analyzes and displays y
 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/appu-46/chess-stats-v2.git
 cd chess-stats-tracker
 ```
 
