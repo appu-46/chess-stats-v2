@@ -5,6 +5,9 @@ const Button = styled.button`
   border-radius: 10rem;
   background: #1971c2;
   font-size: 28px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   color: white;
   padding: 0rem 1.5rem 0rem 1.5rem;
   width: fit-content;

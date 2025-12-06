@@ -1,19 +1,26 @@
 import { useForm } from 'react-hook-form'
 import { useNavigate } from '@tanstack/react-router'
+import { Title } from '@mantine/core'
 import styled from 'styled-components'
+import { FcGoogle } from 'react-icons/fc'
 import Input from '../ui/Input'
 import Button from '../ui/Button'
 import Form from '../ui/Form'
 import ErrorMessage from '../ui/ErrorMessage'
 // import FloatingTab from '../ui/FloatingTab'
 import { useTabContext } from '../contexts/TabContext'
+import { oauthSignIn } from '../services/OAuth'
+import HorizontalDivider from '../ui/Divider'
+import GoogleOAuthButton from '../ui/GoogleAuthButton'
 
 const StyledLogin = styled.div`
   display: flex;
   align-items: center;
+  gap: 2rem;
   flex-direction: column;
   justify-content: center;
 `
+
 type Inputs = {
   username: string
 }
@@ -53,6 +60,10 @@ function Login() {
 
         <Button type="submit">Submit</Button>
       </Form>
+      <HorizontalDivider>
+        <Title> Or Login </Title>
+      </HorizontalDivider>
+      <GoogleOAuthButton onClick={oauthSignIn} />
     </StyledLogin>
   )
 }
