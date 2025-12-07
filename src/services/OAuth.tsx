@@ -2,6 +2,7 @@ export function oauthSignIn() {
   const OAUTH_CLIENT_ID = import.meta.env.VITE_OAUTH_CLIENT_ID
   const REDIRECTION_URI = 'http://localhost:3000/'
 
+  console.log(OAUTH_CLIENT_ID)
   // Google's OAuth 2.0 endpoint for requesting an access token
   const oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth'
 
