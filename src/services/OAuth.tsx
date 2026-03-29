@@ -1,17 +1,14 @@
 export function oauthSignIn() {
   const OAUTH_CLIENT_ID = import.meta.env.VITE_OAUTH_CLIENT_ID
-  const REDIRECTION_URI = 'http://localhost:3000/'
+  const REDIRECTION_URI = import.meta.env.VITE_REDIRECTION_URI
 
-  // Google's OAuth 2.0 endpoint for requesting an access token
   const oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth'
 
-  // Create <form> element to submit parameters to OAuth 2.0 endpoint.
   const form = document.createElement('form')
-  form.setAttribute('method', 'GET') // Send as a GET request.
+  form.setAttribute('method', 'GET')
   form.setAttribute('action', oauth2Endpoint)
-  form.setAttribute('target', '_blank')
+  // form.setAttribute('target', '_blank')
 
-  // Parameters to pass to OAuth 2.0 endpoint.
   const params = {
     client_id: OAUTH_CLIENT_ID,
     redirect_uri: REDIRECTION_URI,
@@ -21,7 +18,6 @@ export function oauthSignIn() {
     state: 'pass-through value',
   }
 
-  // Add form parameters as hidden input values.
   for (const p in params) {
     const key = p as keyof typeof params
     const input = document.createElement('input')
@@ -34,4 +30,16 @@ export function oauthSignIn() {
   // Add form to page and submit it to open the OAuth 2.0 endpoint.
   document.body.appendChild(form)
   form.submit()
+}
+
+export async function fetchGoogleUser(token: string) {
+  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!res.ok) throw new Error(`Failed to fetch user: ${res.status}`)
+
+  return res.json()
 }

@@ -27,6 +27,7 @@ import Games from './pages/Games.tsx'
 import SideBar from './components/SideBar.tsx'
 import { StyledAppLayout } from './ui/AppLayout.tsx'
 import { GlobalStyle } from './styles/GlobalStyle'
+import { processAndClearAccessToken } from './helpers/urlUtility.ts'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +36,10 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+const token = processAndClearAccessToken()
+
+if (token) sessionStorage.setItem('access_token', token)
 
 const rootRoute = createRootRoute({
   component: () => (

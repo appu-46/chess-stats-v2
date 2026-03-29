@@ -11,6 +11,7 @@ import { useTabContext } from '../contexts/TabContext'
 import { oauthSignIn } from '../services/OAuth'
 import HorizontalDivider from '../ui/Divider'
 import GoogleOAuthButton from '../ui/GoogleAuthButton'
+import useGoogleUser from '../hooks/useGoogleUser'
 
 const StyledLogin = styled.div`
   display: flex;
@@ -33,6 +34,16 @@ function Login() {
   } = useForm<Inputs>()
   const { activeTab } = useTabContext()
 
+  const { data: user } = useGoogleUser()
+
+  const {
+    sub: googleId,
+    given_name: FirstName,
+    family_name: LastName,
+    picture: pfp,
+    chessUsername = '',
+  } = user ?? {}
+
   function onSubmit(data: { username: string }) {
     if (activeTab === 0) {
       navigate({
@@ -50,19 +61,36 @@ function Login() {
   return (
     <StyledLogin>
       {/* <FloatingTab /> */}
+      {user && (
+        <>
+          <Title>
+            Welcome, {FirstName} {LastName}
+          </Title>
+          <label>
+            We don't have your chess.com username stored yet, please enter it
+            below
+          </label>
+        </>
+      )}
       <Form onSubmit={handleSubmit(onSubmit)}>
         <Input
-          placeholder="Enter your username"
+          placeholder="Enter your Chess.com username"
           {...register('username', { required: true })}
         />
         {errors.username && <ErrorMessage message="Username is mandatory!" />}
 
         <Button type="submit">Submit</Button>
       </Form>
-      <HorizontalDivider>
-        <Title> Or Login </Title>
-      </HorizontalDivider>
-      <GoogleOAuthButton onClick={oauthSignIn} />
+      {!user && (
+        <>
+          <HorizontalDivider>
+            <label>
+              Sign in with Google so we remember your Chess.com username
+            </label>
+          </HorizontalDivider>
+          <GoogleOAuthButton onClick={oauthSignIn} />
+        </>
+      )}
     </StyledLogin>
   )
 }
