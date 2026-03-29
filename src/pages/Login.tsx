@@ -37,11 +37,11 @@ function Login() {
   const { data: user } = useGoogleUser()
 
   const {
-    sub: googleId,
+    // sub: googleId,
     given_name: FirstName,
     family_name: LastName,
-    picture: pfp,
-    chessUsername = '',
+    // picture: pfp,
+    // chessUsername = '',
   } = user ?? {}
 
   function onSubmit(data: { username: string }) {
