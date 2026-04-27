@@ -28,3 +28,15 @@ export async function updateChessUsername(sub: string, chessUsername: string) {
   if (error) throw new Error(error.message)
   return data
 }
+
+// services/apiUser.ts — add this
+export async function getUser(sub: string) {
+  const { data, error } = await supabase
+    .from('user')
+    .select()
+    .eq('sub', sub)
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}

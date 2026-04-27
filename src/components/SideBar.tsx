@@ -9,6 +9,8 @@ import { IoStatsChart } from 'react-icons/io5'
 import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core'
 import classes from '../css/NavbarMinimal.module.css'
 import DarkModeToggle from '../ui/DarkModeToggle'
+// import useGoogleUser from '../hooks/useGoogleUser'
+// import useGetUser from '../hooks/useGetUser'
 
 interface NavbarLinkProps {
   icon: typeof TiHome
@@ -70,6 +72,8 @@ function SideBar() {
   const params = isOnHomePage ? null : useParams({ strict: false })
   const username = params?.username || ''
   const navigate = useNavigate()
+  // const { data: googleUser } = useGoogleUser()
+  // const { data: dbUser } = useGetUser(googleUser?.sub)
 
   function handleClick(index: number) {
     if (isOnHomePage || !username) return
@@ -122,6 +126,35 @@ function SideBar() {
           </Stack>
           <DarkModeToggle />
         </div>
+        {/* {googleUser && (
+          <Stack
+            gap={4}
+            style={{
+              padding: '12px',
+              borderTop: '1px solid var(--mantine-color-dark-4)',
+            }}
+          >
+            <span
+              style={{ fontSize: '12px', color: 'var(--mantine-color-dimmed)' }}
+            >
+              {googleUser.given_name} {googleUser.family_name}
+            </span>
+            {!collapsed && (
+              <>
+                <span style={{ fontSize: '12px' }}>
+                  ♟ {dbUser?.chessUserId ?? '—'}
+                </span>
+                <UnstyledButton
+                  className={classes.link}
+                  onClick={() => navigate({ to: '/' })}
+                  style={{ fontSize: '12px' }}
+                >
+                  Change username
+                </UnstyledButton>
+              </>
+            )}
+          </Stack>
+        )} */}
       </nav>
     </>
   )

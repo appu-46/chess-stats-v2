@@ -13,6 +13,7 @@ import HorizontalDivider from '../ui/Divider'
 import GoogleOAuthButton from '../ui/GoogleAuthButton'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useUpdateChessUsername from '../hooks/useUpdateChessUsername'
+import useGetUser from '../hooks/useGetUser'
 
 const StyledLogin = styled.div`
   display: flex;
@@ -35,7 +36,8 @@ function Login() {
   } = useForm<Inputs>()
   const { activeTab } = useTabContext()
 
-  const { data: user } = useGoogleUser()
+  const { data: googleUser } = useGoogleUser()
+  const { data: dbUser } = useGetUser(googleUser?.sub)
 
   const { mutateAsync } = useUpdateChessUsername()
 
@@ -45,11 +47,26 @@ function Login() {
     given_name: FirstName,
     family_name: LastName,
     chessUsername = '',
-  } = user ?? {}
+  } = googleUser ?? {}
+
+  console.log(dbUser)
+
+  if (dbUser?.chessUserId) {
+    navigate({
+      to: '/profile/$username',
+      params: { username: dbUser.chessUserId },
+    })
+  }
 
   async function onSubmit(data: { username: string }) {
-    if (user) {
-      await mutateAsync({ sub: user.sub, chessUsername: data.username })
+    if (dbUser?.chessUserId) {
+      navigate({
+        to: '/profile/$username',
+        params: { username: dbUser.chessUserId },
+      })
+    }
+    if (googleUser) {
+      await mutateAsync({ sub: googleUser.sub, chessUsername: data.username })
     }
     if (activeTab === 0) {
       navigate({
@@ -67,12 +84,12 @@ function Login() {
   return (
     <StyledLogin>
       {/* <FloatingTab /> */}
-      {user && (
+      {googleUser && (
         <>
           <Title>
             Welcome, {FirstName} {LastName}
           </Title>
-          {user && !chessUsername && (
+          {googleUser && !chessUsername && (
             <label>We don't have your chess.com username stored yet...</label>
           )}
         </>
@@ -86,7 +103,7 @@ function Login() {
 
         <Button type="submit">Submit</Button>
       </Form>
-      {!user && (
+      {!googleUser && (
         <>
           <HorizontalDivider>
             <label>
