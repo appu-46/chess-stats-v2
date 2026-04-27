@@ -12,6 +12,7 @@ import { oauthSignIn } from '../services/OAuth'
 import HorizontalDivider from '../ui/Divider'
 import GoogleOAuthButton from '../ui/GoogleAuthButton'
 import useGoogleUser from '../hooks/useGoogleUser'
+import useUpdateChessUsername from '../hooks/useUpdateChessUsername'
 
 const StyledLogin = styled.div`
   display: flex;
@@ -36,15 +37,20 @@ function Login() {
 
   const { data: user } = useGoogleUser()
 
+  const { mutateAsync } = useUpdateChessUsername()
+
+  // Once Google user is available, upsert them
+
   const {
-    // sub: googleId,
     given_name: FirstName,
     family_name: LastName,
-    // picture: pfp,
-    // chessUsername = '',
+    chessUsername = '',
   } = user ?? {}
 
-  function onSubmit(data: { username: string }) {
+  async function onSubmit(data: { username: string }) {
+    if (user) {
+      await mutateAsync({ sub: user.sub, chessUsername: data.username })
+    }
     if (activeTab === 0) {
       navigate({
         to: '/profile/$username',
@@ -66,10 +72,9 @@ function Login() {
           <Title>
             Welcome, {FirstName} {LastName}
           </Title>
-          <label>
-            We don't have your chess.com username stored yet, please enter it
-            below
-          </label>
+          {user && !chessUsername && (
+            <label>We don't have your chess.com username stored yet...</label>
+          )}
         </>
       )}
       <Form onSubmit={handleSubmit(onSubmit)}>

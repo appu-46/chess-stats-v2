@@ -16,6 +16,7 @@
     "@mantine/core": "^8.3.2",
     "@mantine/dates": "^8.3.6",
     "@mantine/hooks": "^8.3.2",
+    "@supabase/supabase-js": "^2.105.0",
     "@tabler/icons-react": "^3.35.0",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-devtools": "^0.2.2",
