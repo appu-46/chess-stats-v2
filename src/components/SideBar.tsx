@@ -2,15 +2,15 @@ import { useState } from 'react'
 import { useNavigate, useParams, useRouterState } from '@tanstack/react-router'
 import { CgProfile } from 'react-icons/cg'
 import { MdGames } from 'react-icons/md'
-import { FaChartArea } from 'react-icons/fa'
+import { FaChartArea, FaEdit } from 'react-icons/fa'
 import { TiHome } from 'react-icons/ti'
 import { GiHamburgerMenu } from 'react-icons/gi'
 import { IoStatsChart } from 'react-icons/io5'
 import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core'
 import classes from '../css/NavbarMinimal.module.css'
 import DarkModeToggle from '../ui/DarkModeToggle'
-// import useGoogleUser from '../hooks/useGoogleUser'
-// import useGetUser from '../hooks/useGetUser'
+import useGoogleUser from '../hooks/useGoogleUser'
+import useGetUser from '../hooks/useGetUser'
 
 interface NavbarLinkProps {
   icon: typeof TiHome
@@ -72,8 +72,8 @@ function SideBar() {
   const params = isOnHomePage ? null : useParams({ strict: false })
   const username = params?.username || ''
   const navigate = useNavigate()
-  // const { data: googleUser } = useGoogleUser()
-  // const { data: dbUser } = useGetUser(googleUser?.sub)
+  const { data: googleUser } = useGoogleUser()
+  const { data: dbUser } = useGetUser(googleUser?.sub)
 
   function handleClick(index: number) {
     if (isOnHomePage || !username) return
@@ -126,35 +126,63 @@ function SideBar() {
           </Stack>
           <DarkModeToggle />
         </div>
-        {/* {googleUser && (
-          <Stack
-            gap={4}
+        {googleUser && (
+          <div
             style={{
-              padding: '12px',
-              borderTop: '1px solid var(--mantine-color-dark-4)',
+              borderTop:
+                '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+              paddingTop: 'var(--mantine-spacing-sm)',
+              width: '100%',
             }}
           >
-            <span
-              style={{ fontSize: '12px', color: 'var(--mantine-color-dimmed)' }}
-            >
-              {googleUser.given_name} {googleUser.family_name}
-            </span>
             {!collapsed && (
               <>
-                <span style={{ fontSize: '12px' }}>
-                  ♟ {dbUser?.chessUserId ?? '—'}
-                </span>
-                <UnstyledButton
-                  className={classes.link}
-                  onClick={() => navigate({ to: '/' })}
-                  style={{ fontSize: '12px' }}
+                <div
+                  style={{
+                    padding: 'var(--mantine-spacing-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: 0,
+                  }}
                 >
-                  Change username
-                </UnstyledButton>
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      background: 'var(--mantine-color-blue-filled)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: 'white',
+                    }}
+                  >
+                    {googleUser.given_name[0]}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600 }}>
+                      {googleUser.given_name}
+                    </div>
+                    <div style={{ fontSize: '11px', opacity: 0.6 }}>
+                      ♟ {dbUser?.chessUserId ?? '—'}
+                    </div>
+                  </div>
+                </div>
               </>
             )}
-          </Stack>
-        )} */}
+            <NavbarLink
+              icon={FaEdit}
+              label="Edit username"
+              onClick={() =>
+                navigate({ to: '/', search: { changeUsername: true } })
+              }
+              collapsed={collapsed}
+            />
+          </div>
+        )}
       </nav>
     </>
   )

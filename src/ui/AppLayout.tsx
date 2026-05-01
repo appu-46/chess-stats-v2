@@ -17,10 +17,8 @@ export const StyledAppLayout = styled.div`
   grid-template-rows: auto 1fr auto;
   // min-height: 45vh;
 
-  /* optional: gap between sidebar and content */
   gap: 0;
 
-  /* make content scrollable if needed */
   overflow: hidden;
 
   > header {

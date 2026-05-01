@@ -16,29 +16,53 @@ export const GlobalStyle = createGlobalStyle`
     color 0.3s ease,
     border-color 0.3s ease !important;
 }
-body {
+[data-mantine-color-scheme='dark'] body {
   height: 100%;
+  background:linear-gradient(
+    145deg, 
+    #020617 0%,    
+    #0F172A 50%,  
+    #020617 100%  
+  );;
   [data-mantine-color-scheme] {
     transition:
       background-color 0.3s ease,
       color 0.3s ease,
       border-color 0.3s ease,
       width 0.5s ease !important;
-  }
-
+  };
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
+[data-mantine-color-scheme='light'] body {
+  height: 100%;
+  background:linear-gradient(
+    145deg, 
+    #F9FAFB 0%,    
+    #CBD5E1 50%,  
+    #F9FAFB 100%  
+  );;
+  [data-mantine-color-scheme] {
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease,
+      width 0.5s ease !important;
+  };
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Smooth transitions for Mantine Switch */
 .mantine-Switch-track {
   transition: background-color 0.3s ease !important;
 }
@@ -47,39 +71,53 @@ code {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Smooth icon transitions */
 .mantine-Switch-thumb > svg {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease !important;
+  transition: color 0.3s ease !important;
 }
 
-/* Optional: Add a subtle scale effect */
 .mantine-Switch-input:checked ~ .mantine-Switch-track .mantine-Switch-thumb {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Automatic color change based on theme */
-h1,
+div {
+  transition: color 0.3s ease !important;
+}
+
 h2,
+h3,
 span,
-a {
+a,
+p{
   color: var(--mantine-color-text);
   transition: color 0.3s ease !important;
 }
 
-[data-mantine-color-scheme='dark'] h1,
+[data-mantine-color-scheme='dark']
 h2,
 span,
-a {
+a,
+p {
+  transition: color 0.3s ease !important;
   color: var(--mantine-color-text);
 }
+ [data-mantine-color-scheme='dark'] h1 {
+  transition: color 0.3s ease !important;
+  background: linear-gradient(135deg, #a78bfa, #ec4899);
+  background-clip: text;
+ }
 
-[data-mantine-color-scheme='light'] h1,
-h2,
+  [data-mantine-color-scheme='light'] h1 {
+ background: linear-gradient(135deg, #4c1d95, #831843);
+  transition: color 0.3s ease !important;
+
+  background-clip: text;
+ }
+
+[data-mantine-color-scheme='light'] h2,
 span,
-a {
+a,
+p{
+  transition: color 0.3s ease !important;
   color: var(--mantine-color-text);
 }
-
 `

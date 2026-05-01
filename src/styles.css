@@ -36,7 +36,6 @@ code {
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Smooth transitions for Mantine Switch */
 .mantine-Switch-track {
   transition: background-color 0.3s ease !important;
 }
@@ -45,19 +44,16 @@ code {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Smooth icon transitions */
 .mantine-Switch-thumb > svg {
   transition:
     opacity 0.2s ease,
     transform 0.2s ease !important;
 }
 
-/* Optional: Add a subtle scale effect */
 .mantine-Switch-input:checked ~ .mantine-Switch-track .mantine-Switch-thumb {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Automatic color change based on theme */
 h1,
 h2,
 span,

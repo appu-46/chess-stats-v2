@@ -6,12 +6,13 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  useLocation,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MantineProvider, createTheme } from '@mantine/core'
 
-import '@mantine/core/styles.css'
+// import '@mantine/core/styles.css'
 import './styles.css'
 // import reportWebVitals from './reportWebVitals.ts'
 
@@ -26,7 +27,7 @@ import DashBoard from './pages/DashBoard.tsx'
 import Games from './pages/Games.tsx'
 import SideBar from './components/SideBar.tsx'
 import { StyledAppLayout } from './ui/AppLayout.tsx'
-import { GlobalStyle } from './styles/GlobalStyle'
+import { GlobalStyle } from './styles/GlobalStyle.ts'
 import { processAndClearAccessToken } from './helpers/urlUtility.ts'
 
 const queryClient = new QueryClient({
@@ -42,17 +43,20 @@ const token = processAndClearAccessToken()
 if (token) sessionStorage.setItem('access_token', token)
 
 const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <StyledAppLayout>
-        <Header />
-        <SideBar />
-        <Outlet />
-        <Footer />
-        <TanStackRouterDevtools />
-      </StyledAppLayout>
-    </>
-  ),
+  component: () => {
+    const { pathname } = useLocation()
+    return (
+      <>
+        <StyledAppLayout>
+          {pathname !== '/' && <Header />}
+          <SideBar />
+          <Outlet />
+          <Footer />
+          <TanStackRouterDevtools />
+        </StyledAppLayout>
+      </>
+    )
+  },
   notFoundComponent: PageNotFound,
 })
 
@@ -60,6 +64,11 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: App,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      changeUsername: search.changeUsername as boolean | undefined,
+    }
+  },
 })
 
 const statRoute = createRoute({
@@ -100,14 +109,7 @@ const gamesRoute = createRoute({
 
 // const theme = useMantineTheme()
 
-const theme = createTheme({
-  fontFamily: 'Open Sans, sans-serif',
-  // primaryColor: 'aqua',
-  shadows: {
-    md: '1px 1px 3px rgba(0, 0, 0, .25)',
-    xl: '5px 5px 3px rgba(0, 0, 0, .25)',
-  },
-})
+const theme = createTheme({})
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -148,8 +150,3 @@ if (rootElement && !rootElement.innerHTML) {
     </StrictMode>,
   )
 }
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-// reportWebVitals()

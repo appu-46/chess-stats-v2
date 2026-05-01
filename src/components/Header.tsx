@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import '@mantine/core/styles.css'
 import styled from 'styled-components'
 
-const StyledHeader = styled.header`
+export const StyledHeader = styled.header`
   margin: 1rem 0;
   display: flex;
   max-width: 75rem;
@@ -30,14 +30,12 @@ export const Logo = styled.img`
 `
 
 const Title = styled.h1`
-  font-family: 'Cantarell';
-  font-size: 2.5rem;
-  font-weight: 600;
-  text-align: center;
-
-  @media (max-width: 768px) {
-    font-size: 1.8rem;
-  }
+  font-size: 3.5rem;
+  font-weight: 700;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
 `
 
 export default function Header() {
@@ -45,7 +43,7 @@ export default function Header() {
   const navigate = useNavigate()
 
   function handleClick() {
-    navigate({ to: '/' })
+    navigate({ to: '/', search: { changeUsername: true } })
   }
 
   return (

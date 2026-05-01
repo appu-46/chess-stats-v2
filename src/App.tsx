@@ -7,7 +7,7 @@ const StyledLayout = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-width: 120rem;
+  // max-width: 120rem;
   // min-height: 69vh;
 `
 const MainContent = styled.main`
