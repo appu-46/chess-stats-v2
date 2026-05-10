@@ -1,89 +1,169 @@
 import styled from 'styled-components'
 import { FaChessPawn, FaGlobe, FaTrophy, FaTwitch } from 'react-icons/fa'
-import { MdDateRange, MdUpdate } from 'react-icons/md'
+import { BsClockHistory } from 'react-icons/bs'
+import { RiVipDiamondFill } from 'react-icons/ri'
+import { MdDateRange } from 'react-icons/md'
 import { HiUserGroup } from 'react-icons/hi'
-import { TbPremiumRights } from 'react-icons/tb'
 import { useParams } from '@tanstack/react-router'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
-import PlayerAvatar from '../ui/PlayerAvatar'
-import InfoBlock from '../ui/InfoBlock'
 import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
-import StyledProfilething from '../ui/Profilething'
 
-export const StyledContainer = styled.div`
-  display: grid;
-  grid-gap: 0.25rem;
-  align-items: ceter;
-  min-width: 50rem;
-  justify-items: center;
-  justify-content: center;
+// ── Layout ──────────────────────────────────────────────────────────
+const PageWrapper = styled.div`
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  width: auto;
 `
-export const StyledProfiler = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 2px 30rem;
-  align-items: ceter;
-  min-width: 50rem;
-  justify-items: center;
-  justify-content: center;
+
+const ProfileCard = styled.div`
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  gap: 2rem;
+  align-items: start;
 `
-const StyledProfile = styled.div`
-  display: grid;
-  grid-template-columns: 20rem;
-  grid-template-rows: 5rem 5rem 5rem;
-  grid-gap: 1rem;
-  align-content: center;
-  min-width: 50rem;
-  justify-items: center;
-  justify-content: center;
+
+const Avatar = styled.img`
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 255, 0.3);
 `
-const StyledName = styled.h1`
-  font-size: 54px;
+
+const AvatarPlaceholder = styled.div`
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+`
+
+const ProfileInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+`
+
+const Name = styled.h1`
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+const TitleBadge = styled.span`
+  font-size: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  background: #7d2828;
+  font-weight: 1000;
+`
+
+const Username = styled.div`
+  font-size: 0.95rem;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+const MetaRow = styled.div`
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+`
+const MetaColumns = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+
+const MetaItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.35rem 1rem 0.35rem 1.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  svg {
+    opacity: 0.6;
+  }
+`
+
+const Country = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  img {
+    height: 100%;
+  }
+`
+
+// ── Quick Stats Card ────────────────────────────────────────────────
+const StatsCard = styled.div`
+  width: 500px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 2rem;
+`
+
+const StatRow = styled.div`
+  display: flex;
+  transition: all 0.2s ease;
+  justify-content: start;
+  align-items: center;
+  padding: 1rem;
+  padding-left: 2.5rem;
+  gap: 2.5rem;
+  margin-bottom: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+`
+
+const MetaTitle = styled.div`
+  font-size: 0.75rem;
+  font-weight: 400;
+`
+
+const MetaValue = styled.div`
+  font-size: 1.1rem;
   font-weight: 500;
 `
 
-const StyledCountry = styled.h2`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 5px;
-  font-size: 42px;
+const StatTitle = styled.div`
+  font-size: 1rem;
   font-weight: 400;
 `
-const StyledOnline = styled.h2`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 5px;
-  font-size: 24px;
-  font-weight: 200;
-`
-const StyledHeader = styled.div`
-  margin: 1rem 0rem 1rem 0rem;
-  display: flex;
-  flex-direction: column;
-  justify-items: center;
-  max-width: 100rem;
-`
 
-const Divider = styled.hr`
-  width: 2px;
-  background-color: white; /* or use theme color */
-  height: 100%;
-  opacity: 0.2;
-`
-
-const TitleBG = styled.span`
-  border-radius: 2.5rem;
-  background-color: #7d2828;
-  padding: 0.1rem 0.95rem;
-}
+const StatValue = styled.div`
+  font-size: 1.25rem;
+  font-weight: 600;
 `
 
 function Profile() {
   const { username } = useParams({ from: '/profile/$username' })
-
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
   const { data: countryDetail } = useCountry(profile?.country)
 
@@ -91,84 +171,116 @@ function Profile() {
 
   const {
     avatar: playerAvatar = null,
-    // player_id = null,
     url = null,
     name: playerName = null,
     title = null,
     followers = null,
+    is_streamer = false,
     last_online = null,
+    twitch_url = null,
     joined = null,
     status = null,
-    is_streamer = null,
-    twitch_url = null,
     league = null,
   } = profile ?? {}
 
   return (
-    <StyledProfiler>
-      <StyledProfilething>
-        <a href={url} target="_blank">
-          {playerAvatar === null ? (
-            <FaChessPawn size="14rem" />
+    <PageWrapper>
+      <ProfileCard>
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          {playerAvatar ? (
+            <Avatar src={playerAvatar} alt={playerName || 'avatar'} />
           ) : (
-            <PlayerAvatar src={playerAvatar} alt="user-avatar" />
+            <AvatarPlaceholder>
+              <FaChessPawn size={60} />
+            </AvatarPlaceholder>
           )}
         </a>
-        <StyledHeader>
-          {
-            <StyledName>
-              {title && <TitleBG>{title}</TitleBG>}{' '}
-              <a href={url} target="_blank">
+
+        <ProfileInfo>
+          <Name>
+            {title && <TitleBadge>{title}</TitleBadge>}
+            <h1>
+              <a href={url} target="_blank" rel="noopener noreferrer">
                 {playerName}
               </a>
-            </StyledName>
-          }
-          <StyledCountry>
-            {countryDetail?.code == 'XX' ? (
-              <FaGlobe />
-            ) : (
-              <img
-                style={{ height: '48px' }}
-                src={`https://flagsapi.com/${countryDetail?.code}/flat/32.png`}
-                alt="country-flag"
-              />
-            )}
+            </h1>
+            <span>•</span>
+            <Username>@{username}</Username>
+          </Name>
 
-            {countryDetail?.name}
-          </StyledCountry>
-          <StyledOnline>
-            <MdUpdate />
-            {formatDate(last_online).formattedDateTime}
-          </StyledOnline>
-          <StyledOnline>
-            <HiUserGroup /> {followers?.toLocaleString('en-IN')}
-          </StyledOnline>
-        </StyledHeader>
-      </StyledProfilething>
-      <Divider />
-      <StyledProfile>
-        <InfoBlock>
-          <MdDateRange size={30} />
-          {formatDate(joined).formattedDateTime}
-        </InfoBlock>
-        <InfoBlock>
-          <TbPremiumRights size={30} /> {status?.toUpperCase()}
-        </InfoBlock>
+          <MetaRow>
+            <MetaItem>
+              <MdDateRange size={30} color="#22c55e" />
+              <MetaColumns>
+                <MetaTitle>Joined</MetaTitle>
+                <MetaValue>{formatDate(joined).formattedDateTime}</MetaValue>
+              </MetaColumns>
+            </MetaItem>
+            <MetaItem>
+              <HiUserGroup size={30} color="#22c55e" />
+              <MetaColumns>
+                <MetaTitle>Followers</MetaTitle>
+                <MetaValue> {followers?.toLocaleString('en-IN')} </MetaValue>
+              </MetaColumns>
+            </MetaItem>
+          </MetaRow>
+          {countryDetail && (
+            <Country>
+              {countryDetail.code === 'XX' ? (
+                <FaGlobe />
+              ) : (
+                <img
+                  src={`https://flagsapi.com/${countryDetail.code}/flat/32.png`}
+                  alt={countryDetail.name}
+                />
+              )}
+              {countryDetail.name}
+            </Country>
+          )}
+        </ProfileInfo>
+      </ProfileCard>
+
+      <StatsCard>
+        <StatRow>
+          <FaTrophy size={40} color="#22c55e" />
+          <MetaColumns>
+            <StatTitle>League</StatTitle>
+            <StatValue>{league || '—'}</StatValue>
+          </MetaColumns>
+        </StatRow>
+
+        <StatRow>
+          <RiVipDiamondFill size={40} color="#3b82f6" />
+          <MetaColumns>
+            <StatTitle>Status</StatTitle>
+            <StatValue>{status?.toUpperCase() || '—'}</StatValue>
+          </MetaColumns>
+        </StatRow>
+
+        <StatRow>
+          <BsClockHistory size={40} color="yellow" />
+          <MetaColumns>
+            <StatTitle>Last Active</StatTitle>
+            <StatValue>{formatDate(last_online).formattedDateTime}</StatValue>
+          </MetaColumns>
+        </StatRow>
         {is_streamer === true && (
           <a href={twitch_url} target="_blank">
-            <InfoBlock>
-              <FaTwitch size={30} />{' '}
-              {twitch_url === null
-                ? 'No channel found'
-                : twitch_url.replace('https://twitch.tv', '')}
-            </InfoBlock>
+            <StatRow>
+              <FaTwitch size={40} color="#a855f7" />
+              <MetaColumns>
+                <StatTitle>Twitch</StatTitle>
+                <StatValue>
+                  {twitch_url === null
+                    ? 'No channel found'
+                    : twitch_url.replace('https://twitch.tv/', '')}
+                </StatValue>
+              </MetaColumns>
+            </StatRow>
           </a>
         )}
-        <InfoBlock>
-          <FaTrophy size={30} /> {league}
-        </InfoBlock>
-      </StyledProfile>
-    </StyledProfiler>
+      </StatsCard>
+    </PageWrapper>
   )
 }
 

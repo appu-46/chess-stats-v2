@@ -49,6 +49,7 @@ const rootRoute = createRootRoute({
       <>
         <StyledAppLayout>
           {pathname !== '/' && <Header />}
+
           <SideBar />
           <Outlet />
           <Footer />

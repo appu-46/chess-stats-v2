@@ -17,7 +17,7 @@ function DarkModeToggle() {
     <StyledDarkModeToggle>
       <Switch
         size="md"
-        color="dark.4"
+        color="#105037"
         onChange={() => handleClick()}
         checked={colorScheme === 'dark'}
         styles={{

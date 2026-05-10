@@ -118,10 +118,10 @@ function Stats() {
               <PieGraph record={record} />
               <Divider />
               <Badge>
-                <FaMedal /> Best ELO - {stat?.best?.rating}
+                <FaMedal /> <p>Best ELO - {stat?.best?.rating}</p>
               </Badge>
               <Badge>
-                <LuRefreshCw /> Latest ELO - {stat?.last?.rating}
+                <LuRefreshCw /> <p>Current ELO - {stat?.last?.rating}</p>
               </Badge>
             </StatsBlock>
           )

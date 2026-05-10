@@ -5,6 +5,7 @@ import styled from 'styled-components'
 
 export const StyledHeader = styled.header`
   margin: 1rem 0;
+  backdrop-filter: blur(4px);
   display: flex;
   max-width: 75rem;
   flex-direction: row;

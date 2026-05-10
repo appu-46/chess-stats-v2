@@ -47,7 +47,7 @@ function GoogleOAuthButton({ onClick }: Props) {
   return (
     <GoogleButton onClick={onClick}>
       <FcGoogle size={22} />
-      <>Sign in with Google</>
+      <span>Sign in with Google</span>
     </GoogleButton>
   )
 }
