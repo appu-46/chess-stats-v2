@@ -113,7 +113,7 @@ function Stats() {
             <StatsBlock key={key}>
               <TitleBadge>
                 {icon}
-                <Title>{`${label} Rating:`}</Title>
+                <Title>{`${label} Rating`}</Title>
               </TitleBadge>
               <PieGraph record={record} />
               <Divider />

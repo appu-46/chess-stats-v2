@@ -47,7 +47,7 @@ function GoogleOAuthButton({ onClick }: Props) {
   return (
     <GoogleButton onClick={onClick}>
       <FcGoogle size={22} />
-      <span>Sign in with Google</span>
+      <span style={{ color: '#222' }}>Sign in with Google</span>
     </GoogleButton>
   )
 }

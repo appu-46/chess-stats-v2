@@ -1,14 +1,18 @@
 import styled from 'styled-components'
-import { FaChessPawn, FaGlobe, FaTrophy, FaTwitch } from 'react-icons/fa'
+import { FaGlobe, FaStopwatch, FaSun, FaTrophy, FaTwitch } from 'react-icons/fa'
+import { IoMdTrendingUp } from 'react-icons/io'
 import { BsClockHistory } from 'react-icons/bs'
+import { SiChessdotcom, SiStackblitz } from 'react-icons/si'
 import { RiVipDiamondFill } from 'react-icons/ri'
 import { MdDateRange } from 'react-icons/md'
+import { GiBulletBill } from 'react-icons/gi'
 import { HiUserGroup } from 'react-icons/hi'
 import { useParams } from '@tanstack/react-router'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
 import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
+import useStats from '../hooks/useStats'
 
 // ── Layout ──────────────────────────────────────────────────────────
 const PageWrapper = styled.div`
@@ -20,12 +24,13 @@ const PageWrapper = styled.div`
 
 const ProfileCard = styled.div`
   flex: 1;
+  flex-direction: column;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 2rem;
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
   align-items: start;
 `
 
@@ -52,6 +57,18 @@ const ProfileInfo = styled.div`
   flex-direction: column;
   gap: 0.75rem;
   flex: 1;
+`
+const ProfileRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 2.5rem;
+  flex: 1;
+`
+const IconRow = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 1rem;
 `
 
 const Name = styled.h1`
@@ -88,6 +105,20 @@ const MetaColumns = styled.div`
   display: flex;
   flex-direction: column;
 `
+const PeakItem = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+`
 
 const MetaItem = styled.div`
   display: flex;
@@ -96,9 +127,6 @@ const MetaItem = styled.div`
   padding: 0.35rem 1rem 0.35rem 1.2rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  svg {
-    opacity: 0.6;
-  }
 `
 
 const Country = styled.div`
@@ -141,6 +169,10 @@ const StatRow = styled.div`
     transform: translateY(-2px);
   }
 `
+const PeakRating = styled.h2`
+  font-size: 2.5rem;
+  font-weight: 1000;
+`
 
 const MetaTitle = styled.div`
   font-size: 0.75rem;
@@ -166,8 +198,15 @@ function Profile() {
   const { username } = useParams({ from: '/profile/$username' })
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
   const { data: countryDetail } = useCountry(profile?.country)
+  const {
+    data: stats,
+    isPending: isFetchingStats,
+    error: errorStats,
+  } = useStats(username)
 
-  if (isFetchingProfile) return <Spinner />
+  if (errorStats) return <p>{`${errorStats.message}`}</p>
+
+  if (isFetchingProfile || isFetchingStats) return <Spinner />
 
   const {
     avatar: playerAvatar = null,
@@ -183,61 +222,121 @@ function Profile() {
     league = null,
   } = profile ?? {}
 
+  console.log(stats)
+
+  const timeControls = [
+    {
+      key: 'chess_blitz',
+      label: 'Blitz',
+      color: '#e3bd37',
+      icon: <SiStackblitz size={35} color="#e3bd37" />,
+    },
+    {
+      key: 'chess_rapid',
+      label: 'Rapid',
+      color: '#fa6d4b',
+
+      icon: <FaStopwatch size={35} color="#fa6d4b" />,
+    },
+    {
+      key: 'chess_bullet',
+      label: 'Bullet',
+      color: '#5d9bf0',
+      icon: <GiBulletBill size={35} color="#5d9bf0" />,
+    },
+    {
+      key: 'chess_daily',
+      label: 'Daily',
+      color: '#f7a233',
+      icon: <FaSun size={35} color="#f7a233" />,
+    },
+  ] as const
   return (
     <PageWrapper>
       <ProfileCard>
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          {playerAvatar ? (
-            <Avatar src={playerAvatar} alt={playerName || 'avatar'} />
-          ) : (
-            <AvatarPlaceholder>
-              <FaChessPawn size={60} />
-            </AvatarPlaceholder>
-          )}
-        </a>
+        <ProfileRow>
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            {playerAvatar ? (
+              <Avatar src={playerAvatar} alt={playerName || 'avatar'} />
+            ) : (
+              <AvatarPlaceholder>
+                <SiChessdotcom size={60} />
+              </AvatarPlaceholder>
+            )}
+          </a>
 
-        <ProfileInfo>
-          <Name>
-            {title && <TitleBadge>{title}</TitleBadge>}
-            <h1>
-              <a href={url} target="_blank" rel="noopener noreferrer">
-                {playerName}
+          <ProfileInfo>
+            <Name>
+              {title && <TitleBadge>{title}</TitleBadge>}
+              <h1>
+                <a href={url} target="_blank" rel="noopener noreferrer">
+                  {playerName}
+                </a>
+              </h1>
+              <span>•</span>
+              <Username>@{username}</Username>
+            </Name>
+            <MetaRow>
+              <MetaItem>
+                <MdDateRange size={30} color="#22c55e" />
+                <MetaColumns>
+                  <MetaTitle>Joined</MetaTitle>
+                  <MetaValue>{formatDate(joined).formattedDateTime}</MetaValue>
+                </MetaColumns>
+              </MetaItem>
+              <MetaItem>
+                <HiUserGroup size={30} color="#06b6d4" />
+                <MetaColumns>
+                  <MetaTitle>Followers</MetaTitle>
+                  <MetaValue> {followers?.toLocaleString('en-IN')} </MetaValue>
+                </MetaColumns>
+              </MetaItem>
+            </MetaRow>
+            {countryDetail && (
+              <Country>
+                {countryDetail.code === 'XX' ? (
+                  <FaGlobe />
+                ) : (
+                  <img
+                    src={`https://flagsapi.com/${countryDetail.code}/flat/32.png`}
+                    alt={countryDetail.name}
+                  />
+                )}
+                {countryDetail.name}
+              </Country>
+            )}
+          </ProfileInfo>
+        </ProfileRow>
+        <IconRow>
+          <IoMdTrendingUp size={32} color="#fa143c" />{' '}
+          <StatValue> Peak Ratings</StatValue>
+        </IconRow>
+        <ProfileRow style={{ gap: '1.25rem' }}>
+          {timeControls.map(({ key, label, color, icon }) => {
+            const stat = stats?.[key]
+            if (!stat) return null
+            return (
+              <a href={stat?.best?.game} target="_blank">
+                <PeakItem
+                  key={key}
+                  style={{ borderBottom: `2px solid ${color}` }}
+                >
+                  <MetaRow>
+                    <IconRow>
+                      {icon}
+                      <StatTitle
+                        style={{ color: color, fontSize: '1.5rem' }}
+                      >{`${label}`}</StatTitle>
+                    </IconRow>
+                  </MetaRow>
+                  <MetaRow>
+                    <PeakRating>{stat?.best?.rating}</PeakRating>
+                  </MetaRow>
+                </PeakItem>
               </a>
-            </h1>
-            <span>•</span>
-            <Username>@{username}</Username>
-          </Name>
-
-          <MetaRow>
-            <MetaItem>
-              <MdDateRange size={30} color="#22c55e" />
-              <MetaColumns>
-                <MetaTitle>Joined</MetaTitle>
-                <MetaValue>{formatDate(joined).formattedDateTime}</MetaValue>
-              </MetaColumns>
-            </MetaItem>
-            <MetaItem>
-              <HiUserGroup size={30} color="#22c55e" />
-              <MetaColumns>
-                <MetaTitle>Followers</MetaTitle>
-                <MetaValue> {followers?.toLocaleString('en-IN')} </MetaValue>
-              </MetaColumns>
-            </MetaItem>
-          </MetaRow>
-          {countryDetail && (
-            <Country>
-              {countryDetail.code === 'XX' ? (
-                <FaGlobe />
-              ) : (
-                <img
-                  src={`https://flagsapi.com/${countryDetail.code}/flat/32.png`}
-                  alt={countryDetail.name}
-                />
-              )}
-              {countryDetail.name}
-            </Country>
-          )}
-        </ProfileInfo>
+            )
+          })}
+        </ProfileRow>
       </ProfileCard>
 
       <StatsCard>
