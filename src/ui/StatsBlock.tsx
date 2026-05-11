@@ -1,35 +1,22 @@
 import styled from 'styled-components'
 
 const StatsBlock = styled.div`
-  display: grid;
-  gap: 0.2rem;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto auto;
-  align-items: center;
-  width: fit-content;
-  height: auto;
-  border: 1.5px solid #666;
-  border-radius: 20px;
-  font-size: 22px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   padding: 1rem;
-  justify-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  transition:
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 255, 255, 0.5);
-    transform: translateY(-4px);
-    box-shadow: 0 0 12px rgba(0, 255, 255, 0.15);
+    transform: translateY(-6px);
   }
-
-  svg {
-    font-size: 1.25rem;
-    color: rgba(0, 255, 255, 0.8);
-    flex-shrink: 0;
-  }
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+  opacity: 0.9;
 `
 
 export default StatsBlock

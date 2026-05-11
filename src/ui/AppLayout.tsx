@@ -19,8 +19,6 @@ export const StyledAppLayout = styled.div`
 
   gap: 0;
 
-  overflow: hidden;
-
   > header {
     grid-area: header;
   }

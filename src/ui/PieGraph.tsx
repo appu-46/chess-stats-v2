@@ -1,13 +1,10 @@
 import {
   Cell,
-  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
   // Sector,
 } from 'recharts'
-
-const RADIAN = Math.PI / 180
 
 // const COLORS = ['#77DD77', '#FF6961', '#CFCFC4']
 const COLORS = ['#2ecc71', '#e74c3c', '#f1c40f']
@@ -107,34 +104,6 @@ interface PieGraphProps {
     | undefined
 }
 
-const renderCustomizedLabel = ({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  percent,
-}: any) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.23
-  const x = cx + radius * Math.cos(-(midAngle ?? 0) * RADIAN)
-  const y = cy + radius * Math.sin(-(midAngle ?? 0) * RADIAN)
-
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="#111"
-      fontSize={15}
-      fontWeight={400}
-      stroke="#111"
-      textAnchor={x > cx ? 'start' : 'end'}
-      dominantBaseline="central"
-    >
-      {`${((percent ?? 1) * 100).toFixed(0)}%`}
-    </text>
-  )
-}
-
 export default function PieGraph({ record }: PieGraphProps) {
   if (!record) return <text> No Data available </text>
   const { percentageWins, percentageLosses, percentageDraws } = record
@@ -144,21 +113,22 @@ export default function PieGraph({ record }: PieGraphProps) {
     { name: 'Draws', value: percentageDraws },
   ]
   return (
-    <div style={{ width: '350px', height: '250px' }}>
+    <div style={{ width: '250px', height: '250px', padding: '0px' }}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart width={400} height={400}>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
+            // cornerRadius="20%"
             labelLine={false}
-            innerRadius={60}
+            innerRadius={70}
             outerRadius={100}
-            paddingAngle={4.6}
+            paddingAngle={3}
             legendType="circle"
             dataKey="value"
             nameKey="name"
-            label={renderCustomizedLabel}
+            label={false}
             animationBegin={0}
             animationDuration={800}
             // activeShape={renderActiveShape}
@@ -170,7 +140,12 @@ export default function PieGraph({ record }: PieGraphProps) {
               />
             ))}
           </Pie>
-          <Legend align="right" layout="vertical" verticalAlign="middle" />
+          {/* <Legend
+            aria-label="true"
+            align="right"
+            layout="vertical"
+            verticalAlign="middle"
+          /> */}
         </PieChart>
       </ResponsiveContainer>
     </div>

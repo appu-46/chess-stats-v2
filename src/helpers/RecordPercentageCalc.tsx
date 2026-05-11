@@ -17,5 +17,5 @@ export function RecordPercentageCalc(
   const percentageLosses = parseFloat(((l / totalGames) * 100).toFixed(2))
   const percentageDraws = parseFloat(((d / totalGames) * 100).toFixed(2))
 
-  return { percentageDraws, percentageLosses, percentageWins }
+  return { totalGames, percentageDraws, percentageLosses, percentageWins }
 }

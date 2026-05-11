@@ -6,6 +6,7 @@ import { SiChessdotcom, SiStackblitz } from 'react-icons/si'
 import { RiVipDiamondFill } from 'react-icons/ri'
 import { MdDateRange } from 'react-icons/md'
 import { GiBulletBill } from 'react-icons/gi'
+import { BiSolidUpArrow } from 'react-icons/bi'
 import { HiUserGroup } from 'react-icons/hi'
 import { useParams } from '@tanstack/react-router'
 import useProfile from '../hooks/useProfile'
@@ -13,7 +14,6 @@ import Spinner from '../ui/Spinner'
 import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
 import useStats from '../hooks/useStats'
-
 // ── Layout ──────────────────────────────────────────────────────────
 const PageWrapper = styled.div`
   display: flex;
@@ -110,7 +110,7 @@ const PeakItem = styled.div`
   align-items: center;
   flex-direction: column;
   gap: 1rem;
-  padding: 2rem;
+  padding: 2rem 1.75rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   &:hover {
@@ -222,8 +222,6 @@ function Profile() {
     league = null,
   } = profile ?? {}
 
-  console.log(stats)
-
   const timeControls = [
     {
       key: 'chess_blitz',
@@ -331,6 +329,15 @@ function Profile() {
                   </MetaRow>
                   <MetaRow>
                     <PeakRating>{stat?.best?.rating}</PeakRating>
+                  </MetaRow>
+                  <MetaRow>
+                    <IconRow style={{ gap: '0.25rem' }}>
+                      <BiSolidUpArrow size={15} color="#00c500" />
+                      <span style={{ fontSize: '0.75rem', color: '#00c500' }}>
+                        {stat?.best?.rating - stat?.last.rating}
+                      </span>
+                      <span style={{ fontSize: '0.75rem' }}>from current</span>
+                    </IconRow>
                   </MetaRow>
                 </PeakItem>
               </a>

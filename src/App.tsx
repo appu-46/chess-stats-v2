@@ -5,10 +5,8 @@ import AppLayout from './ui/AppLayout'
 const StyledLayout = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  // max-width: 120rem;
-  // min-height: 69vh;
 `
 const MainContent = styled.main`
   flex: auto;

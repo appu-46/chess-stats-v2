@@ -51,7 +51,9 @@ const rootRoute = createRootRoute({
           {pathname !== '/' && <Header />}
 
           <SideBar />
-          <Outlet />
+          <main>
+            <Outlet />
+          </main>
           <Footer />
           <TanStackRouterDevtools />
         </StyledAppLayout>
