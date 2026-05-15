@@ -75,10 +75,19 @@ function SideBar() {
   const { data: googleUser } = useGoogleUser()
   const { data: dbUser } = useGetUser(googleUser?.sub)
 
+  function toggleCollapsed() {
+    const next = !collapsed
+    setCollapsed(next)
+    document.documentElement.style.setProperty(
+      '--sidebar-width',
+      next ? '80px' : '20vh',
+    )
+  }
+
   function handleClick(index: number) {
     if (isOnHomePage || !username) return
     setActive(index)
-    setCollapsed(true)
+    toggleCollapsed
 
     const routes = [
       { to: '/' as const },
@@ -114,7 +123,7 @@ function SideBar() {
       >
         <Center>
           <UnstyledButton
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => toggleCollapsed()}
             className={classes.hamburger}
           >
             <GiHamburgerMenu />

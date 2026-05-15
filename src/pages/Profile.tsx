@@ -62,7 +62,6 @@ const ProfileRow = styled.div`
   display: flex;
   flex-direction: row;
   gap: 2.5rem;
-  flex: 1;
 `
 const IconRow = styled.div`
   display: flex;
@@ -81,8 +80,8 @@ const Name = styled.h1`
 `
 
 const TitleBadge = styled.span`
-  font-size: 1rem;
-  padding: 0.25rem 0.75rem;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 12px;
   background: #7d2828;
   font-weight: 1000;
@@ -141,7 +140,6 @@ const Country = styled.div`
 
 // ── Quick Stats Card ────────────────────────────────────────────────
 const StatsCard = styled.div`
-  width: 500px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
@@ -264,16 +262,14 @@ function Profile() {
           </a>
 
           <ProfileInfo>
-            <Name>
-              {title && <TitleBadge>{title}</TitleBadge>}
-              <h1>
-                <a href={url} target="_blank" rel="noopener noreferrer">
-                  {playerName}
-                </a>
-              </h1>
-              <span>•</span>
-              <Username>@{username}</Username>
-            </Name>
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              <Name>
+                {title && <TitleBadge>{title}</TitleBadge>}
+                <h1>{playerName}</h1>
+                <span>•</span>
+                <Username>@{username}</Username>
+              </Name>
+            </a>
             <MetaRow>
               <MetaItem>
                 <MdDateRange size={30} color="#22c55e" />

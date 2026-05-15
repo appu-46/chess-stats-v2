@@ -9,13 +9,17 @@ export const GlobalStyle = createGlobalStyle`
     color 0.3s ease !important;
 }
 
+[data-mantine-color-scheme="light"] body {
+  background: #f0f4f8;  /* soft blue-gray instead of plain white/gray */
+}
+
 [data-mantine-color-scheme='dark'] *,
 [data-mantine-color-scheme='light'] * {
   color: inherit;
   transition:
     background-color 0.3s ease,
     color 0.3s ease,
-    border-color 0.3s ease !important;
+    border-color 0.3s ease,grid-template-columns 0.3s ease !important;
 }
 [data-mantine-color-scheme='dark'] body {
   height: 100%;
@@ -87,7 +91,13 @@ code {
 [data-mantine-color-scheme='light'] svg {
   transition: color 0.3s ease !important;
 }
+:root {
+  --sidebar-width: 80px;
+}
 
+body.sidebar-expanded {
+  --sidebar-width: 20vh;
+}
 h2,
 h3,
 span,

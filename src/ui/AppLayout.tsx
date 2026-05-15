@@ -13,9 +13,9 @@ export const StyledAppLayout = styled.div`
     'sidebar header'
     'sidebar main'
     'footer footer';
-  grid-template-columns: 20vh 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: auto 1fr auto;
-  // min-height: 45vh;
+  transition: grid-template-columns 0.3s ease;
 
   gap: 0;
 
@@ -31,6 +31,7 @@ export const StyledAppLayout = styled.div`
     grid-area: main;
     overflow-y: auto;
     overflow-x: auto;
+    transition: margin-left 0.3s ease;
   }
 
   > footer {

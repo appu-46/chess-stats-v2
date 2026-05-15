@@ -4,7 +4,7 @@ const StatsBlock = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.75rem;
   padding: 1rem;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.03);
@@ -17,6 +17,11 @@ const StatsBlock = styled.div`
     box-shadow 0.35s ease,
     border-color 0.35s ease;
   opacity: 0.9;
+
+  [data-mantine-color-scheme='light'] & {
+    background: white;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
 `
 
 export default StatsBlock

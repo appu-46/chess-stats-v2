@@ -51,7 +51,7 @@ const rootRoute = createRootRoute({
           {pathname !== '/' && <Header />}
 
           <SideBar />
-          <main>
+          <main style={{ paddingLeft: '1rem' }}>
             <Outlet />
           </main>
           <Footer />

@@ -4,6 +4,7 @@ import { FaCircle, FaGamepad, FaStopwatch, FaSun } from 'react-icons/fa'
 import { FaCrown } from 'react-icons/fa6'
 import { GiBulletBill } from 'react-icons/gi'
 import { SiStackblitz } from 'react-icons/si'
+import { IoPieChartSharp } from 'react-icons/io5'
 import useStats from '../hooks/useStats'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
@@ -14,7 +15,6 @@ import StatsBlock from '../ui/StatsBlock'
 const StyledContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: stretch;
   gap: 1rem;
 `
 const StatRow = styled.div`
@@ -36,9 +36,11 @@ const StyledStats = styled.div`
   align-items: stretch;
   gap: 1.5rem;
   overflow-x: auto;
-  padding-bottom: 1rem;
+  padding: 1rem 3rem 1rem 1rem;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  -webkit-mask-image: linear-gradient(to right, black 95%, transparent 100%);
+  mask-image: linear-gradient(to right, black 95%, transparent 100%);
 `
 const Percentage = styled.div`
   display: flex;
@@ -46,7 +48,6 @@ const Percentage = styled.div`
 `
 const TitleMain = styled.h2`
   font-size: 42px;
-  text-align: center;
   font-weight: 700;
 `
 const Title = styled.h2`
@@ -74,8 +75,22 @@ const StatValue = styled.div`
 const TitleBadge = styled.div`
   display: flex;
   align-items: center;
+  flex-direction: row;
   gap: 0.75rem;
   width: fit-content;
+`
+const RatingBadge = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: fit-content;
+`
+const IconRow = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  padding-left: 1rem;
+  gap: 1rem;
 `
 
 const Piesection = styled.div`
@@ -116,33 +131,36 @@ function Stats() {
     {
       key: 'chess_blitz',
       label: 'Blitz',
-      color: '#e3bd37',
-      icon: <SiStackblitz size={40} color="#e3bd37" />,
+      color: '#f59e0b',
+      icon: <SiStackblitz size={40} color="#f59e0b" />,
     },
     {
       key: 'chess_rapid',
       label: 'Rapid',
-      color: '#fa6d4b',
+      color: '#ef4444',
 
-      icon: <FaStopwatch size={40} color="#fa6d4b" />,
+      icon: <FaStopwatch size={40} color="#ef4444" />,
     },
     {
       key: 'chess_bullet',
       label: 'Bullet',
-      color: '#5d9bf0',
-      icon: <GiBulletBill size={40} color="#5d9bf0" />,
+      color: '#3b82f6',
+      icon: <GiBulletBill size={40} color="#3b82f6" />,
     },
     {
       key: 'chess_daily',
       label: 'Daily',
-      color: '#f7a233',
-      icon: <FaSun size={40} color="#f7a233" />,
+      color: '#22c55e',
+      icon: <FaSun size={40} color="#22c55e" />,
     },
   ] as const
 
   return (
     <StyledContainer>
-      <TitleMain>{`${playerName}'s Stats`}</TitleMain>
+      <IconRow>
+        <IoPieChartSharp size={40} color="#5ee7ff" />
+        <TitleMain>{`${playerName}'s Stats`}</TitleMain>
+      </IconRow>
       <StyledStats>
         {timeControls.map(({ key, label, color, icon }) => {
           const stat = stats?.[key]
@@ -154,7 +172,8 @@ function Stats() {
             <StatsBlock
               key={key}
               style={{
-                borderTop: `2px solid ${color}`,
+                border: `2px solid ${color}`,
+                // borderBottom: `2px solid ${color}`,
                 background: `linear-gradient(183deg,${color}45 0%,rgba(255, 255, 255, 0.03) 4%)`,
               }}
             >
@@ -162,10 +181,12 @@ function Stats() {
                 {icon}
                 <Title>{`${label}`}</Title>
               </TitleBadge>
-              <TitleBadge style={{ fontSize: '3rem', fontWeight: 900 }}>
-                {stat?.last?.rating}
-              </TitleBadge>
-              <TitleBadge>Current Rating</TitleBadge>
+              <RatingBadge>
+                <Title style={{ fontSize: '3rem', fontWeight: 900 }}>
+                  {stat?.last?.rating}
+                </Title>
+                <span>Current Rating</span>
+              </RatingBadge>
               <Piesection>
                 <PieGraph record={record} />
                 <Percentage>
