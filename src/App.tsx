@@ -5,11 +5,11 @@ import AppLayout from './ui/AppLayout'
 const StyledLayout = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
 `
 const MainContent = styled.main`
-  flex: auto;
+  display: flex;
 `
 function App() {
   return (

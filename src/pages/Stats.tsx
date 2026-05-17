@@ -60,7 +60,11 @@ const Divider = styled.div`
   height: 1px;
   background: rgba(255, 255, 255, 0.1);
   margin: 0.5rem 0 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+
+  [data-mantine-color-scheme='light'] & {
+    border: 1px solid rgba(0, 0, 0, 0.45);
+  }
 `
 const StatTitle = styled.div`
   font-size: 1rem;
@@ -90,6 +94,7 @@ const IconRow = styled.div`
   align-items: center;
   flex-direction: row;
   padding-left: 1rem;
+  justify-content: center;
   gap: 1rem;
 `
 
@@ -174,7 +179,8 @@ function Stats() {
               style={{
                 border: `2px solid ${color}`,
                 // borderBottom: `2px solid ${color}`,
-                background: `linear-gradient(183deg,${color}45 0%,rgba(255, 255, 255, 0.03) 4%)`,
+                background: `linear-gradient(183deg,${color}45 0%,transparent 4%)`,
+                boxShadow: `0 2px 12px rgba(0, 0, 0, 0.08)`,
               }}
             >
               <TitleBadge>

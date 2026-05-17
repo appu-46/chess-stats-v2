@@ -20,7 +20,6 @@ const PageWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   min-height: 80vh;
-  // padding: 4rem 2rem;
   gap: 3rem;
 `
 
@@ -79,13 +78,44 @@ const FeatureCard = styled.div`
   gap: 0.75rem;
   padding: 1.5rem;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 12px;
   transition: all 0.2s ease;
   &:hover {
     background: rgba(255, 255, 255, 0.07);
     border-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
+  }
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1.5px solid #333;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+`
+
+const Searchbox = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 2rem 5rem;
+  border-radius: 1rem;
+  width: max-content;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(110% 110% at 50% 10%, #0c1530 0%, #050917 100%);
+  box-shadow:
+    0px 20px 50px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+  opacity: 0.9;
+
+  [data-mantine-color-scheme='light'] & {
+    background: white;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
 `
 
@@ -150,7 +180,7 @@ function Login() {
     navigate({ to: '/', search: { changeUsername: true } })
   }
 
-  const { given_name: FirstName, family_name: LastName } = googleUser ?? {}
+  const { given_name: FirstName } = googleUser ?? {}
 
   if (dbUser?.chessUserId && !changeUsername) {
     navigate({
@@ -183,37 +213,57 @@ function Login() {
             onClick={() => handleClick()}
           />
           <GradientTitle>Chess Stats</GradientTitle>
-          <Subtitle>
-            Analyze your Chess.com performance with beautiful visualizations,
-            track rating progress, and review game history
-          </Subtitle>
         </StyledHeader>
+        <Subtitle>
+          Analyze your Chess.com performance with beautiful visualizations,
+          track rating progress, and review game history
+        </Subtitle>
 
         {googleUser && (
           <WelcomeText>
-            Welcome back, {FirstName} {LastName} 👋
+            Welcome back,{' '}
+            <strong style={{ color: '#34d399' }}>{FirstName} 👋</strong>
           </WelcomeText>
         )}
+        <div
+          style={{
+            borderRadius: '1rem',
+            padding: '0.12rem',
+            background:
+              'linear-gradient(135deg, #1e5bf2 0%, #22d3ee 30%, white 60%, #a855f7 100%)',
+          }}
+        >
+          <Searchbox>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: '600' }}>
+              Enter your Chess.com username
+            </h1>
 
-        <SearchRow>
-          <Form onSubmit={handleSubmit(onSubmit)}>
-            <Input
-              placeholder="Enter your Chess.com username..."
-              {...register('username', { required: true })}
-            />
-            <Button>Analyze</Button>
-          </Form>
-        </SearchRow>
-
-        {errors.username && <ErrorMessage message="Username is mandatory!" />}
-
-        {!googleUser && (
-          <>
-            <Divider>Sign in with Google to save your username</Divider>
-            <GoogleOAuthButton onClick={oauthSignIn} />
-          </>
-        )}
+            <SearchRow>
+              <Form onSubmit={handleSubmit(onSubmit)}>
+                <Input
+                  style={{
+                    border: '1.5px solid #a855f7',
+                    borderRadius: '1rem',
+                  }}
+                  placeholder="for e.g. gothamchess"
+                  {...register('username', { required: true })}
+                />
+                <Button style={{ padding: '0rem 3.5rem' }}>Analyze</Button>
+              </Form>
+            </SearchRow>
+            {errors.username && (
+              <ErrorMessage message="Username is mandatory!" />
+            )}
+          </Searchbox>
+        </div>
       </Hero>
+
+      {!googleUser && (
+        <>
+          <Divider>Sign in with Google to save your username</Divider>
+          <GoogleOAuthButton onClick={oauthSignIn} />
+        </>
+      )}
 
       {/* Feature cards */}
       <FeatureGrid>

@@ -32,6 +32,12 @@ const ProfileCard = styled.div`
   display: flex;
   gap: 1rem;
   align-items: start;
+
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
 `
 
 const Avatar = styled.img`
@@ -68,6 +74,7 @@ const IconRow = styled.div`
   align-items: center;
   flex-direction: row;
   gap: 1rem;
+  width: max-content;
 `
 
 const Name = styled.h1`
@@ -85,6 +92,11 @@ const TitleBadge = styled.span`
   border-radius: 12px;
   background: #7d2828;
   font-weight: 1000;
+  color: white;
+
+  [data-mantine-color-scheme='light'] & {
+    color: white;
+  }
 `
 
 const Username = styled.div`
@@ -109,13 +121,20 @@ const PeakItem = styled.div`
   align-items: center;
   flex-direction: column;
   gap: 1rem;
-  padding: 2rem 1.75rem;
+  padding: 2rem 2rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  border-radius: 0.75rem;
+  width: fit-content;
   &:hover {
     background: rgba(255, 255, 255, 0.07);
     border-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
+  }
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(213, 213, 213, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
 `
 
@@ -125,7 +144,13 @@ const MetaItem = styled.div`
   gap: 1rem;
   padding: 0.35rem 1rem 0.35rem 1.2rem;
   background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+
   border-radius: 8px;
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.35);
+    border: 1.5px solid rgba(0, 0, 0, 0.08);
+  }
 `
 
 const Country = styled.div`
@@ -138,12 +163,17 @@ const Country = styled.div`
   }
 `
 
-// ── Quick Stats Card ────────────────────────────────────────────────
 const StatsCard = styled.div`
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 2rem;
+
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
 `
 
 const StatRow = styled.div`
@@ -165,6 +195,11 @@ const StatRow = styled.div`
     background: rgba(255, 255, 255, 0.07);
     border-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
+  }
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
 `
 const PeakRating = styled.h2`
@@ -220,31 +255,65 @@ function Profile() {
     league = null,
   } = profile ?? {}
 
+  const statsData = [
+    {
+      icon: <FaTrophy size={40} color="#22c55e" />,
+      title: 'League',
+      color: '#22c55e',
+      value: league || '—',
+      show: true, // Always show
+    },
+    {
+      icon: <RiVipDiamondFill size={40} color="#3b82f6" />,
+      title: 'Status',
+      color: '#3b82f6',
+      value: status?.toUpperCase() || '—',
+      show: true,
+    },
+    {
+      icon: <BsClockHistory size={40} color="yellow" />,
+      title: 'Last Active',
+      color: 'yellow',
+      value: formatDate(last_online).formattedDateTime,
+      show: true,
+    },
+    {
+      icon: <FaTwitch size={40} color="#a855f7" />,
+      title: 'Twitch',
+      color: '#a855f7',
+      value: twitch_url
+        ? twitch_url.replace('https://twitch.tv/', '')
+        : 'No channel found',
+      link: twitch_url || null,
+      show: is_streamer === true, // Conditional visibility
+    },
+  ]
+
   const timeControls = [
     {
       key: 'chess_blitz',
       label: 'Blitz',
-      color: '#e3bd37',
-      icon: <SiStackblitz size={35} color="#e3bd37" />,
+      color: '#f59e0b',
+      icon: <SiStackblitz size={35} color="#f59e0b" />,
     },
     {
       key: 'chess_rapid',
       label: 'Rapid',
-      color: '#fa6d4b',
+      color: '#ef4444',
 
-      icon: <FaStopwatch size={35} color="#fa6d4b" />,
+      icon: <FaStopwatch size={35} color="#ef4444" />,
     },
     {
       key: 'chess_bullet',
       label: 'Bullet',
-      color: '#5d9bf0',
-      icon: <GiBulletBill size={35} color="#5d9bf0" />,
+      color: '#3b82f6',
+      icon: <GiBulletBill size={35} color="#3b82f6" />,
     },
     {
       key: 'chess_daily',
       label: 'Daily',
-      color: '#f7a233',
-      icon: <FaSun size={35} color="#f7a233" />,
+      color: '#22c55e',
+      icon: <FaSun size={35} color="#22c55e" />,
     },
   ] as const
   return (
@@ -313,7 +382,10 @@ function Profile() {
               <a href={stat?.best?.game} target="_blank">
                 <PeakItem
                   key={key}
-                  style={{ borderBottom: `2px solid ${color}` }}
+                  style={{
+                    borderBottom: `3.5px solid ${color}`,
+                    background: `linear-gradient(0deg,${color}60 0%,rgba(255, 255, 255, 0.03) 4%)`,
+                  }}
                 >
                   <MetaRow>
                     <IconRow>
@@ -343,44 +415,39 @@ function Profile() {
       </ProfileCard>
 
       <StatsCard>
-        <StatRow>
-          <FaTrophy size={40} color="#22c55e" />
-          <MetaColumns>
-            <StatTitle>League</StatTitle>
-            <StatValue>{league || '—'}</StatValue>
-          </MetaColumns>
-        </StatRow>
+        {statsData
+          .filter((stat) => stat.show)
+          .map((stat, index) => {
+            const rowComponent = (
+              <StatRow
+                key={index}
+                style={{
+                  borderTop: `2px solid ${stat.color}`,
+                  background: `linear-gradient(180deg,${stat.color}80 0%,transparent 4%)`,
+                }}
+              >
+                {stat.icon}
+                <MetaColumns>
+                  <StatTitle>{stat.title}</StatTitle>
+                  <StatValue>{stat.value}</StatValue>
+                </MetaColumns>
+              </StatRow>
+            )
 
-        <StatRow>
-          <RiVipDiamondFill size={40} color="#3b82f6" />
-          <MetaColumns>
-            <StatTitle>Status</StatTitle>
-            <StatValue>{status?.toUpperCase() || '—'}</StatValue>
-          </MetaColumns>
-        </StatRow>
-
-        <StatRow>
-          <BsClockHistory size={40} color="yellow" />
-          <MetaColumns>
-            <StatTitle>Last Active</StatTitle>
-            <StatValue>{formatDate(last_online).formattedDateTime}</StatValue>
-          </MetaColumns>
-        </StatRow>
-        {is_streamer === true && (
-          <a href={twitch_url} target="_blank">
-            <StatRow>
-              <FaTwitch size={40} color="#a855f7" />
-              <MetaColumns>
-                <StatTitle>Twitch</StatTitle>
-                <StatValue>
-                  {twitch_url === null
-                    ? 'No channel found'
-                    : twitch_url.replace('https://twitch.tv/', '')}
-                </StatValue>
-              </MetaColumns>
-            </StatRow>
-          </a>
-        )}
+            return stat.link ? (
+              <a
+                href={stat.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                key={index}
+                style={{ textDecoration: 'none' }}
+              >
+                {rowComponent}
+              </a>
+            ) : (
+              rowComponent
+            )
+          })}
       </StatsCard>
     </PageWrapper>
   )

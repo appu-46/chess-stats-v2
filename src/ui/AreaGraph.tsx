@@ -1,6 +1,7 @@
 import {
   Area,
   AreaChart,
+  CartesianGrid,
   // CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -29,7 +30,13 @@ type Game = {
 
 type GroupedByDate = Record<string, Array<Game>>
 
-function AreaGraph({ data }: { data?: GroupedByDate }) {
+function AreaGraph({
+  data,
+  color = '#00FF00',
+}: {
+  data?: GroupedByDate
+  color?: string
+}) {
   if (
     !data ||
     Object.keys(data).length === 0 ||
@@ -66,36 +73,59 @@ function AreaGraph({ data }: { data?: GroupedByDate }) {
     rest: games,
   }))
 
+  console.log(data, graphData)
+
   return (
-    <div style={{ width: '69rem', height: '20rem' }}>
+    <div style={{ width: 'auto', height: '20rem' }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
-          width={500}
-          height={400}
           data={graphData}
           onClick={handleClick}
           style={{ cursor: 'pointer' }}
         >
           <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#00FF00" stopOpacity={0.8} />
-            <stop offset="95%" stopColor="#00FF00" stopOpacity={0} />
+            <stop offset="15%" stopColor={color} stopOpacity={0.8} />
+            <stop offset="85%" stopColor={color} stopOpacity={0} />
           </linearGradient>
-          {/* <CartesianGrid strokeDasharray="3 3" /> */}
-          <XAxis dataKey="date" />
-          <YAxis />
+          <CartesianGrid opacity={0.3} strokeDasharray="3 3" />
+          <XAxis
+            dataKey="date"
+            domain={['auto', 'auto']}
+            tick={{
+              fill: 'rgba(255,255,255,0.8)',
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            dataKey="elo"
+            domain={['auto', 'auto']}
+            tick={{
+              fill: 'rgba(255,255,255,0.8)',
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+            axisLine={false}
+            tickLine={false}
+            interval="preserveStartEnd"
+          />
           <Tooltip
             contentStyle={{
               backgroundColor: '#1a1a1a',
-              border: '1px solid #00FF00',
+              border: `2.5px solid ${color}`,
+              borderRadius: '1rem',
             }}
-            labelStyle={{ color: '#00FF00' }}
-            cursor={{ stroke: '#00FF00', strokeWidth: 2 }}
+            labelStyle={{ color: color }}
+            cursor={{ stroke: color, strokeWidth: 3.5 }}
           />
           <Area
             type="monotone"
             dataKey="elo"
-            stroke="#00FF00"
+            stroke={color}
             fill="url(#colorUv)"
+            strokeWidth={5}
           />
         </AreaChart>
       </ResponsiveContainer>
