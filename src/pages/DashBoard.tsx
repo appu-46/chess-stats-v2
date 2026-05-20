@@ -233,7 +233,9 @@ function DashboardInner({
 }) {
   const [activeTab, setActiveTab] = useState(0)
   const [activeRange, setActiveRange] = useState(range)
-  const navigate = useNavigate()
+  const navigate = useNavigate({
+    from: '/dashboard/$username',
+  })
   const playerName = profile?.name ?? username
   const transformedData = useMemo(
     () => transformGames(games, username),
@@ -278,9 +280,10 @@ function DashboardInner({
   )
   function handleRange(graphrange: string) {
     navigate({
-      search: {
-        range: graphrange,
-      },
+      search: (prev) => ({
+        ...prev,
+        range: '30D',
+      }),
     })
     setActiveRange(graphrange)
   }
