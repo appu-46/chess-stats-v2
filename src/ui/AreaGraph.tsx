@@ -73,8 +73,6 @@ function AreaGraph({
     rest: games,
   }))
 
-  console.log(data, graphData)
-
   return (
     <div style={{ width: 'auto', height: '20rem' }}>
       <ResponsiveContainer width="100%" height="100%">

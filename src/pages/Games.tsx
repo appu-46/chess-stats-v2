@@ -216,7 +216,7 @@ function Games() {
     navigate({
       to: '/dashboard/$username',
       params: { username },
-      search: { year: year, month: inputmonth },
+      search: { year: year, month: inputmonth, range: '30D' },
     })
   }
 
@@ -268,7 +268,7 @@ function Games() {
     navigate({
       to: '/dashboard/$username',
       params: { username },
-      search: { year: yearsearch, month: monthsearch },
+      search: { year: yearsearch, month: monthsearch, range: '30D' },
     })
   }
 

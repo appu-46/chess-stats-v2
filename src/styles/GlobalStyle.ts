@@ -2,6 +2,51 @@
 import { createGlobalStyle } from 'styled-components'
 
 export const GlobalStyle = createGlobalStyle`
+
+  @media (max-width: 768px) {
+    body {
+      padding: 0;
+    }
+
+
+    [class*="Container"],
+    [class*="Wrapper"],
+    [class*="Box"] {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+
+    [style*="display: flex"],
+    [style*="display: grid"] {
+      flex-direction: column !important;
+      grid-template-columns: 1fr !important;
+    }
+
+
+    div[class*="Card"],
+    div[class*="Stats"] {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+
+    /* Adjust font sizes */
+    h1 {
+      font-size: 1.75rem !important;
+    }
+
+    h2 {
+      font-size: 1.25rem !important;
+    }
+  }
+
+
+  @media (max-width: 1024px) and (min-width: 769px) {
+    [style*="display: grid"] {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+
 [data-mantine-color-scheme='dark'],
 [data-mantine-color-scheme='light'] {
   transition:
@@ -10,12 +55,21 @@ export const GlobalStyle = createGlobalStyle`
 }
 
 [data-mantine-color-scheme="light"] body {
-  background: #f0f4f8;  /* soft blue-gray instead of plain white/gray */
+  background: #f0f4f8; 
 }
+* {
+    box-sizing: border-box;
+}
+    html, body, #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
 
 [data-mantine-color-scheme='dark'] *,
 [data-mantine-color-scheme='light'] * {
-  color: inherit;
   transition:
     background-color 0.3s ease,
     color 0.3s ease,

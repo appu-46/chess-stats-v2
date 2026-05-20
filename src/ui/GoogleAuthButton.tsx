@@ -12,7 +12,7 @@ const GoogleButton = styled.button`
   border-radius: 10rem;
 
   background: #ffffff;
-  color: #333;
+  color: #222;
 
   border: 1px solid #dadce0;
   font-size: 16px;
@@ -22,19 +22,17 @@ const GoogleButton = styled.button`
 
   box-shadow: 0 1px 2px rgba(60, 64, 67, 0.15);
 
-  transition:
-    color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:hover {
-    background: #f8f9fa;
-    color: #333;
-    transform: translateY(-2px);
+  [data-mantine-color-scheme='light'] & {
+    color: #eee;
+    background: rgba(25, 25, 25, 0.85);
+    border: 1px solid #dadce0;
   }
 
+  &:hover {
+    background: transparent 0.8;
+    transform: translateY(-2px);
+  }
   &:active {
-    background: #f1f3f4;
     transform: translateY(1px);
   }
 `
@@ -47,7 +45,7 @@ function GoogleOAuthButton({ onClick }: Props) {
   return (
     <GoogleButton onClick={onClick}>
       <FcGoogle size={22} />
-      <span style={{ color: '#222' }}>Sign in with Google</span>
+      <>Sign in with Google</>
     </GoogleButton>
   )
 }

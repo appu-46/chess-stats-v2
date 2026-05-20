@@ -114,7 +114,7 @@ const Searchbox = styled.div`
   opacity: 0.9;
 
   [data-mantine-color-scheme='light'] & {
-    background: white;
+    background: radial-gradient(110% 110% at 50% 10%, #ddd 0%, #eee 100%);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
 `
@@ -147,9 +147,11 @@ const Divider = styled.div`
   align-items: center;
   gap: 1rem;
   width: 100%;
-  max-width: 600px;
-  opacity: 0.4;
+  color: #eee;
   font-size: 0.85rem;
+  [data-mantine-color-scheme='light'] & {
+    color: #222;
+  }
   &::before,
   &::after {
     content: '';
@@ -248,7 +250,7 @@ function Login() {
                   placeholder="for e.g. gothamchess"
                   {...register('username', { required: true })}
                 />
-                <Button style={{ padding: '0rem 3.5rem' }}>Analyze</Button>
+                <Button>Analyze</Button>
               </Form>
             </SearchRow>
             {errors.username && (

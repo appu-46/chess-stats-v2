@@ -13,7 +13,7 @@ type Game = {
   rules?: string
 }
 
-type GameResponse = { games: Array<Game> }
+type GameResponse = Array<Game>
 
 type TransformedGame = {
   BlackElo: string
@@ -42,12 +42,12 @@ type Chess960Game = {
 }
 
 export function transformGames(input: GameResponse | null, username: string) {
-  if (!input?.games.length) return { standardgamesData: [], chess960Games: [] }
+  if (!input?.length) return { standardgamesData: [], chess960Games: [] }
 
   const lowerUsername = username.toLowerCase()
 
   // Separate games by type first
-  const { chess960, standard } = input.games.reduce(
+  const { chess960, standard } = input.reduce(
     (acc, game) => {
       game.rules === 'chess960'
         ? acc.chess960.push(game)
@@ -70,6 +70,7 @@ export function transformGames(input: GameResponse | null, username: string) {
   const rapidGames: Array<TransformedGame> = []
   const dailyGames: Array<TransformedGame> = []
   const bulletGames: Array<TransformedGame> = []
+
   // Process standard games
   const chess = new Chess()
   const standardgamesData: Array<TransformedGame> = standard.map((game) => {
@@ -79,7 +80,6 @@ export function transformGames(input: GameResponse | null, username: string) {
 
     const isWhite = headers.White.toLowerCase() === lowerUsername
 
-    // Fixed: Proper result calculation with correct fallback
     let gameResult: 'win' | 'loss' | 'draw'
     if (headers.Result === '1-0') {
       gameResult = isWhite ? 'win' : 'loss'

@@ -5,11 +5,11 @@ import { SiStackblitz } from 'react-icons/si'
 import { GiBulletBill } from 'react-icons/gi'
 import { IoMdTrendingUp } from 'react-icons/io'
 import { MdCalendarMonth } from 'react-icons/md'
-import { useParams, useSearch } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { useMemo, useState } from 'react'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
-import useGames30days from '../hooks/useGames30days'
+import useGamesRecentdays from '../hooks/useGamesRecentdays'
 import useGames from '../hooks/useGames'
 import { transformGames } from '../helpers/TransformGames'
 import { gamesDateWise } from '../helpers/gamesDateWise'
@@ -224,28 +224,38 @@ function DashboardInner({
   games,
   profile,
   username,
+  range,
 }: {
   games: any
   profile: any
   username: string
+  range: string
 }) {
   const [activeTab, setActiveTab] = useState(0)
-  const [activeRange, setActiveRange] = useState('30D')
-
+  const [activeRange, setActiveRange] = useState(range)
+  const navigate = useNavigate()
   const playerName = profile?.name ?? username
-  const transformedData = transformGames(games, username)
+  const transformedData = useMemo(
+    () => transformGames(games, username),
+    [games, username],
+  )
 
-  const allGraphData = {
-    blitzGames: gamesDateWise(transformedData.blitzGames),
-    rapidGames: gamesDateWise(transformedData.rapidGames),
-    bulletGames: gamesDateWise(transformedData.bulletGames),
-    dailyGames: gamesDateWise(transformedData.dailyGames),
-  }
-  console.log(allGraphData)
+  const allGraphData = useMemo(
+    () => ({
+      blitzGames: gamesDateWise(transformedData.blitzGames),
+      rapidGames: gamesDateWise(transformedData.rapidGames),
+      bulletGames: gamesDateWise(transformedData.bulletGames),
+      dailyGames: gamesDateWise(transformedData.dailyGames),
+    }),
+    [transformedData],
+  )
 
   const active = timeControls[activeTab]
   const rawData = allGraphData[active.dataKey]
-  const filteredData = filterByRange(rawData, activeRange)
+  const filteredData = useMemo(
+    () => filterByRange(rawData, activeRange),
+    [rawData, activeRange],
+  )
 
   const entries = Object.entries(filteredData)
   const eloValues = entries.map(([, Daygames]) =>
@@ -266,7 +276,14 @@ function DashboardInner({
     (sum, [, Daygames]) => sum + Daygames.length,
     0,
   )
-
+  function handleRange(graphrange: string) {
+    navigate({
+      search: {
+        range: graphrange,
+      },
+    })
+    setActiveRange(graphrange)
+  }
   // Last 30D change
   const last30 = filterByRange(rawData, '30D')
   const last30Entries = Object.entries(last30)
@@ -372,7 +389,7 @@ function DashboardInner({
                 key={r}
                 $active={activeRange === r}
                 $color={active.color}
-                onClick={() => setActiveRange(r)}
+                onClick={() => handleRange(r)}
               >
                 {r}
               </RangeBtn>
@@ -390,7 +407,7 @@ function DashboardInner({
 
 function DashBoard() {
   const { username } = useParams({ from: '/dashboard/$username' })
-  const { year, month } = useSearch({ from: '/dashboard/$username' })
+  const { year, month, range } = useSearch({ from: '/dashboard/$username' })
 
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
 
@@ -403,7 +420,12 @@ function DashBoard() {
     if (isFetchingGames || isFetchingProfile) return <Spinner />
     if (errorGames) return <p>{errorGames.message}</p>
     return (
-      <DashboardInner games={games} profile={profile} username={username} />
+      <DashboardInner
+        games={games}
+        profile={profile}
+        username={username}
+        range={range}
+      />
     )
   }
 
@@ -411,11 +433,18 @@ function DashBoard() {
     data: games,
     isPending: isFetchingGames,
     error: errorGames,
-  } = useGames30days(username)
+  } = useGamesRecentdays(username)
   if (isFetchingGames || isFetchingProfile) return <Spinner />
   if (errorGames) return <p>{errorGames.message}</p>
 
-  return <DashboardInner games={games} profile={profile} username={username} />
+  return (
+    <DashboardInner
+      games={games}
+      profile={profile}
+      username={username}
+      range={range}
+    />
+  )
 }
 
 export default DashBoard

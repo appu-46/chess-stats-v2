@@ -92,6 +92,7 @@ const dashboardRoute = createRoute({
   component: DashBoard,
   validateSearch: (search: Record<string, unknown>) => {
     return {
+      range: (search.range as string) || '30D',
       year: search.year as string | undefined,
       month: search.month as string | undefined,
     }

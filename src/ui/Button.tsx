@@ -9,7 +9,7 @@ const Button = styled.button`
   flex-direction: row;
   align-items: center;
   color: white;
-  padding: 0rem 1.5rem 0rem 1.5rem;
+  padding: 0rem 3.5rem;
   width: fit-content;
   height: 3.5rem;
   cursor: pointer;
@@ -37,6 +37,9 @@ const Button = styled.button`
     color: #f2f2f2;
     transform: none;
     box-shadow: none;
+  }
+  [data-mantine-color-scheme='light'] & {
+    color: #eee;
   }
 `
 
