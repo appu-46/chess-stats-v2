@@ -49,25 +49,33 @@ const TitleSection = styled.div`
 const TabRow = styled.div`
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50px;
-  padding: 0.4rem;
   width: fit-content;
 `
 
 const Tab = styled.button<{ $active: boolean; $color: string }>`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.5rem;
+  gap: 0.75rem;
+  padding: 0.75rem 3.5rem;
   border-radius: 50px;
   border: ${({ $active, $color }) =>
     $active ? `1.5px solid ${$color}` : '1.5px solid transparent'};
   background: ${({ $active, $color }) =>
-    $active ? `${$color}18` : 'transparent'};
+    $active
+      ? `radial-gradient(
+  ellipse at center,
+  transparent 58%,
+  ${$color}00 64%,
+  ${$color}22 72%,
+  ${$color}99 100%
+);`
+      : 'transparent'};
   color: ${({ $active, $color }) => ($active ? $color : 'inherit')};
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   cursor: pointer;
   transition: all 0.2s ease;
@@ -75,7 +83,7 @@ const Tab = styled.button<{ $active: boolean; $color: string }>`
 
   &:hover {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
   }
 `
 
@@ -92,12 +100,13 @@ const StatCard = styled.div`
   min-width: 140px;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
+  gap: 1.5rem;
+  padding: 0.5rem 0.75rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   transition: all 0.2s ease;
+  justify-content: space-around;
 
   &:hover {
     background: rgba(255, 255, 255, 0.06);
@@ -147,24 +156,35 @@ const GraphHeader = styled.div`
 
 const RangeRow = styled.div`
   display: flex;
-  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 2rem;
+  gap: 0.75rem;
 `
 
 const RangeBtn = styled.button<{ $active: boolean; $color: string }>`
-  padding: 0.3rem 0.75rem;
+  padding: 0.5rem 1.75rem;
   border-radius: 50px;
   border: ${({ $active, $color }) =>
     $active ? `1.5px solid ${$color}` : '1.5px solid transparent'};
   background: ${({ $active, $color }) =>
-    $active ? `${$color}18` : 'transparent'};
-  color: ${({ $active, $color }) => ($active ? $color : 'inherit')};
-  font-size: 0.85rem;
+    $active
+      ? `radial-gradient(
+  ellipse at center,
+  transparent 58%,
+  ${$color}00 64%,
+  ${$color}22 72%,
+  ${$color}99 100%
+);`
+      : 'transparent'};
+  color: ${({ $active, $color }) => ($active ? $color : '#eee')};
+  font-size: 1rem;
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   cursor: pointer;
   opacity: ${({ $active }) => ($active ? 1 : 0.5)};
   transition: all 0.2s ease;
 
   &:hover {
+    background: rgb(255, 255, 255, 0.08);
     opacity: 1;
   }
 `
@@ -176,28 +196,28 @@ const timeControls = [
     key: 'chess_blitz' as const,
     label: 'Blitz',
     dataKey: 'blitzGames' as const,
-    color: '#e3bd37',
+    color: '#f59e0b',
     icon: SiStackblitz,
   },
   {
     key: 'chess_rapid' as const,
     label: 'Rapid',
     dataKey: 'rapidGames' as const,
-    color: '#fa6d4b',
+    color: '#ef4444',
     icon: FaStopwatch,
   },
   {
     key: 'chess_bullet' as const,
     label: 'Bullet',
     dataKey: 'bulletGames' as const,
-    color: '#5d9bf0',
+    color: '#3b82f6',
     icon: GiBulletBill,
   },
   {
     key: 'chess_daily' as const,
     label: 'Daily',
     dataKey: 'dailyGames' as const,
-    color: '#f7a233',
+    color: '#22c55e',
     icon: FaSun,
   },
 ]
@@ -282,7 +302,7 @@ function DashboardInner({
     navigate({
       search: (prev) => ({
         ...prev,
-        range: '30D',
+        range: graphrange,
       }),
     })
     setActiveRange(graphrange)
@@ -310,19 +330,21 @@ function DashboardInner({
       </TitleSection>
 
       {/* Tabs */}
-      <TabRow>
-        {timeControls.map(({ label, color, icon: Icon }, i) => (
-          <Tab
-            key={label}
-            $active={activeTab === i}
-            $color={color}
-            onClick={() => setActiveTab(i)}
-          >
-            <Icon size={18} />
-            {label}
-          </Tab>
-        ))}
-      </TabRow>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <TabRow>
+          {timeControls.map(({ label, color, icon: Icon }, i) => (
+            <Tab
+              key={label}
+              $active={activeTab === i}
+              $color={color}
+              onClick={() => setActiveTab(i)}
+            >
+              <Icon size={18} />
+              {label}
+            </Tab>
+          ))}
+        </TabRow>
+      </div>
 
       {/* Stat Cards */}
       <StatCardsRow>
@@ -440,6 +462,7 @@ function DashBoard() {
   if (isFetchingGames || isFetchingProfile) return <Spinner />
   if (errorGames) return <p>{errorGames.message}</p>
 
+  // if (range === '1Y')
   return (
     <DashboardInner
       games={games}
