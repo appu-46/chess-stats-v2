@@ -21,7 +21,7 @@ const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 2rem;
+  padding: 0.5rem 2rem;
 `
 
 export const TitleMain = styled.h2`
