@@ -54,6 +54,11 @@ const TabRow = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50px;
   width: fit-content;
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
 `
 
 const Tab = styled.button<{ $active: boolean; $color: string }>`
@@ -113,6 +118,11 @@ const StatCard = styled.div`
     border-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
   }
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
 `
 
 const StatCardInfo = styled.div`
@@ -147,6 +157,12 @@ const GraphCard = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
 `
 
 const GraphHeader = styled.div`
@@ -159,6 +175,11 @@ const RangeRow = styled.div`
   background: rgba(255, 255, 255, 0.04);
   border-radius: 2rem;
   gap: 0.75rem;
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
 `
 
 const RangeBtn = styled.button<{ $active: boolean; $color: string }>`
@@ -176,7 +197,7 @@ const RangeBtn = styled.button<{ $active: boolean; $color: string }>`
   ${$color}99 100%
 );`
       : 'transparent'};
-  color: ${({ $active, $color }) => ($active ? $color : '#eee')};
+  color: ${({ $active, $color }) => ($active ? $color : 'inherit')};
   font-size: 1rem;
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   cursor: pointer;
@@ -244,7 +265,7 @@ function DashboardInner({
   games,
   profile,
   username,
-  range,
+  range = '90D',
 }: {
   games: any
   profile: any
@@ -432,7 +453,11 @@ function DashboardInner({
 
 function DashBoard() {
   const { username } = useParams({ from: '/dashboard/$username' })
-  const { year, month, range } = useSearch({ from: '/dashboard/$username' })
+  const {
+    year,
+    month,
+    range = '90D',
+  } = useSearch({ from: '/dashboard/$username' })
 
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
 
@@ -458,11 +483,17 @@ function DashBoard() {
     data: games,
     isPending: isFetchingGames,
     error: errorGames,
-  } = useGamesRecentdays(username)
-  if (isFetchingGames || isFetchingProfile) return <Spinner />
+  } = useGamesRecentdays(username, range)
+
+  if (isFetchingGames || isFetchingProfile)
+    return (
+      <Spinner
+        loadingMsg="If you have played a lot of games, it may take a while to
+          load graphs..."
+      />
+    )
   if (errorGames) return <p>{errorGames.message}</p>
 
-  // if (range === '1Y')
   return (
     <DashboardInner
       games={games}

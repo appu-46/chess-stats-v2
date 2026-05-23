@@ -11,6 +11,7 @@ type Game = {
   time_class: string
   result: string
   rules?: string
+  fen: string
 }
 
 type GameResponse = Array<Game>
@@ -42,22 +43,28 @@ type Chess960Game = {
 }
 
 export function transformGames(input: GameResponse | null, username: string) {
-  if (!input?.length) return { standardgamesData: [], chess960Games: [] }
+  if (!input?.length)
+    return {
+      standardgamesData: [],
+      chess960Games: [],
+      blitzGames: [],
+      rapidGames: [],
+      bulletGames: [],
+      dailyGames: [],
+    }
 
   const lowerUsername = username.toLowerCase()
 
   // Separate games by type first
   const { chess960, standard } = input.reduce(
     (acc, game) => {
-      game.rules === 'chess960'
-        ? acc.chess960.push(game)
-        : acc.standard.push(game)
+      if (game.rules === 'chess960') acc.chess960.push(game)
+      else if (!game.rules || game.rules === 'chess') acc.standard.push(game)
       return acc
     },
     { chess960: [] as Array<Game>, standard: [] as Array<Game> },
   )
 
-  // Process chess960 games (no Chess.js needed)
   const chess960Games: Array<Chess960Game> = chess960.map((game) => ({
     date: formatDate(game.end_time).formattedDateTime,
     result: game.result,
@@ -66,54 +73,74 @@ export function transformGames(input: GameResponse | null, username: string) {
     pgn: game.pgn,
     url: game.url,
   }))
+
   const blitzGames: Array<TransformedGame> = []
   const rapidGames: Array<TransformedGame> = []
   const dailyGames: Array<TransformedGame> = []
   const bulletGames: Array<TransformedGame> = []
+  const standardgamesData: Array<TransformedGame> = []
 
   // Process standard games
   const chess = new Chess()
-  const standardgamesData: Array<TransformedGame> = standard.map((game) => {
-    const formattedDate = formatDate(game.end_time).formattedDateTime
-    chess.loadPgn(game.pgn)
-    const headers = chess.getHeaders()
 
-    const isWhite = headers.White.toLowerCase() === lowerUsername
+  for (const game of standard) {
+    // if (!validateFen(game.fen).ok) {
+    //   console.warn(`Invalid FEN, skipping the game: `, game.pgn, game.url)
+    // }
+    // if (!game.pgn || game.pgn.trim() === '') {
+    //   console.warn('Skipping game with no PGN (probably bughouse):', game.url)
+    //   continue
+    // }
+    try {
+      const formattedDate = formatDate(game.end_time).formattedDateTime
+      chess.loadPgn(game.pgn)
+      // console.log(game)
+      const headers = chess.getHeaders()
+      const isWhite = headers.White.toLowerCase() === lowerUsername
 
-    let gameResult: 'win' | 'loss' | 'draw'
-    if (headers.Result === '1-0') {
-      gameResult = isWhite ? 'win' : 'loss'
-    } else if (headers.Result === '0-1') {
-      gameResult = isWhite ? 'loss' : 'win'
-    } else {
-      gameResult = 'draw'
+      let gameResult: 'win' | 'loss' | 'draw'
+      if (headers.Result === '1-0') {
+        gameResult = isWhite ? 'win' : 'loss'
+      } else if (headers.Result === '0-1') {
+        gameResult = isWhite ? 'loss' : 'win'
+      } else {
+        gameResult = 'draw'
+      }
+
+      const result = {
+        date_time: formattedDate,
+        gameEndDate: headers.EndDate,
+        Result: headers.Result,
+        resultForPlayer: gameResult,
+        whitePlayer: headers.White,
+        blackPlayer: headers.Black,
+        BlackElo: headers.BlackElo,
+        WhiteElo: headers.WhiteElo,
+        TimeControl: headers.TimeControl,
+        Termination: headers.Termination,
+        moveCount: Math.round(chess.history().length / 2),
+        PlayerELO: isWhite ? headers.WhiteElo : headers.BlackElo,
+        url: game.url,
+        time_class: game.time_class,
+      }
+      chess.reset()
+
+      // Add to appropriate arrays
+      standardgamesData.push(result)
+      if (game.time_class === 'blitz') blitzGames.push(result)
+      if (game.time_class === 'rapid') rapidGames.push(result)
+      if (game.time_class === 'bullet') bulletGames.push(result)
+      if (game.time_class === 'daily') dailyGames.push(result)
+    } catch (error) {
+      console.error('=== FAILED GAME ===')
+      console.error('URL:', game.url)
+      console.error('Game:', game)
+      console.error('Error:', error)
+      console.error('==================')
+      chess.reset()
+      continue
     }
-
-    const result = {
-      date_time: formattedDate,
-      gameEndDate: headers.EndDate,
-      Result: headers.Result,
-      resultForPlayer: gameResult,
-      whitePlayer: headers.White,
-      blackPlayer: headers.Black,
-      BlackElo: headers.BlackElo,
-      WhiteElo: headers.WhiteElo,
-      TimeControl: headers.TimeControl,
-      Termination: headers.Termination,
-      moveCount: Math.round(chess.history().length / 2),
-      PlayerELO: isWhite ? headers.WhiteElo : headers.BlackElo,
-      url: game.url,
-      time_class: game.time_class,
-    }
-
-    chess.reset()
-    if (game.time_class === 'blitz') blitzGames.push(result)
-    if (game.time_class === 'rapid') rapidGames.push(result)
-    if (game.time_class === 'bullet') bulletGames.push(result)
-    if (game.time_class === 'daily') dailyGames.push(result)
-
-    return result
-  })
+  }
 
   return {
     standardgamesData,

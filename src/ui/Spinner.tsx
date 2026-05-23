@@ -1,10 +1,12 @@
 interface SpinnerProps {
+  loadingMsg?: string | ''
   size?: 'small' | 'medium' | 'large'
   color?: string
   className?: string
 }
 
 function Spinner({
+  loadingMsg = '',
   size = 'medium',
   color = '#233b46',
   className = '',
@@ -26,11 +28,15 @@ function Spinner({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        flexDirection: 'column',
+        gap: '1rem',
         backgroundColor: 'rgba(0, 0, 0, 0.35)',
         backdropFilter: 'blur(3px)',
         zIndex: 9999,
       }}
     >
+      <span>{loadingMsg}</span>
+
       <div
         className={`${sizeClasses[size]} border-gray-200 border-t-transparent rounded-full animate-spin ${className}`}
         style={{
@@ -38,9 +44,7 @@ function Spinner({
         }}
         role="status"
         aria-label="Loading"
-      >
-        <span className="sr-only">Loading...</span>
-      </div>
+      ></div>
     </div>
   )
 }

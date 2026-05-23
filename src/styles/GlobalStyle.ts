@@ -54,9 +54,7 @@ export const GlobalStyle = createGlobalStyle`
     color 0.3s ease !important;
 }
 
-[data-mantine-color-scheme="light"] body {
-  background: #f0f4f8; 
-}
+
 * {
     box-sizing: border-box;
 }
@@ -76,6 +74,7 @@ export const GlobalStyle = createGlobalStyle`
     border-color 0.3s ease,grid-template-columns 0.3s ease !important;
 }
 [data-mantine-color-scheme='dark'] body {
+  color: #eee;
   height: 100%;
   background:linear-gradient(
     145deg, 
@@ -97,6 +96,7 @@ export const GlobalStyle = createGlobalStyle`
   -moz-osx-font-smoothing: grayscale;
 }
 [data-mantine-color-scheme='light'] body {
+  color: #222;
   height: 100%;
   background:linear-gradient(
     145deg, 

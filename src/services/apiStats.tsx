@@ -39,30 +39,39 @@ export async function apiArchive(username: string) {
   return data
 }
 
-export async function apiRecentGames(username: string) {
+export async function apiRecentGames(
+  username: string,
+  months: number,
+  days: number,
+) {
   const archivedata = await apiArchive(username)
   const archives = archivedata.archives
-  const recentgameUrl = archives.slice(-4)
+  const recentgameUrl = months === 0 ? archives : archives.slice(-months)
 
   const gameResponses = await Promise.all(
     recentgameUrl.map(async (apiURL: string) => {
-      const response = await fetch(apiURL)
-      const data = await response.json()
+      try {
+        const response = await fetch(apiURL)
+        const data = await response.json()
 
-      return data.games || []
+        return data.games || []
+      } catch (error) {
+        console.error('Failed to fetch archive:', apiURL, error)
+        return []
+      }
     }),
   )
 
   const allGames = gameResponses.flat()
-  const ninetyDaysAgo = Date.now() / 1000 - 90 * 24 * 60 * 60
+  if (days === 0) return allGames
+  const cutoff = Date.now() / 1000 - days * 24 * 60 * 60
 
-  const past90DayGames = allGames.filter(
-    (game) => game.end_time >= ninetyDaysAgo,
-  )
+  const pastNdaysGames = allGames.filter((game) => game.end_time >= cutoff)
 
-  return past90DayGames
+  return pastNdaysGames
 }
 
+/*
 export async function apiYearGames(username: string) {
   const archivedata = await apiArchive(username)
   const archives = archivedata.archives
@@ -84,3 +93,4 @@ export async function apiYearGames(username: string) {
 
   return pastyearGames
 }
+*/

@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { queryFormatDate } from '../helpers/DateFormat'
 import { TitleMain } from '../pages/DashBoard'
 
@@ -46,6 +46,7 @@ function AreaGraph({
   }
 
   const { username } = useParams({ from: '/dashboard/$username' })
+  const { range } = useSearch({ from: '/dashboard/$username' })
   const navigate = useNavigate()
 
   function handleClick(clickedData: any) {
@@ -85,12 +86,28 @@ function AreaGraph({
             <stop offset="15%" stopColor={color} stopOpacity={0.8} />
             <stop offset="85%" stopColor={color} stopOpacity={0} />
           </linearGradient>
-          <CartesianGrid opacity={0.3} strokeDasharray="3 3" />
+          <CartesianGrid opacity={0.9} strokeDasharray="3 3" color="inherit" />
           <XAxis
             dataKey="date"
+            tickFormatter={(value) => {
+              const date = new Date(value)
+              // For 7D/30D: show day
+              if (range === '7D' || range === '30D') {
+                return date.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })
+              }
+              // For 90D/1Y/All: show month/year
+              return date.toLocaleDateString('en-US', {
+                month: 'short',
+                year: '2-digit',
+              })
+              // "Sep 14" vs "Sep '26"
+            }}
             domain={['auto', 'auto']}
             tick={{
-              fill: 'rgba(255,255,255,0.8)',
+              color: 'inherit',
               fontSize: 16,
               fontWeight: 600,
             }}
@@ -101,7 +118,7 @@ function AreaGraph({
             dataKey="elo"
             domain={['auto', 'auto']}
             tick={{
-              fill: 'rgba(255,255,255,0.8)',
+              color: 'inherit',
               fontSize: 16,
               fontWeight: 600,
             }}
