@@ -19,9 +19,16 @@ export function queryFormatDate(ts: string) {
       year: 'numeric',
     },
   )
+  const yearMonth = new Date(`${year}-${month}-${day}`).toLocaleDateString(
+    'en-IN',
+    {
+      month: 'long',
+      year: 'numeric',
+    },
+  )
 
-  const formattedDate = `${year}-${month}`
-  return { formattedDate, entireDate, year, month }
+  const formattedDate = `${year} ${month}`
+  return { formattedDate, entireDate, year, month, yearMonth }
 }
 
 export function formatGameDateList(dateStr: string): string {
