@@ -40,3 +40,22 @@ export async function getUser(sub: string) {
   if (error) throw new Error(error.message)
   return data
 }
+
+export async function upsertChessUser(ChessUser: {
+  player_id: number
+  username: string
+  name: string
+  url: string
+  avatar: string
+  profile_createdat: string
+  lastonline: string
+}) {
+  const { data, error } = await supabase
+    .from('chess_profile')
+    .upsert(ChessUser, { onConflict: 'player_id' })
+    .select()
+
+  if (error) throw new Error(error.message)
+
+  return data
+}

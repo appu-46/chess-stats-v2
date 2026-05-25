@@ -9,11 +9,14 @@ import { GiBulletBill } from 'react-icons/gi'
 import { BiSolidUpArrow } from 'react-icons/bi'
 import { HiUserGroup } from 'react-icons/hi'
 import { useParams } from '@tanstack/react-router'
+import { useMutation } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
 import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
 import useStats from '../hooks/useStats'
+import { upsertChessUser } from '../services/apiUser'
 // ── Layout ──────────────────────────────────────────────────────────
 const PageWrapper = styled.div`
   display: flex;
@@ -231,11 +234,26 @@ function Profile() {
   const { username } = useParams({ from: '/profile/$username' })
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
   const { data: countryDetail } = useCountry(profile?.country)
+  const upsertMutation = useMutation({ mutationFn: upsertChessUser })
   const {
     data: stats,
     isPending: isFetchingStats,
     error: errorStats,
   } = useStats(username)
+
+  useEffect(() => {
+    if (!profile?.player_id) return
+
+    upsertMutation.mutate({
+      player_id: profile.player_id,
+      username,
+      name: profile.name,
+      url: profile.url,
+      avatar: profile.avatar,
+      profile_createdat: new Date(profile.joined * 1000).toISOString(),
+      lastonline: new Date(profile.last_online * 1000).toISOString(),
+    })
+  }, [profile?.player_id])
 
   if (errorStats) return <p>{`${errorStats.message}`}</p>
 
