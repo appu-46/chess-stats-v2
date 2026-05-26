@@ -41,6 +41,17 @@ export async function getUser(sub: string) {
   return data
 }
 
+export async function getUserFromChessId(chessUsername: string) {
+  const { data, error } = await supabase
+    .from('user')
+    .select()
+    .eq('chessUserId', chessUsername)
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function upsertChessUser(ChessUser: {
   player_id: number
   username: string

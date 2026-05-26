@@ -29,6 +29,7 @@ import SideBar from './components/SideBar.tsx'
 import { StyledAppLayout } from './ui/AppLayout.tsx'
 import { GlobalStyle } from './styles/GlobalStyle.ts'
 import { processAndClearAccessToken } from './helpers/urlUtility.ts'
+import Favorites from './pages/Favorites.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -111,6 +112,12 @@ const gamesRoute = createRoute({
   },
 })
 
+const favouritesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/favourites/$sub',
+  component: Favorites,
+})
+
 // const theme = useMantineTheme()
 
 const theme = createTheme({})
@@ -121,6 +128,7 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   dashboardRoute,
   gamesRoute,
+  favouritesRoute,
 ])
 
 const router = createRouter({

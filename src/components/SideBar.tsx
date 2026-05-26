@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams, useRouterState } from '@tanstack/react-router'
 import { CgProfile } from 'react-icons/cg'
-import { MdGames } from 'react-icons/md'
+import { MdFavorite, MdGames } from 'react-icons/md'
 import { FaChartArea, FaEdit } from 'react-icons/fa'
+
 import { TiHome } from 'react-icons/ti'
 import { GiHamburgerMenu } from 'react-icons/gi'
 import { IoStatsChart } from 'react-icons/io5'
@@ -55,9 +56,10 @@ const mockdata = [
   { icon: IoStatsChart, label: 'Stats' },
   { icon: FaChartArea, label: 'Dashboard' },
   { icon: MdGames, label: 'Games' },
+  { icon: MdFavorite, label: 'Favourites' },
 ]
 
-const pages = ['/', 'profile', 'stats', 'dashboard', 'games']
+const pages = ['/', 'profile', 'stats', 'dashboard', 'games', 'favourites']
 
 function SideBar() {
   const routerState = useRouterState()
@@ -67,13 +69,15 @@ function SideBar() {
     .filter(Boolean)[0]
   const [active, setActive] = useState(pages.indexOf(currentParentPath))
   const [collapsed, setCollapsed] = useState(true)
-
   const isOnHomePage = currentPath === '/'
   const params = isOnHomePage ? null : useParams({ strict: false })
   const username = params?.username || ''
+  // const {data : }
   const navigate = useNavigate()
   const { data: googleUser } = useGoogleUser()
   const { data: dbUser } = useGetUser(googleUser?.sub)
+
+  const { sub } = googleUser ?? {}
 
   function toggleCollapsed() {
     const next = !collapsed
@@ -95,6 +99,7 @@ function SideBar() {
       { to: '/stats/$username' as const, params: { username } },
       { to: '/dashboard/$username' as const, params: { username } },
       { to: '/games/$username' as const, params: { username } },
+      { to: '/favourites/$sub' as const, params: { sub } },
     ]
 
     const route = routes[index]
