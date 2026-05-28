@@ -51,7 +51,7 @@ const Subtitle = styled.p`
   margin: 0;
 `
 
-const SearchRow = styled.div`
+export const SearchRow = styled.div`
   display: flex;
   gap: 1rem;
   // width: 100%;
@@ -93,7 +93,7 @@ const FeatureCard = styled.div`
   }
 `
 
-const Searchbox = styled.div`
+export const Searchbox = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;

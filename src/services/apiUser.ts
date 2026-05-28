@@ -52,6 +52,16 @@ export async function getUserFromChessId(chessUsername: string) {
   return data
 }
 
+export async function getUserFromPlayerID(playerID: Array<string>) {
+  const { data, error } = await supabase
+    .from('chess_profile')
+    .select()
+    .in('player_id', playerID)
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function upsertChessUser(ChessUser: {
   player_id: number
   username: string
@@ -64,6 +74,31 @@ export async function upsertChessUser(ChessUser: {
   const { data, error } = await supabase
     .from('chess_profile')
     .upsert(ChessUser, { onConflict: 'player_id' })
+    .select()
+
+  if (error) throw new Error(error.message)
+
+  return data
+}
+
+export async function getFavs(sub: string) {
+  const { data: favourite_players, error } = await supabase
+    .from('favourite_players')
+    .select('*')
+    .eq('user_sub', sub)
+
+  if (error) throw new Error(error.message)
+
+  return favourite_players
+}
+
+export async function upsertFav(FavUser: {
+  user_sub: string
+  player_id: number
+}) {
+  const { data, error } = await supabase
+    .from('favourite_players')
+    .upsert(FavUser, { onConflict: 'user_sub,player_id' })
     .select()
 
   if (error) throw new Error(error.message)

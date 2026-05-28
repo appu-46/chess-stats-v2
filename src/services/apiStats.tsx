@@ -14,7 +14,7 @@ export async function apiProfile(username: string) {
 
   if (!response.ok) throw new Error(`Failed to fetch the Profile!`)
 
-  const data = response.json()
+  const data = await response.json()
   return data
 }
 
@@ -70,27 +70,3 @@ export async function apiRecentGames(
 
   return pastNdaysGames
 }
-
-/*
-export async function apiYearGames(username: string) {
-  const archivedata = await apiArchive(username)
-  const archives = archivedata.archives
-  const recentgameUrl = archives.slice(-12)
-
-  const gameResponses = await Promise.all(
-    recentgameUrl.map(async (apiURL: string) => {
-      const response = await fetch(apiURL)
-      const data = await response.json()
-
-      return data.games || []
-    }),
-  )
-
-  const allGames = gameResponses.flat()
-  const yearago = Date.now() / 1000 - 365 * 24 * 60 * 60
-
-  const pastyearGames = allGames.filter((game) => game.end_time >= yearago)
-
-  return pastyearGames
-}
-*/
