@@ -69,23 +69,20 @@ const Tab = styled.button<{ $active: boolean; $color: string }>`
   border-radius: 50px;
   border: ${({ $active, $color }) =>
     $active ? `1.5px solid ${$color}` : '1.5px solid transparent'};
-  background: ${({ $active, $color }) =>
-    $active
-      ? `radial-gradient(
-  ellipse at center,
-  transparent 58%,
-  ${$color}00 64%,
-  ${$color}22 72%,
-  ${$color}99 100%
-);`
-      : 'transparent'};
+  background: ${({ $active }) =>
+    $active ? `rgba(0, 0, 0, 0.3);` : 'transparent'};
   color: ${({ $active, $color }) => ($active ? $color : 'inherit')};
-  font-size: 1.25rem;
+  font-size: ${({ $active }) => ($active ? '1.5rem' : '1.25rem')};
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   cursor: pointer;
-  transition: all 0.2s ease;
-  opacity: ${({ $active }) => ($active ? 1 : 0.6)};
-
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  opacity: ${({ $active }) => ($active ? 1 : 0.7)};
+  box-shadow: ${({ $active, $color }) =>
+    $active ? `inset 0 0 5px ${$color},inset 0 0 10px ${$color}` : 'none'};
+  [data-mantine-color-scheme='light'] & {
+    background: ${({ $active }) =>
+      $active ? `rgba(255, 255, 255, 0.45);` : 'transparent'};
+  }
   &:hover {
     opacity: 1;
     background: rgba(255, 255, 255, 0.08);
@@ -187,22 +184,20 @@ const RangeBtn = styled.button<{ $active: boolean; $color: string }>`
   border-radius: 50px;
   border: ${({ $active, $color }) =>
     $active ? `1.5px solid ${$color}` : '1.5px solid transparent'};
-  background: ${({ $active, $color }) =>
-    $active
-      ? `radial-gradient(
-  ellipse at center,
-  transparent 58%,
-  ${$color}00 64%,
-  ${$color}22 72%,
-  ${$color}99 100%
-);`
-      : 'transparent'};
+  background: ${({ $active }) =>
+    $active ? `rgba(0, 0, 0, 0.3);` : 'transparent'};
   color: ${({ $active, $color }) => ($active ? $color : 'inherit')};
   font-size: 1rem;
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   cursor: pointer;
   opacity: ${({ $active }) => ($active ? 1 : 0.5)};
-  transition: all 0.2s ease;
+  transition: all 0.2s ease !important;
+  box-shadow: ${({ $active, $color }) =>
+    $active ? `inset 0 0 2px ${$color},inset 0 0 8px ${$color}` : 'none'};
+
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+  }
 
   &:hover {
     background: rgb(255, 255, 255, 0.08);
