@@ -21,15 +21,44 @@ const PageWrapper = styled.div`
   justify-content: center;
   flex-direction: column;
 `
-
+const TitleWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+  flex-direction: row;
+`
 const Title = styled.h1`
   font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+`
+const PlayerName = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+`
+
+const TitleSearch = styled.h1`
+  font-size: 2rem;
+  font-weight: 700;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+`
+
+const Avatar = styled.img`
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 255, 0.5);
 `
 
 const FavoriteCard = styled.div`
   display: flex;
   align-items: center;
-  flex-direction: column;
+  flex-direction: row;
   gap: 1rem;
   padding: 2rem 1rem;
   border: 1.5px solid rgba(255, 255, 255, 0.08);
@@ -87,18 +116,19 @@ function Favorites() {
     error: favsError,
   } = useGetFavsofUser(sub)
 
-  const { mutateAsync: upsertFav } = useUpsertFav()
-  const { mutateAsync: upsertChessProfile } = useUpsertChessUser()
-  const player_id_favs = favs?.map((fav) => fav.player_id)
-
+  const player_id_favs = favs?.map((fav) => fav?.player_id)
+  console.log(player_id_favs)
   const {
     data: favsProfile,
     isPending: isFetchingProfile,
     error: profileError,
   } = useFetchChessProfileBulk(player_id_favs)
 
+  const { mutateAsync: upsertFav } = useUpsertFav()
+  const { mutateAsync: upsertChessProfile } = useUpsertChessUser()
+
   type Inputs = { username: string }
-  console.log(favs, favsProfile)
+
   const {
     register,
     handleSubmit,
@@ -132,14 +162,18 @@ function Favorites() {
 
   return (
     <PageWrapper>
-      <div>
-        <Title>Favorites</Title>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <TitleWrapper>
+          <div>
+            <Title>Your Tracked Players</Title>
+            <span>Monitor performance, rating and activity</span>
+          </div>
+          <div>{favs?.length}</div>
+        </TitleWrapper>
       </div>
       <MainContainer>
         <Searchbox>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: '600' }}>
-            Add a favorite
-          </h1>
+          <TitleSearch>Add a favorite</TitleSearch>
 
           <SearchRow>
             <Form onSubmit={handleSubmit(onSubmit)}>
@@ -151,17 +185,21 @@ function Favorites() {
                 placeholder="Enter chess.com username"
                 {...register('username', { required: true })}
               />
-              <Button>Add</Button>
+              <Button>Add Player</Button>
             </Form>
           </SearchRow>
           {errors.username && <ErrorMessage message="Username is mandatory!" />}
         </Searchbox>
 
         <FavsListContainer>
-          {favsProfile &&
-            favsProfile.map((fav) => {
-              return <FavoriteCard> {fav.name}</FavoriteCard>
-            })}
+          {favsProfile?.map((fav) => {
+            return (
+              <FavoriteCard>
+                <Avatar src={fav.avatar} alt="player-avatar" />
+                <PlayerName>{fav.name}</PlayerName>
+              </FavoriteCard>
+            )
+          })}
         </FavsListContainer>
       </MainContainer>
     </PageWrapper>
