@@ -89,7 +89,7 @@ const RatingBadge = styled.div`
   flex-direction: column;
   width: fit-content;
 `
-const IconRow = styled.div`
+export const IconRow = styled.div`
   display: flex;
   align-items: center;
   flex-direction: row;

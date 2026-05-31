@@ -68,6 +68,10 @@ export async function upsertChessUser(ChessUser: {
   name: string
   url: string
   avatar: string
+  title: string
+  country: { code: string; name: string }
+  country_flag_url: string
+  country_api: string
   profile_createdat: string
   lastonline: string
 }) {
@@ -90,6 +94,23 @@ export async function getFavs(sub: string) {
   if (error) throw new Error(error.message)
 
   return favourite_players
+}
+
+export async function deleteFav({
+  player_id,
+  user_sub,
+}: {
+  player_id: number
+  user_sub: string
+}) {
+  const { data, count, error } = await supabase
+    .from('favourite_players')
+    .delete()
+    .eq('player_id', player_id)
+    .eq('user_sub', user_sub)
+
+  console.log({ error, data, count })
+  if (error) throw new Error(error.message)
 }
 
 export async function upsertFav(FavUser: {

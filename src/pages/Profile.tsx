@@ -61,7 +61,7 @@ const AvatarPlaceholder = styled.div`
   background: rgba(255, 255, 255, 0.05);
 `
 
-const ProfileInfo = styled.div`
+export const ProfileInfo = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -89,20 +89,21 @@ const Name = styled.h1`
   gap: 0.5rem;
 `
 
-const TitleBadge = styled.span`
-  font-size: 1.25rem;
-  padding: 0.25rem 0.5rem;
+export const TitleBadge = styled.span`
+  font-size: 1rem;
+  padding: 0.5rem;
   border-radius: 12px;
   background: #7d2828;
   font-weight: 1000;
   color: white;
+  width: fit-content;
 
   [data-mantine-color-scheme='light'] & {
     color: white;
   }
 `
 
-const Username = styled.div`
+export const Username = styled.div`
   font-size: 0.95rem;
   opacity: 0.6;
   display: flex;
@@ -110,7 +111,7 @@ const Username = styled.div`
   gap: 0.5rem;
 `
 
-const MetaRow = styled.div`
+export const MetaRow = styled.div`
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
@@ -249,7 +250,11 @@ function Profile() {
       username,
       name: profile.name,
       url: profile.url,
+      title: profile.title,
       avatar: profile.avatar,
+      country: countryDetail,
+      country_api: profile.country,
+      country_flag_url: `https://flagsapi.com/${countryDetail?.code}/flat/32.png`,
       profile_createdat: new Date(profile.joined * 1000).toISOString(),
       lastonline: new Date(profile.last_online * 1000).toISOString(),
     })
@@ -352,7 +357,7 @@ function Profile() {
             <a href={url} target="_blank" rel="noopener noreferrer">
               <Name>
                 {title && <TitleBadge>{title}</TitleBadge>}
-                <h1>{playerName}</h1>
+                <>{playerName}</>
                 <span>•</span>
                 <Username>@{username}</Username>
               </Name>
@@ -397,7 +402,7 @@ function Profile() {
             const stat = stats?.[key]
             if (!stat) return null
             return (
-              <a href={stat?.best?.game} target="_blank">
+              <a href={stat?.best?.game} target="_blank" key={key}>
                 <PeakItem
                   key={key}
                   style={{
