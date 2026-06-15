@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiGames } from '../services/apiStats'
-// import { transformGames } from '../helpers/TransformGames'
 
 function useGames(username: string, year: string, month: string) {
   const { data, isPending, error } = useQuery({
@@ -8,9 +7,9 @@ function useGames(username: string, year: string, month: string) {
     queryFn: () => apiGames(username, year, month),
   })
 
-  // const transformedData = transformGames(data, username)
+  const games = data?.games
 
-  return { data, isPending, error }
+  return { games, isPending, error }
 }
 
 export default useGames

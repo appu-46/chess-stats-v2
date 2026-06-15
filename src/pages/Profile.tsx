@@ -91,7 +91,7 @@ const Name = styled.h1`
 
 export const TitleBadge = styled.span`
   font-size: 1rem;
-  padding: 0.5rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 12px;
   background: #7d2828;
   font-weight: 1000;
@@ -243,7 +243,7 @@ function Profile() {
   } = useStats(username)
 
   useEffect(() => {
-    if (!profile?.player_id) return
+    if (!profile?.player_id || !countryDetail?.code) return
 
     upsertMutation.mutate({
       player_id: profile.player_id,
@@ -258,7 +258,7 @@ function Profile() {
       profile_createdat: new Date(profile.joined * 1000).toISOString(),
       lastonline: new Date(profile.last_online * 1000).toISOString(),
     })
-  }, [profile?.player_id])
+  }, [profile?.player_id, countryDetail?.code])
 
   if (errorStats) return <p>{`${errorStats.message}`}</p>
 

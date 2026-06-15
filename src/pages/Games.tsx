@@ -2,21 +2,25 @@ import styled from 'styled-components'
 import { useLocation, useNavigate, useParams } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { useState } from 'react'
-import { MonthPicker } from '@mantine/dates'
+
 import { SiTarget } from 'react-icons/si'
-import { FaChevronRight } from 'react-icons/fa6'
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6'
 import { GiTrophy } from 'react-icons/gi'
 import {
+  FaCalendarAlt,
   FaCalendarDay,
+  FaChartBar,
   FaChessKing,
   FaHandshake,
   FaHeartBroken,
+  FaShieldAlt,
 } from 'react-icons/fa'
-import useProfile from '../hooks/useProfile'
+import { useFetchChessprofileFromSupa } from '../hooks/useFetchChessprofileFromSupa'
 import Spinner from '../ui/Spinner'
-import { formatDate, queryFormatDate } from '../helpers/DateFormat'
-import Button from '../ui/Button'
-import '@mantine/dates/styles.css'
+import { queryFormatDate } from '../helpers/DateFormat'
+import { TitleBadge } from './Profile'
+
+// ─── Game list styled components ──────────────────────────────────────────────
 
 const PageContainer = styled.div`
   padding: 0.5rem 1rem;
@@ -57,6 +61,7 @@ const GamesGrid = styled.div`
   -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
   padding-bottom: 2rem;
 `
+
 const TableWrapper = styled.div`
   padding: 2rem;
   border-radius: 2rem;
@@ -74,6 +79,7 @@ const TableWrapper = styled.div`
     border: 1.5px solid rgba(0, 0, 0, 0.15);
   }
 `
+
 const TableHeader = styled.div`
   display: grid;
   margin-bottom: 1rem;
@@ -172,10 +178,10 @@ const Rating = styled.span`
     color: #333;
   }
 `
+
 const PlayerName = styled.span`
   font-size: 1.15rem;
   color: #fff;
-
   [data-mantine-color-scheme='light'] & {
     color: #333;
   }
@@ -237,30 +243,6 @@ const ChevronIcon = styled(FaChevronRight)`
   }
 `
 
-// Keep your existing styled components for the month picker...
-const StyledContainer = styled.div`
-  display: grid;
-  min-width: 50rem;
-  justify-items: center;
-  justify-content: center;
-`
-
-const StyledCalendar = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-`
-
-const StyledInput = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  align-items: center;
-  border-radius: 2rem;
-  padding: 2rem;
-  width: fit-content;
-  background-color: var(--mantine-color-dark-6);
-`
 const IconRow = styled.div`
   display: flex;
   align-items: center;
@@ -269,20 +251,367 @@ const IconRow = styled.div`
   gap: 0.5rem;
 `
 
-const TitleContainer = styled.div`
+// ─── InputGames styled components ─────────────────────────────────────────────
+
+const SelectMonthPage = styled.div`
   display: flex;
-  align-content: center;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  width: 69rem;
-  height: 5rem;
+  gap: 1.5rem;
+  min-height: 100vh;
 `
 
-const Title = styled.div`
-  font-size: 1.5rem;
-  font-weight: 500;
-  padding-left: 0.75rem;
+const SelectMonthHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
 `
+
+const SelectMonthTitle = styled.h1`
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
+
+  [data-mantine-color-scheme='light'] & {
+    color: #0f172a;
+  }
+`
+
+const SelectMonthSubtitle = styled.p`
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+  max-width: 36rem;
+  line-height: 1.6;
+
+  [data-mantine-color-scheme='light'] & {
+    color: rgba(0, 0, 0, 0.5);
+  }
+`
+
+const ProfileCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 36rem;
+
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+`
+
+const ProfileAvatar = styled.img`
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(139, 92, 246, 0.4);
+`
+
+const ProfileAvatarPlaceholder = styled.div`
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+`
+
+const ProfileInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+`
+
+const ProfileName = styled.div`
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  [data-mantine-color-scheme='light'] & {
+    color: #0f172a;
+  }
+`
+
+const ProfileHandle = styled.div`
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.45);
+
+  [data-mantine-color-scheme='light'] & {
+    color: rgba(0, 0, 0, 0.45);
+  }
+`
+
+const ProfileCountry = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-left: auto;
+
+  [data-mantine-color-scheme='light'] & {
+    color: rgba(0, 0, 0, 0.55);
+  }
+`
+
+const PickerCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  width: 100%;
+  max-width: 36rem;
+  background: #0d1117;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.35),
+    0 0 40px rgba(99, 102, 241, 0.12),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+
+  [data-mantine-color-scheme='light'] & {
+    background: #fff;
+    box-shadow:
+      0 0 0 1px rgba(99, 102, 241, 0.25),
+      0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+`
+
+const PickerCardHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+`
+
+const PickerCardTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+
+  [data-mantine-color-scheme='light'] & {
+    color: #0f172a;
+  }
+`
+
+const PickerCardSubtitle = styled.div`
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.45);
+
+  [data-mantine-color-scheme='light'] & {
+    color: rgba(0, 0, 0, 0.45);
+  }
+`
+
+const YearNav = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+`
+
+const YearNavButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  &:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+
+  [data-mantine-color-scheme='light'] & {
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.04);
+    color: rgba(0, 0, 0, 0.6);
+
+    &:hover:not(:disabled) {
+      background: rgba(0, 0, 0, 0.08);
+      color: #000;
+    }
+  }
+`
+
+const YearDisplay = styled.div`
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  min-width: 5rem;
+  text-align: center;
+
+  [data-mantine-color-scheme='light'] & {
+    color: #0f172a;
+  }
+`
+
+const MonthGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+`
+
+const MonthButton = styled.button<{ $selected: boolean; $disabled: boolean }>`
+  padding: 0.65rem 0;
+  border-radius: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: ${(props) => (props.$disabled ? 'not-allowed' : 'pointer')};
+  transition: all 0.15s;
+  border: 1px solid
+    ${(props) =>
+      props.$selected
+        ? 'rgba(139, 92, 246, 0.7)'
+        : 'rgba(255, 255, 255, 0.08)'};
+  background: ${(props) =>
+    props.$selected
+      ? 'linear-gradient(135deg, #6366f1, #a855f7)'
+      : 'rgba(255, 255, 255, 0.04)'};
+  color: ${(props) => {
+    if (props.$disabled) return 'rgba(255, 255, 255, 0.2)'
+    if (props.$selected) return '#fff'
+    return 'rgba(255, 255, 255, 0.75)'
+  }};
+  box-shadow: ${(props) =>
+    props.$selected ? '0 0 16px rgba(139, 92, 246, 0.4)' : 'none'};
+
+  &:hover:not(:disabled) {
+    background: ${(props) =>
+      props.$selected
+        ? 'linear-gradient(135deg, #6366f1, #a855f7)'
+        : 'rgba(255, 255, 255, 0.1)'};
+    border-color: ${(props) =>
+      props.$selected ? 'rgba(139, 92, 246, 0.7)' : 'rgba(255, 255, 255, 0.2)'};
+    color: #fff;
+  }
+
+  [data-mantine-color-scheme='light'] & {
+    border-color: ${(props) =>
+      props.$selected ? 'rgba(99, 102, 241, 0.7)' : 'rgba(0, 0, 0, 0.1)'};
+    background: ${(props) =>
+      props.$selected
+        ? 'linear-gradient(135deg, #6366f1, #a855f7)'
+        : 'rgba(0, 0, 0, 0.03)'};
+    color: ${(props) => {
+      if (props.$disabled) return 'rgba(0, 0, 0, 0.2)'
+      if (props.$selected) return '#fff'
+      return 'rgba(0, 0, 0, 0.7)'
+    }};
+  }
+`
+
+const AnalyzeButton = styled.button<{ $disabled: boolean }>`
+  width: 100%;
+  padding: 0.9rem;
+  border-radius: 0.8rem;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: ${(props) => (props.$disabled ? 'not-allowed' : 'pointer')};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.2s;
+  background: ${(props) =>
+    props.$disabled
+      ? 'rgba(255, 255, 255, 0.08)'
+      : 'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899)'};
+  color: ${(props) => (props.$disabled ? 'rgba(255, 255, 255, 0.3)' : '#fff')};
+  box-shadow: ${(props) =>
+    props.$disabled
+      ? 'none'
+      : '0 4px 24px rgba(139, 92, 246, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3)'};
+
+  &:hover:not(:disabled) {
+    box-shadow:
+      0 6px 32px rgba(139, 92, 246, 0.55),
+      0 4px 12px rgba(0, 0, 0, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+`
+
+const FooterNote = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.35);
+
+  [data-mantine-color-scheme='light'] & {
+    color: rgba(0, 0, 0, 0.35);
+  }
+`
+
+const ErrorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+`
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface StandardGame {
   BlackElo: string
@@ -305,6 +634,8 @@ interface LocationState {
   games?: Array<StandardGame>
 }
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 function Games() {
   const navigate = useNavigate()
   const { username } = useParams({ from: '/games/$username' })
@@ -315,71 +646,164 @@ function Games() {
     data: profile,
     isPending: isFetchingProfile,
     error: errorProfile,
-  } = useProfile(username)
-
-  const mindate = formatDate(profile?.joined).formattedDate
+  } = useFetchChessprofileFromSupa(username)
 
   if (isFetchingProfile) return <Spinner />
 
   if (errorProfile) {
     return (
-      <StyledContainer>
+      <ErrorContainer>
         <h1>Error</h1>
         <p>Could not load game data. Please try again.</p>
-      </StyledContainer>
+      </ErrorContainer>
     )
   }
 
   function onSubmit(month: string) {
-    const DashBoardInput = month.split('-')
-    const year = DashBoardInput[0]
-    const inputmonth = DashBoardInput[1]
-
+    const [year, inputmonth] = month.split('-')
     navigate({
       to: '/dashboard/$username',
       params: { username },
-      search: { year: year, month: inputmonth, range: '30D' },
+      search: { year, month: inputmonth, range: '30D' },
     })
   }
 
   function InputGames() {
-    const [month, setMonth] = useState<string | null>(null)
+    const joinedDate = profile?.joined
+      ? dayjs.unix(profile.joined)
+      : dayjs('2007-01-01')
+    const minYear = joinedDate.year()
+    const minMonth = joinedDate.month() // 0-indexed
+    const maxYear = dayjs().year()
+    const maxMonth = dayjs().month() // 0-indexed
 
-    if (isFetchingProfile) return <Spinner />
+    const [year, setYear] = useState(maxYear)
+    const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
 
-    if (errorProfile) {
-      return (
-        <StyledContainer>
-          <h1>Error</h1>
-          <p>Could not load game data. Please try again.</p>
-        </StyledContainer>
-      )
+    const isMonthDisabled = (monthIdx: number) => {
+      if (year < minYear) return true
+      if (year === minYear && monthIdx < minMonth) return true
+      if (year > maxYear) return true
+      if (year === maxYear && monthIdx > maxMonth) return true
+      return false
     }
+
+    const handleSubmit = () => {
+      if (selectedMonth === null) return
+      const monthStr = String(selectedMonth + 1).padStart(2, '0')
+      onSubmit(`${year}-${monthStr}`)
+    }
+
     return (
-      <StyledCalendar>
-        <TitleContainer>
-          <Title>Which month are we diving into for game analysis?</Title>
-        </TitleContainer>
-        <StyledInput>
-          <MonthPicker
-            allowDeselect
-            minDate={mindate}
-            maxDate={dayjs().format('YYYY-MM-DD')}
-            value={month}
-            onChange={setMonth}
-            defaultValue={dayjs().format('DD-MM-YY')}
-            size="md"
-          />
-          <Button
-            disabled={month === null}
-            onClick={() => {
-              if (month) onSubmit(month)
-            }}
+      <SelectMonthPage>
+        <SelectMonthHeader>
+          <SelectMonthTitle>Select a month to analyze</SelectMonthTitle>
+          <SelectMonthSubtitle>
+            Explore and analyze every game played in a specific month. Dive into
+            performance, opponents and key insights.
+          </SelectMonthSubtitle>
+        </SelectMonthHeader>
+
+        <ProfileCard>
+          {profile?.avatar ? (
+            <ProfileAvatar
+              src={profile.avatar}
+              alt={profile.name || username}
+            />
+          ) : (
+            <ProfileAvatarPlaceholder>
+              {username[0].toUpperCase()}
+            </ProfileAvatarPlaceholder>
+          )}
+          <ProfileInfo>
+            <ProfileName>
+              {profile?.title && (
+                <TitleBadge
+                  style={{
+                    fontSize: '0.75rem',
+                    padding: '0.25rem 0.5rem',
+                  }}
+                >
+                  {profile.title}
+                </TitleBadge>
+              )}
+              {profile?.name || username}
+            </ProfileName>
+            <ProfileHandle>@{username}</ProfileHandle>
+          </ProfileInfo>
+          {profile?.country && (
+            <ProfileCountry>
+              <img src={profile?.country_flag_url} />
+              {profile?.country?.name}
+            </ProfileCountry>
+          )}
+        </ProfileCard>
+
+        <PickerCard>
+          <PickerCardHeader>
+            <PickerCardTitle>
+              <FaCalendarAlt size={20} color="#6366f1" />
+              Choose Month
+            </PickerCardTitle>
+            <PickerCardSubtitle>
+              Pick a month and year to view your game history
+            </PickerCardSubtitle>
+          </PickerCardHeader>
+
+          <YearNav>
+            <YearNavButton
+              onClick={() => {
+                setYear((y) => y - 1)
+                setSelectedMonth(null)
+              }}
+              disabled={year <= minYear}
+            >
+              <FaChevronLeft size={14} />
+            </YearNavButton>
+            <YearDisplay>{year}</YearDisplay>
+            <YearNavButton
+              onClick={() => {
+                setYear((y) => y + 1)
+                setSelectedMonth(null)
+              }}
+              disabled={year >= maxYear}
+            >
+              <FaChevronRight size={14} />
+            </YearNavButton>
+          </YearNav>
+
+          <MonthGrid>
+            {MONTHS.map((label, idx) => {
+              const disabled = isMonthDisabled(idx)
+              return (
+                <MonthButton
+                  key={label}
+                  $selected={selectedMonth === idx}
+                  $disabled={disabled}
+                  disabled={disabled}
+                  onClick={() => setSelectedMonth(idx)}
+                >
+                  {label}
+                </MonthButton>
+              )
+            })}
+          </MonthGrid>
+
+          <AnalyzeButton
+            $disabled={selectedMonth === null}
+            disabled={selectedMonth === null}
+            onClick={handleSubmit}
           >
-            Submit
-          </Button>
-        </StyledInput>
-      </StyledCalendar>
+            <FaChartBar size={16} />
+            Analyze Games
+          </AnalyzeButton>
+
+          <FooterNote>
+            <FaShieldAlt size={12} />
+            Only completed games are included in the analysis
+          </FooterNote>
+        </PickerCard>
+      </SelectMonthPage>
     )
   }
 
@@ -394,12 +818,10 @@ function Games() {
     if (result === 'loss') return <FaHeartBroken size={24} color="#ef4444" />
     return <FaHandshake size={24} color="#3b82f6" />
   }
-  console.log(games)
 
   const score = games.reduce((acc, game) => {
     if (game.resultForPlayer === 'win') return acc + 1
     if (game.resultForPlayer === 'draw') return acc + 0.5
-
     return acc
   }, 0)
 
@@ -438,8 +860,6 @@ function Games() {
             const opponentName = isUserWhite
               ? game.blackPlayer
               : game.whitePlayer
-            // const userRating = isUserWhite ? game.WhiteElo : game.BlackElo
-            // const opponentRating = isUserWhite ? game.BlackElo : game.WhiteElo
 
             return (
               <GameCard
@@ -448,7 +868,6 @@ function Games() {
                 target="_blank"
                 $result={game.resultForPlayer as 'win' | 'loss' | 'draw'}
               >
-                {/* Players */}
                 <PlayersSection>
                   <PlayerRow
                     $highlight={isUserWhite && game.resultForPlayer === 'win'}
@@ -466,7 +885,6 @@ function Games() {
                   </PlayerRow>
                 </PlayersSection>
 
-                {/* Result */}
                 <ResultSection
                   $result={game.resultForPlayer as 'win' | 'loss' | 'draw'}
                 >
@@ -489,19 +907,14 @@ function Games() {
                   </ResultLabel>
                 </ResultSection>
 
-                {/* Termination */}
                 <InfoText>{game.Termination}</InfoText>
-
-                {/* Moves */}
                 <MovesCount>{game.moveCount}</MovesCount>
 
-                {/* Date */}
                 <DateSection>
                   <div>{game.date_time.split(' ')[0]}</div>
                   <div>{game.date_time.split(' ')[1]}</div>
                 </DateSection>
 
-                {/* Chevron */}
                 <ChevronIcon />
               </GameCard>
             )

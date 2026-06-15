@@ -52,6 +52,17 @@ export async function getUserFromChessId(chessUsername: string) {
   return data
 }
 
+export async function getChessProfileFromChessUsername(chessUsername: string) {
+  const { data, error } = await supabase
+    .from('chess_profile')
+    .select()
+    .eq('username', chessUsername)
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function getUserFromPlayerID(playerID: Array<string>) {
   const { data, error } = await supabase
     .from('chess_profile')
@@ -103,13 +114,12 @@ export async function deleteFav({
   player_id: number
   user_sub: string
 }) {
-  const { data, count, error } = await supabase
+  const { error } = await supabase
     .from('favourite_players')
     .delete()
     .eq('player_id', player_id)
     .eq('user_sub', user_sub)
 
-  console.log({ error, data, count })
   if (error) throw new Error(error.message)
 }
 

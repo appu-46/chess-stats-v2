@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getUserFromChessId } from '../services/apiUser'
 
-function useGetUser(username?: string) {
+function useGetUserFromChessId(username?: string) {
   const { data, isPending, error } = useQuery({
     queryKey: ['user', username],
     queryFn: () => getUserFromChessId(username!),
@@ -12,4 +12,4 @@ function useGetUser(username?: string) {
   return { data, isPending, error }
 }
 
-export default useGetUser
+export default useGetUserFromChessId

@@ -5,13 +5,14 @@ import useUpsertUser from './userUpseretUser'
 
 function useGoogleUser() {
   const token = sessionStorage.getItem('access_token')
+
   const { mutateAsync: saveUser } = useUpsertUser()
 
   const { data, isPending, error } = useQuery({
     queryKey: ['googleUser'],
     queryFn: async () => {
       const user = await fetchGoogleUser(token!)
-      // Upsert happens here, once, when the query resolves
+
       await saveUser({
         sub: user.sub,
         firstName: user.given_name,

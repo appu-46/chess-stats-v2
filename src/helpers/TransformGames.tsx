@@ -84,17 +84,10 @@ export function transformGames(input: GameResponse | null, username: string) {
   const chess = new Chess()
 
   for (const game of standard) {
-    // if (!validateFen(game.fen).ok) {
-    //   console.warn(`Invalid FEN, skipping the game: `, game.pgn, game.url)
-    // }
-    // if (!game.pgn || game.pgn.trim() === '') {
-    //   console.warn('Skipping game with no PGN (probably bughouse):', game.url)
-    //   continue
-    // }
     try {
       const formattedDate = formatDate(game.end_time).formattedDateTime
       chess.loadPgn(game.pgn)
-      // console.log(game)
+
       const headers = chess.getHeaders()
       const isWhite = headers.White.toLowerCase() === lowerUsername
 
@@ -132,11 +125,7 @@ export function transformGames(input: GameResponse | null, username: string) {
       if (game.time_class === 'bullet') bulletGames.push(result)
       if (game.time_class === 'daily') dailyGames.push(result)
     } catch (error) {
-      console.error('=== FAILED GAME ===')
-      console.error('URL:', game.url)
-      console.error('Game:', game)
-      console.error('Error:', error)
-      console.error('==================')
+      console.error(error)
       chess.reset()
       continue
     }

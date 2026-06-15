@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import {
   Outlet,
@@ -6,6 +6,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  redirect,
   useLocation,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
@@ -36,18 +37,63 @@ const queryClient = new QueryClient({
   },
 })
 
-const token = processAndClearAccessToken()
+processAndClearAccessToken()
 
-if (token) sessionStorage.setItem('access_token', token)
+// const rootRoute = createRootRoute({
+//   component: () => {
+//     const { pathname } = useLocation()
+//     return (
+//       <>
+//         <StyledAppLayout>
+//           {pathname !== '/' && <Header />}
+
+//           <SideBar />
+//           <main style={{ paddingLeft: '1rem' }}>
+//             <Outlet />
+//           </main>
+//           <Footer />
+//           <TanStackRouterDevtools />
+//         </StyledAppLayout>
+//       </>
+//     )
+//   },
+//   notFoundComponent: PageNotFound,
+// })
 
 const rootRoute = createRootRoute({
+  beforeLoad: ({ location }) => {
+    if (location.pathname === '/') return
+
+    const expiry = sessionStorage.getItem('token_expiry')
+    if (!expiry || Date.now() > Number(expiry)) {
+      sessionStorage.clear()
+      throw redirect({ to: '/', search: { changeUsername: false } })
+    }
+  },
   component: () => {
     const { pathname } = useLocation()
+
+    useEffect(() => {
+      if (pathname === '/') return
+
+      const expiry = sessionStorage.getItem('token_expiry')
+      if (!expiry) return
+
+      const msUntilExpiry = Number(expiry) - Date.now()
+      if (msUntilExpiry <= 0) return
+
+      const timer = setTimeout(() => {
+        sessionStorage.clear()
+        router.navigate({ to: '/', search: { changeUsername: false } })
+      }, msUntilExpiry)
+
+      return () => clearTimeout(timer)
+    }, [pathname])
+
     return (
       <>
         <StyledAppLayout>
           {pathname !== '/' && <Header />}
-
           <SideBar />
           <main style={{ paddingLeft: '1rem' }}>
             <Outlet />
@@ -113,6 +159,10 @@ const favouritesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/favourites/$sub',
   component: Favorites,
+  beforeLoad: () => {
+    const token = sessionStorage.getItem('access_token')
+    if (!token) throw redirect({ to: '/', search: { changeUsername: false } })
+  },
 })
 
 // const theme = useMantineTheme()

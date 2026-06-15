@@ -4,6 +4,7 @@ import { useNavigate, useParams } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { HiUsers } from 'react-icons/hi'
 import { FaCircle, FaGlobe, FaRegStar, FaTrash } from 'react-icons/fa'
+import { SiChessdotcom } from 'react-icons/si'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDeleteFav } from '../hooks/useDeleteFav'
 import useFetchChessProfileBulk from '../hooks/useFetchChessProfileBulk'
@@ -176,6 +177,16 @@ const DeleteBg = styled.div`
       transform: translateY(-2px);
     }
   }
+`
+const AvatarPlaceholder = styled.div`
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
 `
 
 const MainContainer = styled.div`
@@ -355,7 +366,13 @@ function Favorites() {
                   }
                 >
                   <MetaRow>
-                    <Avatar src={fav.avatar} alt="player-avatar" />
+                    {fav.avatar === null ? (
+                      <AvatarPlaceholder>
+                        <SiChessdotcom size={32} />
+                      </AvatarPlaceholder>
+                    ) : (
+                      <Avatar src={fav.avatar} alt="player-avatar" />
+                    )}
                     <ProfileInfo>
                       <Name>
                         {fav.title && (

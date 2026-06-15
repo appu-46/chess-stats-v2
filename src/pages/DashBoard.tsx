@@ -254,6 +254,75 @@ function filterByRange(
   )
 }
 
+function MonthlyDashboard({
+  username,
+  year,
+  month,
+  range,
+  profile,
+  isFetchingProfile,
+}: {
+  username: string
+  year: string
+  month: string
+  range: string
+  profile: any
+  isFetchingProfile: boolean
+}) {
+  const {
+    games,
+    isPending: isFetchingGames,
+    error,
+  } = useGames(username, year, month)
+
+  if (isFetchingGames || isFetchingProfile) return <Spinner />
+  if (error) return <p>{error.message}</p>
+
+  return (
+    <DashboardInner
+      games={games}
+      profile={profile}
+      username={username}
+      range={range}
+      isMonthlyView={true}
+    />
+  )
+}
+
+function RecentDashboard({
+  username,
+  range,
+  profile,
+  isFetchingProfile,
+}: {
+  username: string
+  range: string
+  profile: any
+  isFetchingProfile: boolean
+}) {
+  const {
+    data: games,
+    isPending: isFetchingGames,
+    error,
+  } = useGamesRecentdays(username, range)
+
+  if (isFetchingGames || isFetchingProfile)
+    return (
+      <Spinner loadingMsg="If you have played a lot of games, it may take a while to load graphs..." />
+    )
+  if (error) return <p>{error.message}</p>
+
+  return (
+    <DashboardInner
+      games={games}
+      profile={profile}
+      username={username}
+      range={range}
+      isMonthlyView={false}
+    />
+  )
+}
+
 // ── Dashboard Inner ──────────────────────────────────────────────────
 
 function DashboardInner({
@@ -261,11 +330,13 @@ function DashboardInner({
   profile,
   username,
   range = '90D',
+  isMonthlyView = false,
 }: {
   games: any
   profile: any
   username: string
   range: string
+  isMonthlyView: boolean
 }) {
   const [activeTab, setActiveTab] = useState(0)
   const [activeRange, setActiveRange] = useState(range)
@@ -273,6 +344,7 @@ function DashboardInner({
     from: '/dashboard/$username',
   })
   const playerName = profile?.name ?? username
+
   const transformedData = useMemo(
     () => transformGames(games, username),
     [games, username],
@@ -291,8 +363,8 @@ function DashboardInner({
   const active = timeControls[activeTab]
   const rawData = allGraphData[active.dataKey]
   const filteredData = useMemo(
-    () => filterByRange(rawData, activeRange),
-    [rawData, activeRange],
+    () => (isMonthlyView ? rawData : filterByRange(rawData, activeRange)),
+    [rawData, activeRange, isMonthlyView],
   )
 
   const entries = Object.entries(filteredData)
@@ -423,21 +495,22 @@ function DashboardInner({
 
       {/* Graph */}
       <GraphCard>
-        <GraphHeader>
-          <RangeRow>
-            {ranges.map((r) => (
-              <RangeBtn
-                key={r}
-                $active={activeRange === r}
-                $color={active.color}
-                onClick={() => handleRange(r)}
-              >
-                {r}
-              </RangeBtn>
-            ))}
-          </RangeRow>
-        </GraphHeader>
-
+        {!isMonthlyView && (
+          <GraphHeader>
+            <RangeRow>
+              {ranges.map((r) => (
+                <RangeBtn
+                  key={r}
+                  $active={activeRange === r}
+                  $color={active.color}
+                  onClick={() => handleRange(r)}
+                >
+                  {r}
+                </RangeBtn>
+              ))}
+            </RangeRow>
+          </GraphHeader>
+        )}
         <AreaGraph data={filteredData} color={active.color} />
       </GraphCard>
     </PageWrapper>
@@ -453,48 +526,27 @@ function DashBoard() {
     month,
     range = '90D',
   } = useSearch({ from: '/dashboard/$username' })
-
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
 
   if (year && month != null) {
-    const {
-      data: games,
-      isPending: isFetchingGames,
-      error: errorGames,
-    } = useGames(username, year, month)
-    if (isFetchingGames || isFetchingProfile) return <Spinner />
-    if (errorGames) return <p>{errorGames.message}</p>
     return (
-      <DashboardInner
-        games={games}
-        profile={profile}
+      <MonthlyDashboard
         username={username}
+        year={year}
+        month={month}
         range={range}
+        profile={profile}
+        isFetchingProfile={isFetchingProfile}
       />
     )
   }
 
-  const {
-    data: games,
-    isPending: isFetchingGames,
-    error: errorGames,
-  } = useGamesRecentdays(username, range)
-
-  if (isFetchingGames || isFetchingProfile)
-    return (
-      <Spinner
-        loadingMsg="If you have played a lot of games, it may take a while to
-          load graphs..."
-      />
-    )
-  if (errorGames) return <p>{errorGames.message}</p>
-
   return (
-    <DashboardInner
-      games={games}
-      profile={profile}
+    <RecentDashboard
       username={username}
       range={range}
+      profile={profile}
+      isFetchingProfile={isFetchingProfile}
     />
   )
 }
