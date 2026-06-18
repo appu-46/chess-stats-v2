@@ -71,11 +71,11 @@ function SideBar() {
   const [collapsed, setCollapsed] = useState(true)
   const isOnHomePage = currentPath === '/'
   const params = isOnHomePage ? null : useParams({ strict: false })
-  const username = params?.username || ''
   // const {data : }
   const navigate = useNavigate()
   const { data: googleUser } = useGoogleUser()
   const { data: dbUser } = useGetUser(googleUser?.sub)
+  const username = params?.username || dbUser?.chessUserId
 
   const { sub } = googleUser ?? {}
 

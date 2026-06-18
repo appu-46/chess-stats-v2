@@ -1,4 +1,4 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import {
   Outlet,
@@ -61,34 +61,8 @@ processAndClearAccessToken()
 // })
 
 const rootRoute = createRootRoute({
-  beforeLoad: ({ location }) => {
-    if (location.pathname === '/') return
-
-    const expiry = sessionStorage.getItem('token_expiry')
-    if (!expiry || Date.now() > Number(expiry)) {
-      sessionStorage.clear()
-      throw redirect({ to: '/', search: { changeUsername: false } })
-    }
-  },
   component: () => {
     const { pathname } = useLocation()
-
-    useEffect(() => {
-      if (pathname === '/') return
-
-      const expiry = sessionStorage.getItem('token_expiry')
-      if (!expiry) return
-
-      const msUntilExpiry = Number(expiry) - Date.now()
-      if (msUntilExpiry <= 0) return
-
-      const timer = setTimeout(() => {
-        sessionStorage.clear()
-        router.navigate({ to: '/', search: { changeUsername: false } })
-      }, msUntilExpiry)
-
-      return () => clearTimeout(timer)
-    }, [pathname])
 
     return (
       <>
