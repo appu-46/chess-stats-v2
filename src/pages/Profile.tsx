@@ -17,7 +17,6 @@ import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
 import useStats from '../hooks/useStats'
 import { upsertChessUser } from '../services/apiUser'
-import useFetchLiProfile from '../hooks/useFetchLiprofile'
 // ── Layout ──────────────────────────────────────────────────────────
 const PageWrapper = styled.div`
   display: flex;
@@ -253,8 +252,6 @@ const StatValue = styled.div`
 function Profile() {
   const { username } = useParams({ from: '/profile/$username' })
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
-  const { data: LiProfile, isPending: isFetchingLiProfile } =
-    useFetchLiProfile(username)
   const { data: countryDetail } = useCountry(profile?.country)
   const upsertMutation = useMutation({ mutationFn: upsertChessUser })
   const {
@@ -262,8 +259,6 @@ function Profile() {
     isPending: isFetchingStats,
     error: errorStats,
   } = useStats(username)
-
-  console.log(LiProfile, isFetchingLiProfile)
 
   useEffect(() => {
     if (!profile?.player_id || !countryDetail?.code) return
