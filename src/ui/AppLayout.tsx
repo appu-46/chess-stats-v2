@@ -9,6 +9,7 @@ const Container = styled.div`
 
 export const StyledAppLayout = styled.div`
   display: grid;
+  min-height: 100vh;
   grid-template-areas:
     'sidebar header'
     'sidebar main'
@@ -36,6 +37,24 @@ export const StyledAppLayout = styled.div`
 
   > footer {
     grid-area: footer;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'main'
+      'footer';
+
+    /* The sidebar becomes a fixed bottom bar (see NavbarMinimal.module.css),
+       so it is taken out of the grid flow here. */
+    > nav {
+      grid-area: unset;
+    }
+
+    > main {
+      overflow-x: hidden;
+    }
   }
 `
 function AppLayout() {

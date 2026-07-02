@@ -3,31 +3,31 @@ import { createGlobalStyle } from 'styled-components'
 
 export const GlobalStyle = createGlobalStyle`
 
+  :root {
+    /* Soft sage-mint brand palette */
+    --brand: #34a37e;                 /* base sage — light-mode accent (text, icons, borders) */
+    --brand-soft: #6ee7b7;            /* light mint — dark-mode accent */
+    --brand-fill: linear-gradient(135deg, #2f9e7a, #4bc7a6);       /* solid fills w/ light text */
+    --brand-fill-hover: linear-gradient(135deg, #34a985, #55d4b4);
+    --brand-border: rgba(52, 163, 126, 0.6);
+    --brand-border-soft: rgba(110, 231, 183, 0.4);
+    --brand-glow: rgba(52, 163, 126, 0.4);
+    --brand-glow-strong: rgba(52, 163, 126, 0.55);
+    --brand-ring: rgba(52, 163, 126, 0.35);
+    --brand-ring-faint: rgba(52, 163, 126, 0.12);
+    --on-brand: #f0fff9;              /* text on brand fills */
+  }
+
   @media (max-width: 768px) {
     body {
       padding: 0;
     }
 
-
-    [class*="Container"],
-    [class*="Wrapper"],
-    [class*="Box"] {
-      padding-left: 1rem !important;
-      padding-right: 1rem !important;
-    }
-
-
-    [style*="display: flex"],
-    [style*="display: grid"] {
-      flex-direction: column !important;
-      grid-template-columns: 1fr !important;
-    }
-
-
-    div[class*="Card"],
-    div[class*="Stats"] {
-      max-width: 100% !important;
-      width: 100% !important;
+    /* Main content spans the full width once the sidebar drops to a bottom
+       bar; small side padding keeps content off the screen edges and the
+       extra bottom padding clears the fixed nav. */
+    main {
+      padding: 0 0.75rem 5rem !important;
     }
 
     /* Adjust font sizes */
@@ -37,13 +37,6 @@ export const GlobalStyle = createGlobalStyle`
 
     h2 {
       font-size: 1.25rem !important;
-    }
-  }
-
-
-  @media (max-width: 1024px) and (min-width: 769px) {
-    [style*="display: grid"] {
-      grid-template-columns: repeat(2, 1fr) !important;
     }
   }
 
@@ -77,10 +70,10 @@ export const GlobalStyle = createGlobalStyle`
   color: #eee;
   height: 100%;
   background:linear-gradient(
-    145deg, 
-    #020617 0%,    
-    #0F172A 50%,  
-    #020617 100%  
+    145deg,
+    #081410 0%,
+    #0e2119 50%,
+    #081410 100%
   );;
   [data-mantine-color-scheme] {
     transition:
@@ -99,10 +92,10 @@ export const GlobalStyle = createGlobalStyle`
   color: #222;
   height: 100%;
   background:linear-gradient(
-    145deg, 
-    #F9FAFB 0%,    
-    #CBD5E1 50%,  
-    #F9FAFB 100%  
+    145deg,
+    #f1faf6 0%,
+    #cfe9dd 50%,
+    #f1faf6 100%
   );;
   [data-mantine-color-scheme] {
     transition:
@@ -150,7 +143,7 @@ code {
 }
 
 body.sidebar-expanded {
-  --sidebar-width: 20vh;
+  --sidebar-width: 220px;
 }
 h2,
 h3,
@@ -171,15 +164,12 @@ p {
 }
  [data-mantine-color-scheme='dark'] h1 {
   transition: color 0.3s ease !important;
-  background: linear-gradient(135deg, #a78bfa, #ec4899);
-  background-clip: text;
+  color: #bbf7d0;
  }
 
   [data-mantine-color-scheme='light'] h1 {
- background: linear-gradient(135deg, #4c1d95, #831843);
+  color: #14532d;
   transition: color 0.3s ease !important;
-
-  background-clip: text;
  }
 
 [data-mantine-color-scheme='light'] h2,

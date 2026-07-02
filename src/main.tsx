@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import {
   Outlet,
@@ -11,7 +11,11 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MantineProvider, createTheme } from '@mantine/core'
+import {
+  MantineProvider,
+  createTheme,
+  type MantineColorsTuple,
+} from '@mantine/core'
 
 import './styles.css'
 import App from './App.tsx'
@@ -28,6 +32,7 @@ import { StyledAppLayout } from './ui/AppLayout.tsx'
 import { GlobalStyle } from './styles/GlobalStyle.ts'
 import { processAndClearAccessToken } from './helpers/urlUtility.ts'
 import Favorites from './pages/Favorites.tsx'
+import MobileNotice from './ui/MobileNotice.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,12 +65,42 @@ processAndClearAccessToken()
 //   notFoundComponent: PageNotFound,
 // })
 
+const SECTION_TITLES: Record<string, string> = {
+  stats: 'Stats',
+  profile: 'Profile',
+  dashboard: 'Dashboard',
+  games: 'Games',
+  favourites: 'Favorites',
+}
+
+function usePageTitle(pathname: string) {
+  useEffect(() => {
+    const [, section, param] = pathname.split('/')
+    const label = section ? SECTION_TITLES[section] : undefined
+
+    if (!label) {
+      document.title = 'Chess Stats'
+      return
+    }
+
+    // /favourites/$sub carries a route id, not a username — skip it.
+    const username =
+      param && section !== 'favourites' ? decodeURIComponent(param) : ''
+
+    document.title = username
+      ? `${username} · ${label} · Chess Stats`
+      : `${label} · Chess Stats`
+  }, [pathname])
+}
+
 const rootRoute = createRootRoute({
   component: () => {
     const { pathname } = useLocation()
+    usePageTitle(pathname)
 
     return (
       <>
+        <MobileNotice />
         <StyledAppLayout>
           {pathname !== '/' && <Header />}
           <SideBar />
@@ -141,7 +176,25 @@ const favouritesRoute = createRoute({
 
 // const theme = useMantineTheme()
 
-const theme = createTheme({})
+// Soft sage-mint scale (0 lightest → 9 darkest) used as the Mantine primary
+// color, so focus rings, tooltips and other accents blend with the theme.
+const mint: MantineColorsTuple = [
+  '#e7f9f1',
+  '#c6f0df',
+  '#9ae6c8',
+  '#6dd9b0',
+  '#48cd9d',
+  '#2fbd8b',
+  '#2fa07d',
+  '#278066',
+  '#1f6a54',
+  '#144d3d',
+]
+
+const theme = createTheme({
+  colors: { mint },
+  primaryColor: 'mint',
+})
 
 const routeTree = rootRoute.addChildren([
   indexRoute,

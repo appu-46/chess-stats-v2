@@ -17,12 +17,19 @@ import { formatDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
 import useStats from '../hooks/useStats'
 import { upsertChessUser } from '../services/apiUser'
+import useFetchLiProfile from '../hooks/useFetchLiprofile'
 // ── Layout ──────────────────────────────────────────────────────────
 const PageWrapper = styled.div`
   display: flex;
   gap: 2rem;
   padding: 2rem;
   width: auto;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
 `
 
 const ProfileCard = styled.div`
@@ -66,11 +73,18 @@ export const ProfileInfo = styled.div`
   flex-direction: column;
   gap: 0.75rem;
   flex: 1;
+  min-width: 0;
 `
 const ProfileRow = styled.div`
   display: flex;
   flex-direction: row;
   gap: 2.5rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+  }
 `
 const IconRow = styled.div`
   display: flex;
@@ -190,6 +204,11 @@ const StatRow = styled.div`
   gap: 2.5rem;
   margin-bottom: 0.75rem;
   background: rgba(255, 255, 255, 0.03);
+
+  @media (max-width: 768px) {
+    padding: 0.75rem;
+    gap: 1rem;
+  }
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   &:last-child {
@@ -234,6 +253,8 @@ const StatValue = styled.div`
 function Profile() {
   const { username } = useParams({ from: '/profile/$username' })
   const { data: profile, isPending: isFetchingProfile } = useProfile(username)
+  const { data: LiProfile, isPending: isFetchingLiProfile } =
+    useFetchLiProfile(username)
   const { data: countryDetail } = useCountry(profile?.country)
   const upsertMutation = useMutation({ mutationFn: upsertChessUser })
   const {
@@ -241,6 +262,8 @@ function Profile() {
     isPending: isFetchingStats,
     error: errorStats,
   } = useStats(username)
+
+  console.log(LiProfile, isFetchingLiProfile)
 
   useEffect(() => {
     if (!profile?.player_id || !countryDetail?.code) return

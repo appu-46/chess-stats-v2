@@ -22,6 +22,10 @@ const PageWrapper = styled.div`
   flex-direction: column;
   gap: 1.5rem;
   padding: 0.5rem 2rem;
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 1rem;
+  }
 `
 
 export const TitleMain = styled.h2`
@@ -54,6 +58,21 @@ const TabRow = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50px;
   width: fit-content;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    /* Fade the right edge as a hint that the row scrolls for more tabs. */
+    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+  }
+
   [data-mantine-color-scheme='light'] & {
     background: rgba(255, 255, 255, 0.45);
     border: 1.5px solid rgba(0, 0, 0, 0.15);
@@ -67,6 +86,12 @@ const Tab = styled.button<{ $active: boolean; $color: string }>`
   gap: 0.75rem;
   padding: 0.75rem 3.5rem;
   border-radius: 50px;
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1.25rem;
+    font-size: 1rem !important;
+    flex-shrink: 0;
+  }
   border: ${({ $active, $color }) =>
     $active ? `1.5px solid ${$color}` : '1.5px solid transparent'};
   background: ${({ $active }) =>
@@ -165,6 +190,10 @@ const GraphCard = styled.div`
 const GraphHeader = styled.div`
   display: flex;
   justify-content: flex-end;
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+  }
 `
 
 const RangeRow = styled.div`
@@ -172,6 +201,19 @@ const RangeRow = styled.div`
   background: rgba(255, 255, 255, 0.04);
   border-radius: 2rem;
   gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    /* Fade the right edge to hint the range options scroll horizontally. */
+    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+  }
+
   [data-mantine-color-scheme='light'] & {
     background: rgba(255, 255, 255, 0.45);
     border: 1.5px solid rgba(0, 0, 0, 0.15);
@@ -182,6 +224,11 @@ const RangeRow = styled.div`
 const RangeBtn = styled.button<{ $active: boolean; $color: string }>`
   padding: 0.5rem 1.75rem;
   border-radius: 50px;
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 1.1rem;
+    flex-shrink: 0;
+  }
   border: ${({ $active, $color }) =>
     $active ? `1.5px solid ${$color}` : '1.5px solid transparent'};
   background: ${({ $active }) =>

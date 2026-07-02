@@ -1,14 +1,14 @@
 import styled from 'styled-components'
 
 const Button = styled.button`
-  border: 1.3px solid #ddd;
+  border: 1.3px solid var(--brand-border);
   border-radius: 10rem;
-  background: linear-gradient(to right, #2563eb, #9333ea);
+  background: var(--brand-fill);
   font-size: 28px;
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: white;
+  color: var(--on-brand);
   padding: 0rem 3.5rem;
   width: fit-content;
   height: 3.5rem;
@@ -20,14 +20,14 @@ const Button = styled.button`
     background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
-    background: linear-gradient(to right, #1d4ed8, #7e22ce);
-    color: #eee;
+    background: var(--brand-fill-hover);
+    color: var(--on-brand);
     transform: translateY(-2px);
   }
   &:active {
-    opacity: 0.8;
+    opacity: 0.9;
     transform: translate(2px, 1px);
-    background: linear-gradient(to right, #1d4ed8, #7e22ce);
+    background: var(--brand-fill-hover);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
   &:disabled {
@@ -39,7 +39,7 @@ const Button = styled.button`
     box-shadow: none;
   }
   [data-mantine-color-scheme='light'] & {
-    color: #eee;
+    color: var(--on-brand);
   }
 `
 

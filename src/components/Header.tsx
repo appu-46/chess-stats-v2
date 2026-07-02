@@ -32,9 +32,7 @@ export const Logo = styled.img`
 const Title = styled.h1`
   font-size: 3.5rem;
   font-weight: 700;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.02em;
   margin: 0;
 `
 

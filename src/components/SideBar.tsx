@@ -142,6 +142,7 @@ function SideBar() {
         </div>
         {googleUser && (
           <div
+            className={classes.userSection}
             style={{
               borderTop:
                 '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
@@ -165,7 +166,7 @@ function SideBar() {
                       width: 28,
                       height: 28,
                       borderRadius: '50%',
-                      background: 'var(--mantine-color-blue-filled)',
+                      background: 'var(--brand-fill)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',

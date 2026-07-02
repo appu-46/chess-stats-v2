@@ -2,7 +2,6 @@ import { useForm } from 'react-hook-form'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { FaChartLine, FaGamepad, FaTrophy } from 'react-icons/fa'
 import styled from 'styled-components'
-import { useMantineColorScheme } from '@mantine/core'
 import Input from '../ui/Input'
 import Button from '../ui/Button'
 import Form from '../ui/Form'
@@ -13,7 +12,7 @@ import GoogleOAuthButton from '../ui/GoogleAuthButton'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useUpdateChessUsername from '../hooks/useUpdateChessUsername'
 import useGetUser from '../hooks/useGetUser'
-import { Logo, StyledHeader } from '../components/Header'
+import Header, { StyledHeader } from '../components/Header'
 
 const PageWrapper = styled.div`
   display: flex;
@@ -33,16 +32,6 @@ const Hero = styled.div`
   max-width: 700px;
 `
 
-const GradientTitle = styled.h1`
-  font-size: 3.5rem;
-  font-weight: 700;
-  // background: linear-gradient(135deg, #a78bfa, #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-`
-
 const Subtitle = styled.p`
   font-size: 1.1rem;
   opacity: 0.7;
@@ -57,6 +46,11 @@ export const SearchRow = styled.div`
   // width: 100%;
   max-width: 600px;
   align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
+  }
 `
 
 const WelcomeText = styled.p`
@@ -70,6 +64,10 @@ const FeatureGrid = styled.div`
   gap: 1.5rem;
   max-width: 900px;
   width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 const FeatureCard = styled.div`
@@ -101,9 +99,15 @@ export const Searchbox = styled.div`
   padding: 2rem 5rem;
   border-radius: 1rem;
   width: max-content;
+  max-width: 100%;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(110% 110% at 50% 10%, #0c1530 0%, #050917 100%);
+  background: radial-gradient(110% 110% at 50% 10%, #0c2018 0%, #04120c 100%);
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 1.5rem 1rem;
+  }
   box-shadow:
     0px 20px 50px rgba(0, 0, 0, 0.05),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4);
@@ -114,7 +118,7 @@ export const Searchbox = styled.div`
   opacity: 0.9;
 
   [data-mantine-color-scheme='light'] & {
-    background: radial-gradient(110% 110% at 50% 10%, #ddd 0%, #eee 100%);
+    background: radial-gradient(110% 110% at 50% 10%, #dcefe6 0%, #f1faf6 100%);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
 `
@@ -164,8 +168,6 @@ const Divider = styled.div`
 type Inputs = { username: string }
 
 function Login() {
-  const { colorScheme } = useMantineColorScheme()
-
   const navigate = useNavigate()
   const {
     register,
@@ -177,10 +179,6 @@ function Login() {
   const { data: dbUser } = useGetUser(googleUser?.sub)
   const { mutateAsync } = useUpdateChessUsername()
   const { changeUsername } = useSearch({ from: '/' })
-
-  function handleClick() {
-    navigate({ to: '/', search: { changeUsername: true } })
-  }
 
   const { given_name: FirstName } = googleUser ?? {}
 
@@ -209,12 +207,7 @@ function Login() {
     <PageWrapper>
       <Hero>
         <StyledHeader style={{ margin: 0 }}>
-          <Logo
-            src={colorScheme === 'dark' ? '/knight-dark.svg' : '/knight.svg'}
-            alt="webapp logo"
-            onClick={() => handleClick()}
-          />
-          <GradientTitle>Chess Stats</GradientTitle>
+          <Header />
         </StyledHeader>
         <Subtitle>
           Analyze your Chess.com performance with beautiful visualizations,
@@ -232,7 +225,7 @@ function Login() {
             borderRadius: '1rem',
             padding: '0.12rem',
             background:
-              'linear-gradient(135deg, #1e5bf2 0%, #22d3ee 30%, white 60%, #a855f7 100%)',
+              'linear-gradient(135deg, #34a37e 0%, #6ee7b7 40%, white 65%, #99f6e4 100%)',
           }}
         >
           <Searchbox>
@@ -244,7 +237,7 @@ function Login() {
               <Form onSubmit={handleSubmit(onSubmit)}>
                 <Input
                   style={{
-                    border: '1.5px solid #a855f7',
+                    border: '1.5px solid var(--brand)',
                     borderRadius: '1rem',
                   }}
                   placeholder="for e.g. gothamchess"

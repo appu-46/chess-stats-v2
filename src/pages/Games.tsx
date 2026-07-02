@@ -60,16 +60,28 @@ const GamesGrid = styled.div`
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
   padding-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    min-width: 700px;
+    overflow-x: visible;
+  }
 `
 
 const TableWrapper = styled.div`
   padding: 2rem;
   border-radius: 2rem;
-  background: #070c1e;
+  background: #08140f;
   box-shadow:
     inset 0 0 20px rgba(255, 255, 255, 0.25),
     0 4px 12px rgba(0, 0, 0, 0.2);
   border: 1px solid #fff7;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    border-radius: 1.25rem;
+    /* Table keeps its columns and scrolls sideways instead of cramming. */
+    overflow-x: auto;
+  }
 
   [data-mantine-color-scheme='light'] & {
     background: rgba(255, 255, 255, 0.45);
@@ -91,6 +103,11 @@ const TableHeader = styled.div`
     font-weight: 500;
     margin: 0;
   }
+
+  @media (max-width: 768px) {
+    min-width: 700px;
+    padding: 0 1rem;
+  }
 `
 
 const GameCard = styled.a<{ $result: 'win' | 'loss' | 'draw' }>`
@@ -99,6 +116,11 @@ const GameCard = styled.a<{ $result: 'win' | 'loss' | 'draw' }>`
   align-items: center;
   padding: 0.75rem 2rem;
   border-radius: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+  }
   background: ${(props) => {
     if (props.$result === 'win') return 'rgba(34, 197, 94, 0.2)'
     if (props.$result === 'loss') return 'rgba(239, 68, 68, 0.2)'
@@ -314,15 +336,15 @@ const ProfileAvatar = styled.img`
   height: 52px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(139, 92, 246, 0.4);
+  border: 2px solid var(--brand-border-soft);
 `
 
 const ProfileAvatarPlaceholder = styled.div`
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  border: 2px solid rgba(139, 92, 246, 0.4);
+  background: var(--brand-fill);
+  border: 2px solid var(--brand-border-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -382,18 +404,18 @@ const PickerCard = styled.div`
   border-radius: 1.5rem;
   width: 100%;
   max-width: 36rem;
-  background: #0d1117;
+  background: #0b1712;
   border: 1px solid transparent;
   background-clip: padding-box;
   box-shadow:
-    0 0 0 1px rgba(99, 102, 241, 0.35),
-    0 0 40px rgba(99, 102, 241, 0.12),
+    0 0 0 1px var(--brand-ring),
+    0 0 40px var(--brand-ring-faint),
     0 8px 32px rgba(0, 0, 0, 0.4);
 
   [data-mantine-color-scheme='light'] & {
     background: #fff;
     box-shadow:
-      0 0 0 1px rgba(99, 102, 241, 0.25),
+      0 0 0 1px var(--brand-ring),
       0 8px 32px rgba(0, 0, 0, 0.1);
   }
 `
@@ -499,11 +521,11 @@ const MonthButton = styled.button<{ $selected: boolean; $disabled: boolean }>`
   border: 1px solid
     ${(props) =>
       props.$selected
-        ? 'rgba(139, 92, 246, 0.7)'
+        ? 'var(--brand-border)'
         : 'rgba(255, 255, 255, 0.08)'};
   background: ${(props) =>
     props.$selected
-      ? 'linear-gradient(135deg, #6366f1, #a855f7)'
+      ? 'var(--brand-fill)'
       : 'rgba(255, 255, 255, 0.04)'};
   color: ${(props) => {
     if (props.$disabled) return 'rgba(255, 255, 255, 0.2)'
@@ -511,24 +533,24 @@ const MonthButton = styled.button<{ $selected: boolean; $disabled: boolean }>`
     return 'rgba(255, 255, 255, 0.75)'
   }};
   box-shadow: ${(props) =>
-    props.$selected ? '0 0 16px rgba(139, 92, 246, 0.4)' : 'none'};
+    props.$selected ? '0 0 16px var(--brand-glow)' : 'none'};
 
   &:hover:not(:disabled) {
     background: ${(props) =>
       props.$selected
-        ? 'linear-gradient(135deg, #6366f1, #a855f7)'
+        ? 'var(--brand-fill)'
         : 'rgba(255, 255, 255, 0.1)'};
     border-color: ${(props) =>
-      props.$selected ? 'rgba(139, 92, 246, 0.7)' : 'rgba(255, 255, 255, 0.2)'};
+      props.$selected ? 'var(--brand-border)' : 'rgba(255, 255, 255, 0.2)'};
     color: #fff;
   }
 
   [data-mantine-color-scheme='light'] & {
     border-color: ${(props) =>
-      props.$selected ? 'rgba(99, 102, 241, 0.7)' : 'rgba(0, 0, 0, 0.1)'};
+      props.$selected ? 'var(--brand-border)' : 'rgba(0, 0, 0, 0.1)'};
     background: ${(props) =>
       props.$selected
-        ? 'linear-gradient(135deg, #6366f1, #a855f7)'
+        ? 'var(--brand-fill)'
         : 'rgba(0, 0, 0, 0.03)'};
     color: ${(props) => {
       if (props.$disabled) return 'rgba(0, 0, 0, 0.2)'
@@ -554,16 +576,16 @@ const AnalyzeButton = styled.button<{ $disabled: boolean }>`
   background: ${(props) =>
     props.$disabled
       ? 'rgba(255, 255, 255, 0.08)'
-      : 'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899)'};
+      : 'var(--brand-fill)'};
   color: ${(props) => (props.$disabled ? 'rgba(255, 255, 255, 0.3)' : '#fff')};
   box-shadow: ${(props) =>
     props.$disabled
       ? 'none'
-      : '0 4px 24px rgba(139, 92, 246, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3)'};
+      : '0 4px 24px var(--brand-glow), 0 2px 8px rgba(0, 0, 0, 0.3)'};
 
   &:hover:not(:disabled) {
     box-shadow:
-      0 6px 32px rgba(139, 92, 246, 0.55),
+      0 6px 32px var(--brand-glow-strong),
       0 4px 12px rgba(0, 0, 0, 0.35);
     transform: translateY(-1px);
   }

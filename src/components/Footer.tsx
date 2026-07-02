@@ -4,20 +4,23 @@ import { FaSquareXTwitter } from 'react-icons/fa6'
 
 const StyledFooter = styled.footer`
   margin-top: 2rem;
-  padding: 2rem 1rem;
+  padding: 1rem;
   background: rgba(0, 0, 0, 0.3);
   border-top: 1.5px solid rgba(255, 255, 255, 0.1);
   text-align: center;
-  height: 100%;
+
+  @media (max-width: 768px) {
+    /* Clear the fixed bottom nav bar. */
+    padding-bottom: 4.5rem;
+  }
 `
 
 const FooterContent = styled.div`
   max-width: auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.6rem;
   align-items: center;
-  min-height: 10vh;
 `
 
 const FooterText = styled.span`
@@ -38,7 +41,7 @@ const SocialLink = styled.a`
     transform 0.2s ease;
 
   &:hover {
-    color: rgba(0, 255, 255, 0.8);
+    color: var(--brand-soft);
     transform: translateY(-2px);
   }
 `

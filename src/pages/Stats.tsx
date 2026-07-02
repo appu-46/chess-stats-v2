@@ -41,6 +41,14 @@ const StyledStats = styled.div`
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   -webkit-mask-image: linear-gradient(to right, black 95%, transparent 100%);
   mask-image: linear-gradient(to right, black 95%, transparent 100%);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    overflow-x: visible;
+    padding: 0.5rem 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 `
 const Percentage = styled.div`
   display: flex;
@@ -103,6 +111,12 @@ const Piesection = styled.div`
   align-items: center;
   gap: 0.75rem;
   width: fit-content;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 `
 const Badge = styled.div`
   display: flex;

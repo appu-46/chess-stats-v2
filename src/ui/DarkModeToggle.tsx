@@ -4,6 +4,10 @@ import styled from 'styled-components'
 
 const StyledDarkModeToggle = styled.div`
   margin-top: 5rem;
+
+  @media (max-width: 768px) {
+    margin-top: 0;
+  }
 `
 
 function DarkModeToggle() {

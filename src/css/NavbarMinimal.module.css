@@ -65,11 +65,68 @@
 }
 
 .link[data-active] {
-  background-color: var(--mantine-color-blue-light);
-  color: var(--mantine-color-blue-filled);
+  background-color: rgba(52, 163, 126, 0.15);
+  color: var(--brand);
 }
 
 .link[data-disabled] {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+/* ── Mobile: sidebar becomes a fixed bottom nav bar ────────────────── */
+@media (max-width: 768px) {
+  .navbar,
+  .navbar.collapsed,
+  .navbar.expanded {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0;
+    padding: 0.4rem 0.5rem;
+    z-index: 200;
+    background: light-dark(
+      rgba(241, 250, 246, 0.92),
+      rgba(8, 20, 15, 0.92)
+    );
+    backdrop-filter: blur(8px);
+    border-top: 1px solid
+      light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  }
+
+  .navbarMain {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    flex: 1;
+    margin-top: 0;
+  }
+
+  /* The links live in a Mantine <Stack> (column by default) — lay them out
+     horizontally in the bottom bar. */
+  .navbarMain :global(.mantine-Stack-root) {
+    flex-direction: row;
+    gap: 0.25rem;
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .link {
+    width: auto;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+
+  /* Toggling collapse and the user card don't belong in a bottom bar. */
+  .hamburger,
+  .userSection {
+    display: none;
+  }
 }

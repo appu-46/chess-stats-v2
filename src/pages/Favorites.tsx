@@ -29,6 +29,10 @@ const PageWrapper = styled.div`
   padding: 0rem 5rem;
   justify-content: center;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    padding: 0;
+  }
 `
 
 const Searchbox = styled.div`
@@ -39,7 +43,11 @@ const Searchbox = styled.div`
   border-radius: 1rem;
   align-items: center;
   justify-content: start;
-  background: radial-gradient(110% 110% at 50% 10%, #0c1530 0%, #050917 100%);
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
+  background: radial-gradient(110% 110% at 50% 10%, #0c2018 0%, #04120c 100%);
   box-shadow:
     0px 20px 50px rgba(0, 0, 0, 0.05),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4);
@@ -50,7 +58,7 @@ const Searchbox = styled.div`
   opacity: 0.9;
 
   [data-mantine-color-scheme='light'] & {
-    background: radial-gradient(110% 110% at 50% 10%, #eee 0%, #eee 100%);
+    background: radial-gradient(110% 110% at 50% 10%, #f1faf6 0%, #f1faf6 100%);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
 `
@@ -62,6 +70,11 @@ const TitleWrapper = styled.div`
   justify-content: space-around;
   flex-direction: row;
   width: 100%;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
 `
 const Title = styled.h1`
   font-size: 2rem;
@@ -96,6 +109,13 @@ const Name = styled.h1`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.1rem !important;
+    flex-wrap: wrap;
+    overflow-wrap: break-word;
+    min-width: 0;
+  }
 `
 const StatRow = styled.div`
   display: flex;
@@ -123,7 +143,7 @@ const StatRow = styled.div`
 `
 const FavoriteCard = styled.div`
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   flex-direction: column;
   gap: 1rem;
   padding: 1.5rem;
@@ -194,6 +214,12 @@ const MainContainer = styled.div`
   flex-direction: row;
   gap: 2rem;
   justify-content: space-around;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+  }
 `
 const FavsListContainer = styled.div`
   display: flex;
@@ -210,6 +236,14 @@ const FavsListContainer = styled.div`
   border-radius: 10px;
   &:last-child {
     margin-bottom: 0;
+  }
+
+  @media (max-width: 768px) {
+    /* Grow with content instead of reserving a tall fixed area. */
+    height: auto;
+    overflow: visible;
+    -webkit-mask-image: none;
+    padding-bottom: 0;
   }
 `
 
@@ -331,9 +365,8 @@ function Favorites() {
             <Form onSubmit={handleSubmit(onSubmit)}>
               <Input
                 style={{
-                  border: '1.5px solid #a855f7',
+                  border: '1.5px solid var(--brand)',
                   borderRadius: '1rem',
-                  width: '20rem',
                 }}
                 placeholder="Enter chess.com username"
                 {...register('username', { required: true })}
@@ -410,6 +443,8 @@ function Favorites() {
                       width: '100%',
                       paddingLeft: '0.25rem',
                       gap: '0.45rem',
+                      rowGap: '0.6rem',
+                      flexWrap: 'wrap',
                       justifyContent: 'space-between',
                     }}
                   >
