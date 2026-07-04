@@ -501,10 +501,6 @@ function DashboardInner({
     Number(Daygames.at(-1)?.PlayerELO ?? 0),
   )
   const peakElo = allElos.length > 0 ? Math.max(...allElos) : 0
-  const totalGames = allEntries.reduce(
-    (sum, [, Daygames]) => sum + Daygames.length,
-    0,
-  )
 
   const animatedPeak = useAnimatedNumber(peakElo)
   const animatedCurrent = useAnimatedNumber(currentElo)

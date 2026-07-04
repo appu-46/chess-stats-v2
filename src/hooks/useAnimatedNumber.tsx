@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 function randomDigit() {
   return Math.floor(Math.random() * 10)
@@ -18,8 +18,8 @@ function spinValue(final: string, settleIndex: number): string {
 
 function useAnimatedNumber(target: number, duration = 900) {
   const [display, setDisplay] = useState(String(target))
-  const rafRef = useRef<number>()
-  const timeoutRef = useRef<number>()
+  const rafRef = useRef<number | undefined>(undefined)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const targetRef = useRef(target)
 
   const animate = useCallback(() => {
