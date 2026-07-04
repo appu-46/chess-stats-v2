@@ -11,7 +11,8 @@ import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
 import useGamesRecentdays from '../hooks/useGamesRecentdays'
 import useGames from '../hooks/useGames'
-import { transformGames } from '../helpers/TransformGames'
+import { useProgressiveTransform } from '../hooks/useProgressiveTransform'
+import useAnimatedNumber from '../hooks/useAnimatedNumber'
 import { gamesDateWise } from '../helpers/gamesDateWise'
 import AreaGraph from '../ui/AreaGraph'
 
@@ -127,23 +128,25 @@ const StatCard = styled.div`
   min-width: 140px;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   padding: 0.5rem 0.75rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(187, 247, 208, 0.48);
   border-radius: 12px;
   transition: all 0.2s ease;
-  justify-content: space-around;
+  justify-content: center;
 
   &:hover {
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(187, 247, 208, 0.48);
     transform: translateY(-2px);
   }
   [data-mantine-color-scheme='light'] & {
     background: rgba(255, 255, 255, 0.45);
     border: 1.5px solid rgba(0, 0, 0, 0.15);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(20, 83, 45, 0.48);
   }
 `
 
@@ -155,7 +158,7 @@ const StatCardInfo = styled.div`
 
 const StatCardLabel = styled.div`
   font-size: 0.8rem;
-  opacity: 0.5;
+  opacity: 0.75;
   font-weight: 400;
 `
 
@@ -173,7 +176,7 @@ const StatCardSub = styled.div`
 
 const GraphCard = styled.div`
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(187, 247, 208, 0.48);
   border-radius: 16px;
   padding: 1.5rem;
   display: flex;
@@ -184,15 +187,50 @@ const GraphCard = styled.div`
     background: rgba(255, 255, 255, 0.45);
     border: 1.5px solid rgba(0, 0, 0, 0.15);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(20, 83, 45, 0.48);
   }
 `
 
 const GraphHeader = styled.div`
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
 
   @media (max-width: 768px) {
     justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+`
+
+const YearSelect = styled.select<{ $color: string }>`
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.3);
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.6)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+  }
+
+  &:hover {
+    border-color: ${({ $color }) => $color};
+  }
+
+  option {
+    background: #1a1a1a;
+    color: inherit;
   }
 `
 
@@ -301,6 +339,29 @@ function filterByRange(
   )
 }
 
+function filterByYear(
+  data: Record<string, Array<any>>,
+  year: string,
+): Record<string, Array<any>> {
+  if (!year) return data
+  const prefix = `${year}.`
+  return Object.fromEntries(
+    Object.entries(data).filter(([date]) => date.startsWith(prefix)),
+  )
+}
+
+function getAvailableYears(games: Array<any> | undefined): Array<string> {
+  if (!games?.length) return []
+  const years = new Set<string>()
+  for (const game of games) {
+    if (game.gameEndDate) {
+      const year = game.gameEndDate.split('.')[0]
+      if (year) years.add(year)
+    }
+  }
+  return Array.from(years).sort().reverse()
+}
+
 function MonthlyDashboard({
   username,
   year,
@@ -387,14 +448,17 @@ function DashboardInner({
 }) {
   const [activeTab, setActiveTab] = useState(0)
   const [activeRange, setActiveRange] = useState(range)
+  const [selectedYear, setSelectedYear] = useState<string>('')
   const navigate = useNavigate({
     from: '/dashboard/$username',
   })
   const playerName = profile?.name ?? username
 
-  const transformedData = useMemo(
-    () => transformGames(games, username),
-    [games, username],
+  const { transformedData, progress } = useProgressiveTransform(games, username)
+
+  const availableYears = useMemo(
+    () => getAvailableYears(transformedData.standardgamesData),
+    [transformedData.standardgamesData],
   )
 
   const allGraphData = useMemo(
@@ -409,15 +473,23 @@ function DashboardInner({
 
   const active = timeControls[activeTab]
   const rawData = allGraphData[active.dataKey]
-  const filteredData = useMemo(
+  const rangeFiltered = useMemo(
     () => (isMonthlyView ? rawData : filterByRange(rawData, activeRange)),
     [rawData, activeRange, isMonthlyView],
+  )
+  const filteredData = useMemo(
+    () =>
+      activeRange === 'All' && selectedYear
+        ? filterByYear(rangeFiltered, selectedYear)
+        : rangeFiltered,
+    [rangeFiltered, activeRange, selectedYear],
   )
 
   const entries = Object.entries(filteredData)
   const eloValues = entries.map(([, Daygames]) =>
     Number(Daygames.at(-1)?.PlayerELO ?? 0),
   )
+  const filteredGames = entries.flatMap(([, Daygames]) => Daygames)
   const currentElo = eloValues.at(-1) ?? 0
   const firstElo = eloValues[0] ?? 0
   const change = currentElo - firstElo
@@ -433,15 +505,13 @@ function DashboardInner({
     (sum, [, Daygames]) => sum + Daygames.length,
     0,
   )
-  function handleRange(graphrange: string) {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        range: graphrange,
-      }),
-    })
-    setActiveRange(graphrange)
-  }
+
+  const animatedPeak = useAnimatedNumber(peakElo)
+  const animatedCurrent = useAnimatedNumber(currentElo)
+  const animatedChange = useAnimatedNumber(change)
+  const animatedChangePct = useAnimatedNumber(Number(changePct))
+  const animatedTotal = useAnimatedNumber(filteredGames.length)
+
   // Last 30D change
   const last30 = filterByRange(rawData, '30D')
   const last30Entries = Object.entries(last30)
@@ -452,6 +522,22 @@ function DashboardInner({
     last30Elos.length > 1 ? (last30Elos.at(-1) ?? 0) - (last30Elos[0] ?? 0) : 0
   const last30Pct =
     last30Elos[0] > 0 ? ((last30Change / last30Elos[0]) * 100).toFixed(2) : '0'
+
+  const animatedLast30 = useAnimatedNumber(last30Change)
+  const animatedLast30Pct = useAnimatedNumber(Number(last30Pct))
+
+  function handleRange(graphrange: string) {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        range: graphrange,
+      }),
+    })
+    setActiveRange(graphrange)
+    if (graphrange !== 'All') {
+      setSelectedYear('')
+    }
+  }
 
   const IconComp = active.icon
 
@@ -487,7 +573,7 @@ function DashboardInner({
           <FaCrown size={28} color="#5fd2e6" />
           <StatCardInfo>
             <StatCardLabel>Peak Rating</StatCardLabel>
-            <StatCardValue>{peakElo || '—'}</StatCardValue>
+            <StatCardValue>{animatedPeak || '—'}</StatCardValue>
           </StatCardInfo>
         </StatCard>
 
@@ -496,7 +582,7 @@ function DashboardInner({
           <StatCardInfo>
             <StatCardLabel>Current Rating</StatCardLabel>
             <StatCardValue style={{ color: active.color }}>
-              {currentElo || '—'}
+              {animatedCurrent || '—'}
             </StatCardValue>
           </StatCardInfo>
         </StatCard>
@@ -509,9 +595,9 @@ function DashboardInner({
               style={{ color: change >= 0 ? '#22c55e' : '#ef4444' }}
             >
               {change >= 0 ? '+' : ''}
-              {change || '—'}
+              {animatedChange || '—'}
             </StatCardValue>
-            <StatCardSub>↑ {changePct}%</StatCardSub>
+            <StatCardSub>↑ {animatedChangePct}%</StatCardSub>
           </StatCardInfo>
         </StatCard>
 
@@ -519,9 +605,7 @@ function DashboardInner({
           <FaGamepad size={28} color="#5fd2e6" />
           <StatCardInfo>
             <StatCardLabel>Games Played</StatCardLabel>
-            <StatCardValue>
-              {totalGames.toLocaleString('en-IN') || '—'}
-            </StatCardValue>
+            <StatCardValue>{animatedTotal || '—'}</StatCardValue>
           </StatCardInfo>
         </StatCard>
 
@@ -533,9 +617,9 @@ function DashboardInner({
               style={{ color: last30Change >= 0 ? '#22c55e' : '#ef4444' }}
             >
               {last30Change >= 0 ? '+' : ''}
-              {last30Change || '—'}
+              {animatedLast30 || '—'}
             </StatCardValue>
-            <StatCardSub>↑ {last30Pct}%</StatCardSub>
+            <StatCardSub>↑ {animatedLast30Pct}%</StatCardSub>
           </StatCardInfo>
         </StatCard>
       </StatCardsRow>
@@ -556,7 +640,42 @@ function DashboardInner({
                 </RangeBtn>
               ))}
             </RangeRow>
+            {activeRange === 'All' && availableYears.length > 0 && (
+              <YearSelect
+                $color={active.color}
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                <option value="">All Years</option>
+                {availableYears.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </YearSelect>
+            )}
           </GraphHeader>
+        )}
+        {progress < 100 && (games?.length || 0) > 0 && (
+          <div
+            style={{
+              width: '100%',
+              height: 6,
+              background: 'rgba(255,255,255,0.08)',
+              borderRadius: 3,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${progress}%`,
+                height: '100%',
+                background: active.color,
+                transition: 'width 0.2s ease',
+                borderRadius: 3,
+              }}
+            />
+          </div>
         )}
         <AreaGraph data={filteredData} color={active.color} />
       </GraphCard>

@@ -177,7 +177,7 @@ function Stats() {
   return (
     <StyledContainer>
       <IconRow>
-        <IoPieChartSharp size={40} color="#5ee7ff" />
+        <IoPieChartSharp size={40} />
         <TitleMain>{`${playerName}'s Stats`}</TitleMain>
       </IconRow>
       <StyledStats>
@@ -236,7 +236,7 @@ function Stats() {
               <Divider />
               <Statfooter>
                 <Badge>
-                  <FaCrown color="#5fd2e6" size={26} />
+                  <FaCrown size={26} />
                   <MetaColumns>
                     <p> Best Rating </p>
                     <StatTitle style={{ fontSize: '1.25rem', fontWeight: 600 }}>
@@ -245,7 +245,7 @@ function Stats() {
                   </MetaColumns>
                 </Badge>
                 <Badge>
-                  <FaGamepad color="#5fd2e6" size={26} />
+                  <FaGamepad size={26} />
                   <MetaColumns>
                     <p>Games Played</p>
                     <TitleBadge
