@@ -6,8 +6,13 @@ const StyledFooter = styled.footer`
   margin-top: 2rem;
   padding: 1rem;
   background: rgba(0, 0, 0, 0.3);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.2);
   text-align: center;
+
+  [data-mantine-color-scheme='light'] & {
+    background: rgba(255, 255, 255, 0.3);
+    border-top: 1.5px solid rgba(0, 0, 0, 0.2);
+  }
 
   @media (max-width: 768px) {
     /* Clear the fixed bottom nav bar. */

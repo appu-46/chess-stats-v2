@@ -109,24 +109,28 @@ function AreaGraph({
             }}
             domain={['auto', 'auto']}
             tick={{
-              color: '#ddd',
+              fill: `${color}`,
               fontSize: 16,
               fontWeight: 600,
             }}
-            axisLine={false}
+            axisLine={{ stroke: `${color}`, strokeWidth: 2 }}
             tickLine={false}
+            interval="preserveEnd"
+            minTickGap={20}
+            allowDataOverflow={true}
           />
           <YAxis
             dataKey="elo"
             domain={['auto', 'auto']}
             tick={{
-              color: '#ddd',
-              fontSize: 16,
+              fill: `${color}`,
+              fontSize: 18,
               fontWeight: 600,
             }}
-            axisLine={false}
+            axisLine={{ stroke: `${color}`, strokeWidth: 2 }}
             tickLine={false}
             interval="preserveStartEnd"
+            allowDataOverflow={true}
           />
           <Tooltip
             contentStyle={{
