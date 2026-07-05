@@ -533,6 +533,13 @@ function DashboardInner({
 
   const IconComp = active.icon
 
+  console.log(
+    'years:',
+    availableYears,
+    'sample dates:',
+    transformedData.standardgamesData.slice(0, 3).map((g) => g.gameEndDate),
+  )
+
   return (
     <PageWrapper>
       <TitleSection>

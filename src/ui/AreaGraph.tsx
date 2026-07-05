@@ -1,8 +1,8 @@
+import { useMantineColorScheme } from '@mantine/core'
 import {
   Area,
   AreaChart,
   CartesianGrid,
-  // CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -48,6 +48,8 @@ function AreaGraph({
   const { username } = useParams({ from: '/dashboard/$username' })
   const { range } = useSearch({ from: '/dashboard/$username' })
   const navigate = useNavigate()
+  const { colorScheme } = useMantineColorScheme()
+  const isDark = colorScheme === 'dark'
 
   function handleClick(clickedData: any) {
     if (clickedData?.activeLabel) {
@@ -86,7 +88,7 @@ function AreaGraph({
             <stop offset="15%" stopColor={color} stopOpacity={0.8} />
             <stop offset="85%" stopColor={color} stopOpacity={0} />
           </linearGradient>
-          <CartesianGrid opacity={0.9} strokeDasharray="3 3" color="inherit" />
+          <CartesianGrid opacity={0.05} strokeDasharray="3 3" color="inherit" />
           <XAxis
             dataKey="date"
             tickFormatter={(value) => {
@@ -107,7 +109,7 @@ function AreaGraph({
             }}
             domain={['auto', 'auto']}
             tick={{
-              color: 'inherit',
+              color: '#ddd',
               fontSize: 16,
               fontWeight: 600,
             }}
@@ -118,7 +120,7 @@ function AreaGraph({
             dataKey="elo"
             domain={['auto', 'auto']}
             tick={{
-              color: 'inherit',
+              color: '#ddd',
               fontSize: 16,
               fontWeight: 600,
             }}
@@ -128,12 +130,14 @@ function AreaGraph({
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#1a1a1a',
+              backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+              color: isDark ? '#eee' : '#222',
               border: `2.5px solid ${color}`,
               borderRadius: '1rem',
             }}
-            labelStyle={{ color: color }}
-            cursor={{ stroke: color, strokeWidth: 3.5 }}
+            cursor={{ stroke: isDark ? '#ddd' : '#555', strokeWidth: 3.5 }}
+            labelStyle={{ color: `${color}` }}
+            itemStyle={{ color: isDark ? '#eee' : '#222' }}
           />
           <Area
             type="monotone"
