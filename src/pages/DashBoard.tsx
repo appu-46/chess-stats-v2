@@ -354,8 +354,10 @@ function getAvailableYears(games: Array<any> | undefined): Array<string> {
   if (!games?.length) return []
   const years = new Set<string>()
   for (const game of games) {
-    if (game.gameEndDate) {
+    console.log(game?.gameEndDate)
+    if (game?.gameEndDate) {
       const year = game.gameEndDate.split('.')[0]
+      console.log(year)
       if (year) years.add(year)
     }
   }
