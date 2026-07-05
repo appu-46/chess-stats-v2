@@ -240,7 +240,7 @@ function Login() {
                     border: '1.5px solid var(--brand)',
                     borderRadius: '1rem',
                   }}
-                  value="Hikaru"
+                  defaultValue="Hikaru"
                   placeholder="for e.g. gothamchess"
                   {...register('username', { required: true })}
                 />

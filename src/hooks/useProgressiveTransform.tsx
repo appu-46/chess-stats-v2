@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Chess } from 'chess.js'
 import { formatDate } from '../helpers/DateFormat'
+import { parsePgnLite } from '../helpers/PgnParseLite'
 
 type Game = {
   url: string
@@ -51,43 +51,45 @@ type TransformResult = {
 }
 
 const CHUNK_SIZE = 200
+const EMIT_THROTTLE_MS = 150
 
-const transformCache = new Map<string, { result: TransformResult; total: number }>()
-
-function makeCacheKey(username: string, gamesLength: number): string {
-  return `${username}:${gamesLength}`
+const EMPTY_RESULT: TransformResult = {
+  standardgamesData: [],
+  chess960Games: [],
+  blitzGames: [],
+  rapidGames: [],
+  bulletGames: [],
+  dailyGames: [],
 }
 
-export function useProgressiveTransform(games: Array<Game> | null | undefined, username: string) {
-  const [transformedData, setTransformedData] = useState<TransformResult>(() => ({
-    standardgamesData: [],
-    chess960Games: [],
-    blitzGames: [],
-    rapidGames: [],
-    bulletGames: [],
-    dailyGames: [],
-  }))
+const transformCache = new Map<string, TransformResult>()
+
+function makeCacheKey(username: string, games: Array<Game>): string {
+  const first = games[0]?.url ?? ''
+  const last = games[games.length - 1]?.url ?? ''
+  return `${username}:${games.length}:${first}:${last}`
+}
+
+export function useProgressiveTransform(
+  games: Array<Game> | null | undefined,
+  username: string,
+) {
+  const [transformedData, setTransformedData] =
+    useState<TransformResult>(EMPTY_RESULT)
   const [progress, setProgress] = useState(100)
   const processingRef = useRef(false)
 
   useEffect(() => {
     if (!games?.length) {
-      setTransformedData({
-        standardgamesData: [],
-        chess960Games: [],
-        blitzGames: [],
-        rapidGames: [],
-        bulletGames: [],
-        dailyGames: [],
-      })
+      setTransformedData(EMPTY_RESULT)
       setProgress(100)
       return
     }
 
-    const cacheKey = makeCacheKey(username, games.length)
+    const cacheKey = makeCacheKey(username, games)
     const cached = transformCache.get(cacheKey)
-    if (cached && cached.result.standardgamesData.length === cached.total) {
-      setTransformedData(cached.result)
+    if (cached) {
+      setTransformedData(cached)
       setProgress(100)
       return
     }
@@ -96,7 +98,6 @@ export function useProgressiveTransform(games: Array<Game> | null | undefined, u
     processingRef.current = true
 
     const lowerUsername = username.toLowerCase()
-    const chess = new Chess()
 
     const { chess960, standard } = games.reduce(
       (acc, game) => {
@@ -127,6 +128,20 @@ export function useProgressiveTransform(games: Array<Game> | null | undefined, u
 
     let index = 0
     const total = standard.length
+    let lastEmit = 0
+
+    function emit(finalProgress: number) {
+      setTransformedData({
+        standardgamesData: result.standardgamesData,
+        chess960Games: result.chess960Games,
+        blitzGames: result.blitzGames,
+        rapidGames: result.rapidGames,
+        bulletGames: result.bulletGames,
+        dailyGames: result.dailyGames,
+      })
+      setProgress(finalProgress)
+      lastEmit = Date.now()
+    }
 
     function processChunk() {
       if (!processingRef.current) return
@@ -137,9 +152,13 @@ export function useProgressiveTransform(games: Array<Game> | null | undefined, u
         const game = standard[i]
         try {
           const formattedDate = formatDate(game.end_time).formattedDateTime
-          chess.loadPgn(game.pgn)
+          const { headers, moveCount, isValid } = parsePgnLite(game.pgn)
 
-          const headers = chess.getHeaders()
+          // Skip malformed entries the way the old try/catch around
+          // loadPgn used to - no legality check, but catches the
+          // realistic failure mode of an empty/garbage movetext.
+          if (!isValid || !headers.White || !headers.Black) continue
+
           const isWhite = headers.White.toLowerCase() === lowerUsername
 
           let gameResult: 'win' | 'loss' | 'draw'
@@ -162,12 +181,11 @@ export function useProgressiveTransform(games: Array<Game> | null | undefined, u
             WhiteElo: headers.WhiteElo,
             TimeControl: headers.TimeControl,
             Termination: headers.Termination,
-            moveCount: Math.round(chess.history().length / 2),
+            moveCount,
             PlayerELO: isWhite ? headers.WhiteElo : headers.BlackElo,
             url: game.url,
             time_class: game.time_class,
           }
-          chess.reset()
 
           result.standardgamesData.push(transformed)
           if (game.time_class === 'blitz') result.blitzGames.push(transformed)
@@ -176,27 +194,23 @@ export function useProgressiveTransform(games: Array<Game> | null | undefined, u
           if (game.time_class === 'daily') result.dailyGames.push(transformed)
         } catch (error) {
           console.error(error)
-          chess.reset()
           continue
         }
       }
 
       index = end
-      setTransformedData({
-        standardgamesData: result.standardgamesData,
-        chess960Games: result.chess960Games,
-        blitzGames: result.blitzGames,
-        rapidGames: result.rapidGames,
-        bulletGames: result.bulletGames,
-        dailyGames: result.dailyGames,
-      })
-      setProgress(Math.round((index / total) * 100))
+      const pct = Math.round((index / total) * 100)
+      const isDone = index >= total
+      const dueForEmit = Date.now() - lastEmit >= EMIT_THROTTLE_MS
 
-      if (index < total) {
+      if (isDone || dueForEmit) {
+        emit(pct)
+      }
+
+      if (!isDone) {
         setTimeout(processChunk, 0)
       } else {
-        setProgress(100)
-        transformCache.set(cacheKey, { result, total })
+        transformCache.set(cacheKey, result)
       }
     }
 

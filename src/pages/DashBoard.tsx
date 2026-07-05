@@ -8,11 +8,11 @@ import { MdCalendarMonth } from 'react-icons/md'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import useProfile from '../hooks/useProfile'
-import Spinner from '../ui/Spinner'
+import DashboardSkeleton from '../ui/DashboardSkeleton'
 import useGamesRecentdays from '../hooks/useGamesRecentdays'
 import useGames from '../hooks/useGames'
 import { useProgressiveTransform } from '../hooks/useProgressiveTransform'
-import useAnimatedNumber from '../hooks/useAnimatedNumber'
+import AnimatedStatValue from '../ui/AnimatedStatValue'
 import { gamesDateWise } from '../helpers/gamesDateWise'
 import AreaGraph from '../ui/AreaGraph'
 
@@ -383,7 +383,7 @@ function MonthlyDashboard({
     error,
   } = useGames(username, year, month)
 
-  if (isFetchingGames || isFetchingProfile) return <Spinner />
+  if (isFetchingGames || isFetchingProfile) return <DashboardSkeleton />
   if (error) return <p>{error.message}</p>
 
   return (
@@ -416,7 +416,7 @@ function RecentDashboard({
 
   if (isFetchingGames || isFetchingProfile)
     return (
-      <Spinner loadingMsg="If you have played a lot of games, it may take a while to load graphs..." />
+      <DashboardSkeleton message="If you have played a lot of games, it may take a while to load graphs..." />
     )
   if (error) return <p>{error.message}</p>
 
@@ -502,12 +502,6 @@ function DashboardInner({
   )
   const peakElo = allElos.length > 0 ? Math.max(...allElos) : 0
 
-  const animatedPeak = useAnimatedNumber(peakElo)
-  const animatedCurrent = useAnimatedNumber(currentElo)
-  const animatedChange = useAnimatedNumber(change)
-  const animatedChangePct = useAnimatedNumber(Number(changePct))
-  const animatedTotal = useAnimatedNumber(filteredGames.length)
-
   // Last 30D change
   const last30 = filterByRange(rawData, '30D')
   const last30Entries = Object.entries(last30)
@@ -519,8 +513,10 @@ function DashboardInner({
   const last30Pct =
     last30Elos[0] > 0 ? ((last30Change / last30Elos[0]) * 100).toFixed(2) : '0'
 
-  const animatedLast30 = useAnimatedNumber(last30Change)
-  const animatedLast30Pct = useAnimatedNumber(Number(last30Pct))
+  // NOTE: useAnimatedNumber calls removed from here entirely.
+  // Each stat's spin animation now lives inside <AnimatedStatValue>,
+  // so its per-frame setState only re-renders that one <span>,
+  // not this whole component (and therefore not AreaGraph/TabRow/etc).
 
   function handleRange(graphrange: string) {
     navigate({
@@ -569,7 +565,9 @@ function DashboardInner({
           <FaCrown size={28} color="#5fd2e6" />
           <StatCardInfo>
             <StatCardLabel>Peak Rating</StatCardLabel>
-            <StatCardValue>{animatedPeak || '—'}</StatCardValue>
+            <StatCardValue>
+              <AnimatedStatValue value={peakElo} />
+            </StatCardValue>
           </StatCardInfo>
         </StatCard>
 
@@ -578,7 +576,7 @@ function DashboardInner({
           <StatCardInfo>
             <StatCardLabel>Current Rating</StatCardLabel>
             <StatCardValue style={{ color: active.color }}>
-              {animatedCurrent || '—'}
+              <AnimatedStatValue value={currentElo} />
             </StatCardValue>
           </StatCardInfo>
         </StatCard>
@@ -591,9 +589,11 @@ function DashboardInner({
               style={{ color: change >= 0 ? '#22c55e' : '#ef4444' }}
             >
               {change >= 0 ? '+' : ''}
-              {animatedChange || '—'}
+              <AnimatedStatValue value={change} />
             </StatCardValue>
-            <StatCardSub>↑ {animatedChangePct}%</StatCardSub>
+            <StatCardSub>
+              ↑ <AnimatedStatValue value={Number(changePct)} />%
+            </StatCardSub>
           </StatCardInfo>
         </StatCard>
 
@@ -601,7 +601,9 @@ function DashboardInner({
           <FaGamepad size={28} color="#5fd2e6" />
           <StatCardInfo>
             <StatCardLabel>Games Played</StatCardLabel>
-            <StatCardValue>{animatedTotal || '—'}</StatCardValue>
+            <StatCardValue>
+              <AnimatedStatValue value={filteredGames.length} />
+            </StatCardValue>
           </StatCardInfo>
         </StatCard>
 
@@ -613,9 +615,11 @@ function DashboardInner({
               style={{ color: last30Change >= 0 ? '#22c55e' : '#ef4444' }}
             >
               {last30Change >= 0 ? '+' : ''}
-              {animatedLast30 || '—'}
+              <AnimatedStatValue value={last30Change} />
             </StatCardValue>
-            <StatCardSub>↑ {animatedLast30Pct}%</StatCardSub>
+            <StatCardSub>
+              ↑ <AnimatedStatValue value={Number(last30Pct)} />%
+            </StatCardSub>
           </StatCardInfo>
         </StatCard>
       </StatCardsRow>
