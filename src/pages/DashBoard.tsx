@@ -354,10 +354,9 @@ function getAvailableYears(games: Array<any> | undefined): Array<string> {
   if (!games?.length) return []
   const years = new Set<string>()
   for (const game of games) {
-    console.log(game?.gameEndDate)
     if (game?.gameEndDate) {
       const year = game.gameEndDate.split('.')[0]
-      console.log(year)
+
       if (year) years.add(year)
     }
   }
@@ -458,10 +457,7 @@ function DashboardInner({
 
   const { transformedData, progress } = useProgressiveTransform(games, username)
 
-  const availableYears = useMemo(
-    () => getAvailableYears(transformedData.standardgamesData),
-    [transformedData.standardgamesData],
-  )
+  const availableYears = getAvailableYears(transformedData.standardgamesData)
 
   const allGraphData = useMemo(
     () => ({
@@ -534,13 +530,6 @@ function DashboardInner({
   }
 
   const IconComp = active.icon
-
-  console.log(
-    'years:',
-    availableYears,
-    'sample dates:',
-    transformedData.standardgamesData.slice(0, 3).map((g) => g.gameEndDate),
-  )
 
   return (
     <PageWrapper>

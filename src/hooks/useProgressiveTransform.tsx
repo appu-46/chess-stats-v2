@@ -132,12 +132,12 @@ export function useProgressiveTransform(
 
     function emit(finalProgress: number) {
       setTransformedData({
-        standardgamesData: [...result.standardgamesData],
-        chess960Games: [...result.chess960Games],
-        blitzGames: [...result.blitzGames],
-        rapidGames: [...result.rapidGames],
-        bulletGames: [...result.bulletGames],
-        dailyGames: [...result.dailyGames],
+        standardgamesData: result.standardgamesData,
+        chess960Games: result.chess960Games,
+        blitzGames: result.blitzGames,
+        rapidGames: result.rapidGames,
+        bulletGames: result.bulletGames,
+        dailyGames: result.dailyGames,
       })
       setProgress(finalProgress)
       lastEmit = Date.now()
