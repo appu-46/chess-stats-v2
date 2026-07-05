@@ -320,14 +320,13 @@ const ProfileCard = styled.div`
   gap: 1rem;
   padding: 1rem 1.5rem;
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--brand-ring);
+  background: rgb(0, 0, 0, 0.2);
   width: 100%;
   max-width: 36rem;
 
   [data-mantine-color-scheme='light'] & {
-    background: rgba(0, 0, 0, 0.03);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgb(255, 255, 255, 0.3);
   }
 `
 
@@ -403,8 +402,9 @@ const PickerCard = styled.div`
   padding: 2rem;
   border-radius: 1.5rem;
   width: 100%;
+  margin: 0.05rem;
   max-width: 36rem;
-  background: #0b1712;
+  background: rgb(0, 0, 0, 0.2);
   border: 1px solid transparent;
   background-clip: padding-box;
   box-shadow:
@@ -413,7 +413,7 @@ const PickerCard = styled.div`
     0 8px 32px rgba(0, 0, 0, 0.4);
 
   [data-mantine-color-scheme='light'] & {
-    background: #fff;
+    background: rgb(255, 255, 255, 0.3);
     box-shadow:
       0 0 0 1px var(--brand-ring),
       0 8px 32px rgba(0, 0, 0, 0.1);
@@ -520,13 +520,9 @@ const MonthButton = styled.button<{ $selected: boolean; $disabled: boolean }>`
   transition: all 0.15s;
   border: 1px solid
     ${(props) =>
-      props.$selected
-        ? 'var(--brand-border)'
-        : 'rgba(255, 255, 255, 0.08)'};
+      props.$selected ? 'var(--brand-border)' : 'rgba(255, 255, 255, 0.08)'};
   background: ${(props) =>
-    props.$selected
-      ? 'var(--brand-fill)'
-      : 'rgba(255, 255, 255, 0.04)'};
+    props.$selected ? 'var(--brand-fill)' : 'rgba(255, 255, 255, 0.04)'};
   color: ${(props) => {
     if (props.$disabled) return 'rgba(255, 255, 255, 0.2)'
     if (props.$selected) return '#fff'
@@ -537,9 +533,7 @@ const MonthButton = styled.button<{ $selected: boolean; $disabled: boolean }>`
 
   &:hover:not(:disabled) {
     background: ${(props) =>
-      props.$selected
-        ? 'var(--brand-fill)'
-        : 'rgba(255, 255, 255, 0.1)'};
+      props.$selected ? 'var(--brand-fill)' : 'rgba(255, 255, 255, 0.1)'};
     border-color: ${(props) =>
       props.$selected ? 'var(--brand-border)' : 'rgba(255, 255, 255, 0.2)'};
     color: #fff;
@@ -549,14 +543,19 @@ const MonthButton = styled.button<{ $selected: boolean; $disabled: boolean }>`
     border-color: ${(props) =>
       props.$selected ? 'var(--brand-border)' : 'rgba(0, 0, 0, 0.1)'};
     background: ${(props) =>
-      props.$selected
-        ? 'var(--brand-fill)'
-        : 'rgba(0, 0, 0, 0.03)'};
+      props.$selected ? 'var(--brand-fill)' : 'rgba(0, 0, 0, 0.03)'};
     color: ${(props) => {
       if (props.$disabled) return 'rgba(0, 0, 0, 0.2)'
       if (props.$selected) return '#fff'
       return 'rgba(0, 0, 0, 0.7)'
     }};
+    &:hover:not(:disabled) {
+      background: ${(props) =>
+        props.$selected ? 'var(--brand-fill)' : 'rgba(0, 0, 0, 0.1)'};
+      border-color: ${(props) =>
+        props.$selected ? 'var(--brand-border)' : 'rgba(0, 0, 0, 0.2)'};
+      color: #111;
+    }
   }
 `
 
@@ -574,14 +573,18 @@ const AnalyzeButton = styled.button<{ $disabled: boolean }>`
   gap: 0.6rem;
   transition: all 0.2s;
   background: ${(props) =>
-    props.$disabled
-      ? 'rgba(255, 255, 255, 0.08)'
-      : 'var(--brand-fill)'};
+    props.$disabled ? 'rgba(255, 255, 255, 0.08)' : 'var(--brand-fill)'};
   color: ${(props) => (props.$disabled ? 'rgba(255, 255, 255, 0.3)' : '#fff')};
   box-shadow: ${(props) =>
     props.$disabled
       ? 'none'
       : '0 4px 24px var(--brand-glow), 0 2px 8px rgba(0, 0, 0, 0.3)'};
+
+  [data-mantine-color-scheme='light'] & {
+    background: ${(props) =>
+      props.$disabled ? 'rgba(0, 0, 0, 0.08)' : 'var(--brand-fill)'};
+    color: ${(props) => (props.$disabled ? 'rgba(0, 0, 0, 0.3)' : '#fff')};
+  }
 
   &:hover:not(:disabled) {
     box-shadow:
@@ -764,7 +767,7 @@ function Games() {
         <PickerCard>
           <PickerCardHeader>
             <PickerCardTitle>
-              <FaCalendarAlt size={20} color="#6366f1" />
+              <FaCalendarAlt size={20} color="#84CC16" />
               Choose Month
             </PickerCardTitle>
             <PickerCardSubtitle>
