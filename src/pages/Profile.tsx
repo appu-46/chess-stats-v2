@@ -13,7 +13,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
-import { formatDate } from '../helpers/DateFormat'
+import { toHumanDate } from '../helpers/DateFormat'
 import useCountry from '../hooks/useCountry'
 import useStats from '../hooks/useStats'
 import { upsertChessUser } from '../services/apiUser'
@@ -296,6 +296,9 @@ function Profile() {
     league = null,
   } = profile ?? {}
 
+  const human_last_online = `${toHumanDate(last_online).date} \n
+   ${toHumanDate(last_online).time}`
+
   const statsData = [
     {
       icon: <FaTrophy size={40} color="#22c55e" />,
@@ -315,7 +318,7 @@ function Profile() {
       icon: <BsClockHistory size={40} color="yellow" />,
       title: 'Last Active',
       color: 'yellow',
-      value: formatDate(last_online).formattedDateTime,
+      value: human_last_online,
       show: true,
     },
     {
@@ -385,7 +388,9 @@ function Profile() {
                 <MdDateRange size={30} color="#22c55e" />
                 <MetaColumns>
                   <MetaTitle>Joined</MetaTitle>
-                  <MetaValue>{formatDate(joined).formattedDateTime}</MetaValue>
+                  <MetaValue>{toHumanDate(joined).date}</MetaValue>
+                  {toHumanDate(joined).time}
+                  <MetaValue></MetaValue>
                 </MetaColumns>
               </MetaItem>
               <MetaItem>

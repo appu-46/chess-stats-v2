@@ -46,3 +46,11 @@ export function formatGameDateList(dateStr: string): string {
 
   return `${formattedDate} ${timePart}`
 }
+
+export function toHumanDate(ts: number) {
+  const date = dayjs(ts * 1000)
+  return {
+    date: date.format('MMM D, YYYY'),
+    time: date.format('h:mm A'),
+  }
+}
