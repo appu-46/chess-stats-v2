@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { FcGoogle } from 'react-icons/fc'
+import { useMediaQuery } from '@mantine/hooks'
 import {
   IconChartLine,
   IconChessKnight,
   IconHeart,
   IconListDetails,
 } from '@tabler/icons-react'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import Button from '../ui/Button'
 import ErrorMessage from '../ui/ErrorMessage'
 import { useTabContext } from '../contexts/TabContext'
@@ -122,16 +123,63 @@ const SearchHeading = styled.h2`
   }
 `
 
+// One search bar: one outline, height and focus glow around the platform
+// switch, the input and the button. Phones are too narrow for all three on
+// a line, so there the switch sits above and the bar holds the other two.
+const bar = css`
+  border-radius: 999px;
+  padding: 0.3rem;
+  border: 1.5px solid var(--brand-border);
+  background: light-dark(rgba(255, 255, 255, 0.7), rgba(4, 18, 12, 0.55));
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease !important;
+
+  &:focus-within {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px var(--brand-ring-faint);
+  }
+`
+
 const SearchForm = styled.form`
+  ${bar}
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.3rem;
   width: 100%;
-  max-width: 34rem;
+  max-width: 44rem;
 
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.9rem;
+    padding: 0;
+    border: none;
+    background: none;
+
+    &:focus-within {
+      box-shadow: none;
+    }
+  }
+`
+
+const ToggleSlot = styled.div`
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    align-self: center;
+  }
+`
+
+const Field = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  @media (max-width: 768px) {
+    ${bar}
   }
 `
 
@@ -141,14 +189,21 @@ const InputSlot = styled.div`
 `
 
 const AnalyzeButton = styled(Button)`
-  height: 3rem;
-  padding: 0 1.75rem;
+  flex-shrink: 0;
+  height: 2.75rem;
+  padding: 0 1.6rem;
   font-size: 1rem;
   font-weight: 600;
+  box-shadow: none;
+
+  /* Sits inside the bar, so it doesn't lift on hover. */
+  &:hover,
+  &:active {
+    transform: none;
+  }
 
   @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
+    padding: 0 1.1rem;
   }
 `
 
@@ -363,6 +418,9 @@ function Login() {
   const { mutateAsync } = useUpdateChessUsername()
   const { changeUsername } = useSearch({ from: '/' })
 
+  // The switch sits right above the bar on phones, so the placeholder can
+  // drop the platform name (it doesn't fit there anyway).
+  const isPhone = useMediaQuery('(max-width: 768px)')
   const firstName: string | undefined = googleUser?.given_name
   const savedPlatform = parsePlatform(dbUser?.chessPlatform)
   const [platform, setPlatform] = useState<Platform>(DEFAULT_PLATFORM)
@@ -433,28 +491,40 @@ function Login() {
                 : 'Look up a player'}
           </SearchHeading>
 
-          <PlatformToggle value={platform} onChange={setPlatform} />
-
           <SearchForm onSubmit={handleSubmit(onSubmit)}>
-            <InputSlot>
-              <Controller
-                name="username"
-                control={control}
-                rules={{ required: true, validate: (v) => !!v.trim() }}
-                render={({ field }) => (
-                  <UsernameAutocomplete
-                    platform={platform}
-                    name={field.name}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    fullWidth
-                    placeholder={`${PLATFORM_LABELS[platform]} username`}
-                  />
-                )}
+            <ToggleSlot>
+              <PlatformToggle
+                value={platform}
+                onChange={setPlatform}
+                embedded
               />
-            </InputSlot>
-            <AnalyzeButton>{isChanging ? 'Save' : 'Analyze'}</AnalyzeButton>
+            </ToggleSlot>
+            <Field>
+              <InputSlot>
+                <Controller
+                  name="username"
+                  control={control}
+                  rules={{ required: true, validate: (v) => !!v.trim() }}
+                  render={({ field }) => (
+                    <UsernameAutocomplete
+                      platform={platform}
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      fullWidth
+                      bare
+                      placeholder={
+                        isPhone
+                          ? 'Username'
+                          : `${PLATFORM_LABELS[platform]} username`
+                      }
+                    />
+                  )}
+                />
+              </InputSlot>
+              <AnalyzeButton>{isChanging ? 'Save' : 'Analyze'}</AnalyzeButton>
+            </Field>
           </SearchForm>
 
           {errors.username && <ErrorMessage message="Enter a username." />}

@@ -21,12 +21,26 @@ const styles = {
   },
 }
 
+// Inside a search bar that already draws the outline: no border of its
+// own, just a faint tinted track.
+const embeddedStyles = {
+  ...styles,
+  root: {
+    background:
+      'light-dark(rgba(52, 163, 126, 0.08), rgba(110, 231, 183, 0.06))',
+    border: 'none',
+    padding: 3,
+  },
+}
+
 function PlatformToggle({
   value,
   onChange,
+  embedded = false,
 }: {
   value: Platform
   onChange: (platform: Platform) => void
+  embedded?: boolean
 }) {
   return (
     <SegmentedControl
@@ -42,7 +56,7 @@ function PlatformToggle({
       // The active label sits on the green fill; inactive ones inherit the
       // page's text colour so they work in both themes.
       color="transparent"
-      styles={styles}
+      styles={embedded ? embeddedStyles : styles}
       classNames={{ label: 'platform-toggle-label' }}
     />
   )

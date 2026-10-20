@@ -1,6 +1,7 @@
 import { Autocomplete, Loader } from '@mantine/core'
 import { useMemo } from 'react'
 import useLichessAutocomplete from '../hooks/useLichessAutocomplete'
+import classes from '../css/UsernameAutocomplete.module.css'
 import type { Platform } from '../helpers/platform'
 
 const MAX_SUGGESTIONS = 10
@@ -16,6 +17,7 @@ function UsernameAutocomplete({
   name,
   placeholder,
   fullWidth,
+  bare = false,
 }: {
   platform: Platform
   value: string
@@ -25,6 +27,8 @@ function UsernameAutocomplete({
   placeholder?: string
   // Fill the parent instead of the default 25rem.
   fullWidth?: boolean
+  // No border or fill, for use inside a search bar that draws its own.
+  bare?: boolean
 }) {
   const { suggestions, isFetching } = useLichessAutocomplete(
     value,
@@ -50,7 +54,9 @@ function UsernameAutocomplete({
       autoComplete="off"
       spellCheck={false}
       rightSection={isFetching ? <Loader size="xs" /> : null}
-      comboboxProps={{ radius: 'md', shadow: 'md' }}
+      // Bare inputs sit inside a bar: drop the list below its outline.
+      comboboxProps={{ radius: 'md', shadow: 'md', offset: bare ? 12 : 8 }}
+      classNames={{ dropdown: classes.dropdown, option: classes.option }}
       renderOption={({ option }) => {
         const user = byName.get(option.value)
         return (
@@ -79,15 +85,24 @@ function UsernameAutocomplete({
       }}
       styles={{
         root: { width: fullWidth ? '100%' : '25rem', maxWidth: '100%' },
-        input: {
-          height: '3rem',
-          borderRadius: '1rem',
-          border: '1.5px solid var(--brand)',
-          paddingLeft: '2rem',
-          background: 'transparent',
-          color: 'inherit',
-          fontSize: '1rem',
-        },
+        input: bare
+          ? {
+              height: '2.75rem',
+              border: 'none',
+              paddingLeft: '0.75rem',
+              background: 'transparent',
+              color: 'inherit',
+              fontSize: '1rem',
+            }
+          : {
+              height: '3rem',
+              borderRadius: '1rem',
+              border: '1.5px solid var(--brand)',
+              paddingLeft: '2rem',
+              background: 'transparent',
+              color: 'inherit',
+              fontSize: '1rem',
+            },
       }}
     />
   )

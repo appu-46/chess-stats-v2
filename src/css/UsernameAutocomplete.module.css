@@ -1,0 +1,22 @@
+/* Suggestions dropdown (ui/UsernameAutocomplete.tsx). Mantine's default is
+   its neutral grey "dark" palette; these follow the app's green theme. */
+
+.dropdown {
+  padding: 0.3rem;
+  background: light-dark(#f6fcf9, #10261d);
+  border: 1px solid
+    light-dark(rgba(52, 163, 126, 0.3), rgba(110, 231, 183, 0.18));
+  box-shadow: 0 10px 30px
+    light-dark(rgba(20, 83, 45, 0.12), rgba(0, 0, 0, 0.45));
+}
+
+.option {
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Hover, and the option arrow keys move to. */
+.option:hover,
+.option[data-combobox-selected] {
+  background: light-dark(rgba(52, 163, 126, 0.12), rgba(52, 163, 126, 0.2));
+}
