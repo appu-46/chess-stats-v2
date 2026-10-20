@@ -12,11 +12,7 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  MantineProvider,
-  createTheme,
-  type MantineColorsTuple,
-} from '@mantine/core'
+import { MantineProvider, createTheme } from '@mantine/core'
 
 import './styles.css'
 import App from './App.tsx'
@@ -36,6 +32,7 @@ import { processAndClearAccessToken } from './helpers/urlUtility.ts'
 import Favorites from './pages/Favorites.tsx'
 import MobileNotice from './ui/MobileNotice.tsx'
 import { validatePlatformSearch } from './helpers/platform.ts'
+import type { MantineColorsTuple } from '@mantine/core'
 
 const queryClient = new QueryClient({
   defaultOptions: {

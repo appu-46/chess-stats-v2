@@ -8,6 +8,8 @@ const DATE_TIME_FORMAT = 'DD-MMM-YYYY HH:mm:ss'
 type StreakGame = {
   resultForPlayer: 'win' | 'loss' | 'draw'
   date_time: string
+  // Unix seconds; present on transformed games and used when available.
+  endTime?: number
 }
 
 export interface StreakStats {
@@ -31,11 +33,18 @@ export function calculateStreaks(
 ): StreakStats {
   if (!games?.length) return EMPTY_STATS
 
-  const sorted = [...games].sort(
-    (a, b) =>
-      dayjs(a.date_time, DATE_TIME_FORMAT).valueOf() -
-      dayjs(b.date_time, DATE_TIME_FORMAT).valueOf(),
-  )
+  // Runs on every progressive-load emit, so each game's time is worked out
+  // once (not twice per comparison), from the numeric endTime when present.
+  const sorted = games
+    .map((game) => ({
+      game,
+      time:
+        game.endTime != null
+          ? game.endTime * 1000
+          : dayjs(game.date_time, DATE_TIME_FORMAT).valueOf(),
+    }))
+    .sort((a, b) => a.time - b.time)
+    .map(({ game }) => game)
 
   let longestWinStreak = 0
   let longestLossStreak = 0
@@ -57,7 +66,8 @@ export function calculateStreaks(
       runLength = 1
     }
 
-    if (runType === 'win') longestWinStreak = Math.max(longestWinStreak, runLength)
+    if (runType === 'win')
+      longestWinStreak = Math.max(longestWinStreak, runLength)
     if (runType === 'loss')
       longestLossStreak = Math.max(longestLossStreak, runLength)
 

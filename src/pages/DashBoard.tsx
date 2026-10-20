@@ -855,7 +855,11 @@ function DashboardInner({
             />
           </div>
         )}
-        <AreaGraph data={filteredData} color={active.color} />
+        <AreaGraph
+          data={filteredData}
+          color={active.color}
+          isLoading={progress < 100}
+        />
       </GraphCard>
 
       <RatingHistoryGraph history={ratingHistory} timeControls={timeControls} />

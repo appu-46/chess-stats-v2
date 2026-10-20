@@ -1,3 +1,9 @@
+// One decimal place throughout ("78.4%"), and 0% rather than NaN for a
+// time control with no games.
+function percentOf(part: number, total: number) {
+  return total > 0 ? Math.round((part / total) * 1000) / 10 : 0
+}
+
 export function RecordPercentageCalc(
   record:
     | {
@@ -13,9 +19,9 @@ export function RecordPercentageCalc(
   const d = record?.draw ?? 0
 
   const totalGames = w + l + d
-  const percentageWins = parseFloat(((w / totalGames) * 100).toFixed(2))
-  const percentageLosses = parseFloat(((l / totalGames) * 100).toFixed(2))
-  const percentageDraws = parseFloat(((d / totalGames) * 100).toFixed(2))
+  const percentageWins = percentOf(w, totalGames)
+  const percentageLosses = percentOf(l, totalGames)
+  const percentageDraws = percentOf(d, totalGames)
 
   return { totalGames, percentageDraws, percentageLosses, percentageWins }
 }

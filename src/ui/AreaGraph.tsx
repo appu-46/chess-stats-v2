@@ -174,7 +174,7 @@ function RatingTooltip({
         <span style={{ color: '#ef4444' }}>{point.losses}L</span>{' '}
         <span style={{ opacity: 0.7 }}>{point.draws}D</span>
       </div>
-      <TooltipHint>Click to open this month's games</TooltipHint>
+      <TooltipHint>Click to see this day's games</TooltipHint>
     </TooltipCard>
   )
 }
@@ -182,9 +182,13 @@ function RatingTooltip({
 function AreaGraph({
   data,
   color = '#00FF00',
+  isLoading = false,
 }: {
   data?: GroupedByDate
   color?: string
+  // While games are still streaming in, the data changes every update;
+  // animating each one replays the draw-in and the line flickers.
+  isLoading?: boolean
 }) {
   // Hooks run before the empty-data early return: the dashboard renders this
   // with no data first and fills it in progressively, and a changing hook
@@ -316,13 +320,14 @@ function AreaGraph({
               stroke={color}
               fill="url(#colorUv)"
               strokeWidth={5}
+              isAnimationActive={!isLoading}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
       <Footnote>
         Each point is the rating after the last game of that day. Click a point
-        to open that month's games.
+        to see that day's games.
       </Footnote>
     </div>
   )

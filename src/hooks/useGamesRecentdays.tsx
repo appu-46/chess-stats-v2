@@ -34,8 +34,11 @@ function useGamesRecentdays(
       }
       return fetchRecentGames(platform, username, 4, 90)
     },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    // 1Y/All are big downloads of mostly finished months that never change,
+    // so they stay fresh much longer than the 90-day set; a refresh only
+    // matters for today's new games.
+    staleTime: cacheKey === '90D' ? 5 * 60 * 1000 : 30 * 60 * 1000,
+    gcTime: cacheKey === '90D' ? 10 * 60 * 1000 : 60 * 60 * 1000,
   })
 
   return { data, isPending, error }

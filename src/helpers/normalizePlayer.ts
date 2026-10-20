@@ -92,6 +92,17 @@ export function normalizeChessComProfile(
   }
 }
 
+// Platforms can report a "best" below the current rating (lichess's
+// `highest` lags behind). The best is never lower than the current rating;
+// when the current one is higher, there's no single peak game to link to.
+function atLeastCurrent(
+  best: TimeControlStat['best'],
+  current: number | null,
+): TimeControlStat['best'] {
+  if (!best || current == null || current <= best.rating) return best
+  return { rating: current, gameUrl: null }
+}
+
 export function normalizeChessComStats(
   raw: Record<string, unknown>,
 ): PlayerStats {
@@ -103,9 +114,12 @@ export function normalizeChessComStats(
     const block = value as ChessComStatBlock
     stats[key.slice('chess_'.length)] = {
       current: block.last?.rating ?? null,
-      best: block.best
-        ? { rating: block.best.rating, gameUrl: block.best.game ?? null }
-        : null,
+      best: atLeastCurrent(
+        block.best
+          ? { rating: block.best.rating, gameUrl: block.best.game ?? null }
+          : null,
+        block.last?.rating ?? null,
+      ),
       record: {
         win: block.record?.win ?? 0,
         loss: block.record?.loss ?? 0,
@@ -218,14 +232,18 @@ export function normalizeLichessPerf(
 ): TimeControlStat {
   const rating = raw.perf?.glicko?.rating
   const highest = raw.stat?.highest
+  const current = rating != null ? Math.round(rating) : null
   return {
-    current: rating != null ? Math.round(rating) : null,
-    best: highest
-      ? {
-          rating: highest.int,
-          gameUrl: `https://lichess.org/${highest.gameId}`,
-        }
-      : null,
+    current,
+    best: atLeastCurrent(
+      highest
+        ? {
+            rating: highest.int,
+            gameUrl: `https://lichess.org/${highest.gameId}`,
+          }
+        : null,
+      current,
+    ),
     record: {
       win: raw.stat?.count?.win ?? 0,
       loss: raw.stat?.count?.loss ?? 0,

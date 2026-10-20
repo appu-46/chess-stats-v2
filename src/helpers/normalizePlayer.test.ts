@@ -153,3 +153,25 @@ describe('normalizeLichessPerf', () => {
     ).toBeNull()
   })
 })
+
+describe('best rating never below current', () => {
+  it('raises a stale lichess highest to the current rating', () => {
+    const stat = normalizeLichessPerf({
+      perf: { glicko: { rating: 1883.4 } },
+      stat: { highest: { int: 1803, gameId: 'abc' } },
+    })
+    expect(stat.current).toBe(1883)
+    expect(stat.best).toEqual({ rating: 1883, gameUrl: null })
+  })
+
+  it('keeps a real peak and its game link', () => {
+    const stat = normalizeLichessPerf({
+      perf: { glicko: { rating: 1700 } },
+      stat: { highest: { int: 1803, gameId: 'abc' } },
+    })
+    expect(stat.best).toEqual({
+      rating: 1803,
+      gameUrl: 'https://lichess.org/abc',
+    })
+  })
+})
