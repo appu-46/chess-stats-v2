@@ -3,7 +3,7 @@ import { useNavigate, useParams } from '@tanstack/react-router'
 
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { FaGlobe, FaRegStar, FaTrash } from 'react-icons/fa'
+import { FaGlobe, FaRegHeart, FaTrash } from 'react-icons/fa'
 import { SiChessdotcom, SiLichess } from 'react-icons/si'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDeleteFav } from '../hooks/useDeleteFav'
@@ -102,6 +102,18 @@ const SectionHeading = styled.div`
   letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.55;
+`
+
+// "Your favourites" over the cards, with the count beside it.
+const ListHeading = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+
+  ${SectionHeading} {
+    margin: 0;
+  }
 `
 
 // ── Add player ──────────────────────────────────────────────────────
@@ -495,12 +507,11 @@ function Favorites() {
     <PageWrapper>
       <Header>
         <TitleRow>
-          <Title>Tracked players</Title>
-          <CountPill>
-            {count} {count === 1 ? 'player' : 'players'}
-          </CountPill>
+          <Title>Favourites</Title>
         </TitleRow>
-        <Subtitle>Monitor performance, rating and activity</Subtitle>
+        <Subtitle>
+          Players you've saved. Open one to see their profile, stats and games.
+        </Subtitle>
       </Header>
 
       <Panel>
@@ -540,109 +551,119 @@ function Favorites() {
 
       {favsProfile?.length === 0 ? (
         <EmptyState>
-          <FaRegStar size={26} style={{ opacity: 0.6 }} />
-          <strong>No tracked players yet</strong>
+          <FaRegHeart size={26} style={{ opacity: 0.6 }} />
+          <strong>No favourites yet</strong>
           <Subtitle>
-            Add a chess.com or Lichess username above to follow their progress.
+            Add a Chess.com or Lichess username above, or use Favourite on any
+            player's profile.
           </Subtitle>
         </EmptyState>
       ) : (
-        <PlayerList count={favsProfile?.length ?? 0}>
-          {favsProfile?.map((fav) => {
-            const favPlatform = parsePlatform(fav.platform)
-            const PlatformIcon =
-              favPlatform === 'lichess' ? SiLichess : SiChessdotcom
-            const lastOnlineSeconds = new Date(fav.lastonline).getTime() / 1000
-            // Stored as an ISO string or null; new Date(null) would be 1970.
-            const hasLastOnline =
-              !!fav.lastonline && Number.isFinite(lastOnlineSeconds)
-            const isRecent =
-              hasLastOnline &&
-              Date.now() / 1000 - lastOnlineSeconds < RECENT_HOURS * 3600
-            const displayName = fav.name || fav.username
-            const openProfile = () =>
-              navigate({
-                to: '/profile/$username',
-                params: { username: fav.username },
-                search: platformSearch(favPlatform),
-              })
+        <section>
+          <ListHeading>
+            <SectionHeading as="h2">Your favourites</SectionHeading>
+            <CountPill>
+              {count} {count === 1 ? 'player' : 'players'}
+            </CountPill>
+          </ListHeading>
+          <PlayerList count={favsProfile?.length ?? 0}>
+            {favsProfile?.map((fav) => {
+              const favPlatform = parsePlatform(fav.platform)
+              const PlatformIcon =
+                favPlatform === 'lichess' ? SiLichess : SiChessdotcom
+              const lastOnlineSeconds =
+                new Date(fav.lastonline).getTime() / 1000
+              // Stored as an ISO string or null; new Date(null) would be 1970.
+              const hasLastOnline =
+                !!fav.lastonline && Number.isFinite(lastOnlineSeconds)
+              const isRecent =
+                hasLastOnline &&
+                Date.now() / 1000 - lastOnlineSeconds < RECENT_HOURS * 3600
+              const displayName = fav.name || fav.username
+              const openProfile = () =>
+                navigate({
+                  to: '/profile/$username',
+                  params: { username: fav.username },
+                  search: platformSearch(favPlatform),
+                })
 
-            return (
-              <PlayerCard
-                key={`${favPlatform}:${fav.player_id}`}
-                role="link"
-                tabIndex={0}
-                onClick={openProfile}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') openProfile()
-                }}
-              >
-                <RemoveButton
-                  type="button"
-                  aria-label={`Remove ${displayName}`}
-                  title="Remove"
-                  onClick={(e) =>
-                    handleDelete(
-                      e,
-                      String(fav.player_id),
-                      favPlatform,
-                      displayName,
-                    )
-                  }
+              return (
+                <PlayerCard
+                  key={`${favPlatform}:${fav.player_id}`}
+                  role="link"
+                  tabIndex={0}
+                  onClick={openProfile}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') openProfile()
+                  }}
                 >
-                  <FaTrash size={13} />
-                </RemoveButton>
+                  <RemoveButton
+                    type="button"
+                    aria-label={`Remove ${displayName}`}
+                    title="Remove"
+                    onClick={(e) =>
+                      handleDelete(
+                        e,
+                        String(fav.player_id),
+                        favPlatform,
+                        displayName,
+                      )
+                    }
+                  >
+                    <FaTrash size={13} />
+                  </RemoveButton>
 
-                <PlayerTop>
-                  {fav.avatar ? (
-                    <Avatar src={fav.avatar} alt="" />
-                  ) : (
-                    <AvatarPlaceholder>
-                      <PlatformIcon size={22} />
-                    </AvatarPlaceholder>
-                  )}
-                  <PlayerText>
-                    <NameLine>
-                      {fav.title && <ChessTitle>{fav.title}</ChessTitle>}
-                      <DisplayName>{displayName}</DisplayName>
-                    </NameLine>
-                    <HandleLine>
-                      {/* Without a real name the handle is already the title. */}
-                      {fav.name && <Muted>@{fav.username}</Muted>}
-                      <PlatformBadge platform={favPlatform} />
-                    </HandleLine>
-                  </PlayerText>
-                </PlayerTop>
+                  <PlayerTop>
+                    {fav.avatar ? (
+                      <Avatar src={fav.avatar} alt="" />
+                    ) : (
+                      <AvatarPlaceholder>
+                        <PlatformIcon size={22} />
+                      </AvatarPlaceholder>
+                    )}
+                    <PlayerText>
+                      <NameLine>
+                        {fav.title && <ChessTitle>{fav.title}</ChessTitle>}
+                        <DisplayName>{displayName}</DisplayName>
+                      </NameLine>
+                      <HandleLine>
+                        {/* Without a real name the handle is already the title. */}
+                        {fav.name && <Muted>@{fav.username}</Muted>}
+                        <PlatformBadge platform={favPlatform} />
+                      </HandleLine>
+                    </PlayerText>
+                  </PlayerTop>
 
-                <PlayerFooter>
-                  {fav.country ? (
-                    <Country>
-                      {fav.country.code === 'XX' ? (
-                        <FaGlobe size={14} />
-                      ) : (
-                        <img
-                          src={`https://flagsapi.com/${fav.country.code}/flat/32.png`}
-                          alt=""
-                        />
-                      )}
-                      <Muted style={{ opacity: 1 }}>{fav.country.name}</Muted>
-                    </Country>
-                  ) : (
-                    <span />
-                  )}
-                  <Activity $recent={isRecent}>
-                    {hasLastOnline
-                      ? `Active ${formatLastActive(lastOnlineSeconds).replace(
-                          /^Just now$/,
-                          'just now',
-                        )}`
-                      : 'Activity unknown'}
-                  </Activity>
-                </PlayerFooter>
-              </PlayerCard>
-            )
-          })}
-        </PlayerList>
+                  <PlayerFooter>
+                    {fav.country ? (
+                      <Country>
+                        {fav.country.code === 'XX' ? (
+                          <FaGlobe size={14} />
+                        ) : (
+                          <img
+                            src={`https://flagsapi.com/${fav.country.code}/flat/32.png`}
+                            alt=""
+                          />
+                        )}
+                        <Muted style={{ opacity: 1 }}>{fav.country.name}</Muted>
+                      </Country>
+                    ) : (
+                      <span />
+                    )}
+                    <Activity $recent={isRecent}>
+                      {hasLastOnline
+                        ? `Active ${formatLastActive(lastOnlineSeconds).replace(
+                            /^Just now$/,
+                            'just now',
+                          )}`
+                        : 'Activity unknown'}
+                    </Activity>
+                  </PlayerFooter>
+                </PlayerCard>
+              )
+            })}
+          </PlayerList>
+        </section>
       )}
     </PageWrapper>
   )
