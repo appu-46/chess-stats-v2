@@ -95,3 +95,22 @@ export async function fetchMonthGames(
     until: start.endOf('month').valueOf(),
   })
 }
+
+// The player's newest `count` games, oldest first like the other fetchers.
+// Cheap on both platforms: lichess is asked for just those games, and
+// chess.com's archive list only holds months with games, so the newest two
+// archives cover the latest games even early in a month or for a player
+// who hasn't played in a while.
+export async function fetchLatestGames(
+  platform: Platform,
+  username: string,
+  count: number,
+): Promise<Array<RawGame>> {
+  if (platform === 'lichess') return apiFetchLiGames(username, { max: count })
+
+  // Variants are dropped before counting: the transform skips them anyway.
+  const games: Array<ChessComGame> = await apiRecentGames(username, 2, 0)
+  return games
+    .filter((game) => !game.rules || game.rules === 'chess')
+    .slice(-count)
+}

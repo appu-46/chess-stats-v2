@@ -54,10 +54,14 @@ export async function apiFetchLiPerf(
 // day's rating).
 export async function apiFetchLiGames(
   username: string,
-  { since, until }: { since?: number; until?: number } = {},
+  {
+    since,
+    until,
+    max = LICHESS_MAX_GAMES,
+  }: { since?: number; until?: number; max?: number } = {},
 ): Promise<Array<LichessGame>> {
   const params = new URLSearchParams({
-    max: String(LICHESS_MAX_GAMES),
+    max: String(max),
     perfType: LICHESS_PERF_TYPES,
     opening: 'true',
     moves: 'true',

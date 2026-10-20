@@ -12,7 +12,7 @@ import { RiVipDiamondFill } from 'react-icons/ri'
 import { MdDateRange } from 'react-icons/md'
 import { FiExternalLink } from 'react-icons/fi'
 import { HiUserGroup } from 'react-icons/hi'
-import { useParams } from '@tanstack/react-router'
+import { Link, useParams } from '@tanstack/react-router'
 import { useMutation } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import useProfile from '../hooks/useProfile'
@@ -23,6 +23,9 @@ import useStats from '../hooks/useStats'
 import { upsertChessUser } from '../services/apiUser'
 import usePlatform from '../hooks/usePlatform'
 import { getTimeControls } from '../helpers/timeControls'
+import { platformSearch } from '../helpers/platform'
+import RecentGames from '../ui/RecentGames'
+import ProfileActions from '../ui/ProfileActions'
 import type { ReactNode } from 'react'
 // ── Layout ──────────────────────────────────────────────────────────
 // Two columns of equal height: identity + peak ratings on the left, a
@@ -76,12 +79,48 @@ const SectionHeading = styled.h3`
   opacity: 0.55;
 `
 
+// Full width under both cards.
+const RecentGamesPanel = styled(Panel)`
+  grid-column: 1 / -1;
+  padding-top: 1.4rem;
+  padding-bottom: 1.4rem;
+`
+
+const SectionHeader = styled.div`
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+
+  ${SectionHeading} {
+    margin: 0;
+  }
+`
+
+const SeeAll = styled.span`
+  a {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: light-dark(var(--brand), var(--brand-soft));
+    text-decoration: none;
+    opacity: 0.85;
+  }
+
+  a:hover,
+  a:focus-visible {
+    opacity: 1;
+    text-decoration: underline;
+  }
+`
+
 // ── Identity header ─────────────────────────────────────────────────
 
 const Identity = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1.75rem;
+  gap: 1.25rem;
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -110,20 +149,20 @@ const AvatarLink = styled.a`
 
 const Avatar = styled.img`
   display: block;
-  width: 11rem;
-  height: 11rem;
+  width: 6.5rem;
+  height: 6.5rem;
   border-radius: 50%;
   object-fit: cover;
 
   @media (max-width: 768px) {
-    width: 8.5rem;
-    height: 8.5rem;
+    width: 6rem;
+    height: 6rem;
   }
 `
 
 const AvatarPlaceholder = styled.div`
-  width: 11rem;
-  height: 11rem;
+  width: 6.5rem;
+  height: 6.5rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -131,8 +170,8 @@ const AvatarPlaceholder = styled.div`
   background: rgba(255, 255, 255, 0.05);
 
   @media (max-width: 768px) {
-    width: 8.5rem;
-    height: 8.5rem;
+    width: 6rem;
+    height: 6rem;
   }
 `
 
@@ -355,7 +394,7 @@ const DetailRow = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.8rem 0;
+  padding: 0.5rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 
   &:first-child {
@@ -374,8 +413,8 @@ const DetailRow = styled.div`
 
 const DetailIcon = styled.span<{ $accent: string }>`
   flex-shrink: 0;
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 1.7rem;
+  height: 1.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -588,7 +627,7 @@ function Profile() {
               <Avatar src={playerAvatar} alt={playerName || handle} />
             ) : (
               <AvatarPlaceholder>
-                <PlatformIcon size={64} />
+                <PlatformIcon size={40} />
               </AvatarPlaceholder>
             )}
           </AvatarLink>
@@ -619,6 +658,8 @@ function Profile() {
               )}
             </SubLine>
           </IdentityText>
+
+          {profile && <ProfileActions profile={profile} />}
         </Identity>
 
         <section>
@@ -671,6 +712,27 @@ function Profile() {
             ))}
         </DetailList>
       </Panel>
+
+      <RecentGamesPanel as="section">
+        <SectionHeader>
+          <SectionHeading>Recent games</SectionHeading>
+          <SeeAll>
+            <Link
+              to="/games/$username"
+              params={{ username }}
+              search={{
+                year: undefined,
+                month: undefined,
+                day: undefined,
+                ...platformSearch(platform),
+              }}
+            >
+              See all games →
+            </Link>
+          </SeeAll>
+        </SectionHeader>
+        <RecentGames username={username} platform={platform} />
+      </RecentGamesPanel>
     </PageWrapper>
   )
 }

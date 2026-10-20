@@ -7,7 +7,7 @@ const shimmer = keyframes`
   100% { background-position: 400px 0; }
 `
 
-const Pulse = styled.div<{ $w?: string; $h?: string; $radius?: string }>`
+export const Pulse = styled.div<{ $w?: string; $h?: string; $radius?: string }>`
   width: ${({ $w }) => $w || '100%'};
   height: ${({ $h }) => $h || '1rem'};
   border-radius: ${({ $radius }) => $radius || '0.4rem'};

@@ -16,11 +16,8 @@ import {
   FaChartPie,
   FaChessKing,
   FaGamepad,
-  FaHandshake,
-  FaHeartBroken,
   FaShieldAlt,
 } from 'react-icons/fa'
-import { GiTrophy } from 'react-icons/gi'
 import { SiTarget } from 'react-icons/si'
 import { FiArrowLeft, FiExternalLink } from 'react-icons/fi'
 import useProfile from '../hooks/useProfile'
@@ -32,23 +29,24 @@ import { useProgressiveTransform } from '../hooks/useProgressiveTransform'
 import Spinner from '../ui/Spinner'
 import { parseDayKey } from '../helpers/DateFormat'
 import PlatformBadge from '../ui/PlatformBadge'
+import {
+  RESULT_COLORS,
+  RESULT_LABELS,
+  ResultIcon,
+  ResultPill,
+  SideDot,
+} from '../ui/GameResult'
+import { formatTimeControl, shortTermination } from '../helpers/gameFormat'
 import { TitleBadge } from './Profile'
+import type { Result } from '../ui/GameResult'
 
 // ─── Game list styled components ──────────────────────────────────────────────
 
-type Result = 'win' | 'loss' | 'draw'
-
-const RESULT_COLORS: Record<Result, string> = {
-  win: '#22c55e',
-  loss: '#ef4444',
-  draw: '#7f9cc9', // blue-grey: neutral, but distinct from the grey UI text
-}
-
-const RESULT_LABELS: Record<Result, string> = {
-  win: 'Win',
-  loss: 'Loss',
-  draw: 'Draw',
-}
+const RowResultPill = styled(ResultPill)`
+  @media (max-width: 768px) {
+    grid-area: result;
+  }
+`
 
 const PageContainer = styled.div`
   display: flex;
@@ -389,50 +387,6 @@ const GameRow = styled.a<{ $result: Result }>`
   }
 `
 
-const ResultPill = styled.span<{ $result: Result }>`
-  justify-self: start;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 4.25rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: ${({ $result }) => RESULT_COLORS[$result]};
-  background: color-mix(
-    in srgb,
-    ${({ $result }) => RESULT_COLORS[$result]} 14%,
-    transparent
-  );
-
-  /* inherit: the global theme gives every span the page text colour. */
-  & > span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    color: inherit;
-  }
-
-  small {
-    font-size: 0.68rem;
-    font-weight: 600;
-    opacity: 0.8;
-    font-variant-numeric: tabular-nums;
-  }
-
-  @media (max-width: 768px) {
-    grid-area: result;
-  }
-`
-
-function ResultIcon({ result }: { result: Result }) {
-  const props = { size: 12, 'aria-hidden': true } as const
-  if (result === 'win') return <GiTrophy {...props} />
-  if (result === 'loss') return <FaHeartBroken {...props} />
-  return <FaHandshake {...props} />
-}
-
 const Cell = styled.div`
   display: flex;
   flex-direction: column;
@@ -467,15 +421,6 @@ const Rating = styled.span`
   font-weight: 500;
   opacity: 0.72;
   font-variant-numeric: tabular-nums;
-`
-
-const SideDot = styled.span<{ $side: 'white' | 'black' }>`
-  flex-shrink: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: ${({ $side }) => ($side === 'white' ? '#f4f4f4' : '#111')};
-  box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.8);
 `
 
 // The opponent's line is the bold one; the viewed player's is muted.
@@ -542,37 +487,6 @@ const EmptyFilter = styled.p`
   text-align: center;
   opacity: 0.6;
 `
-
-// "Hikaru won by resignation" -> "Resignation"; the result pill already
-// says who won.
-function shortTermination(text: string): string {
-  if (!text) return '—'
-  if (/on time/i.test(text)) return 'Timeout'
-  const reason = /\bby\s+(.+)$/i.exec(text)?.[1]
-  if (!reason) return text
-  return reason.charAt(0).toUpperCase() + reason.slice(1)
-}
-
-// "180+2" -> "3+2", "60" -> "1+0", "1/86400" or "1d" -> "1 day".
-function formatTimeControl(raw: string): string {
-  if (!raw || raw === '-') return '—'
-  const daily = /^1\/(\d+)$/.exec(raw)
-  if (daily) {
-    const days = Math.round(Number(daily[1]) / 86400)
-    return `${days} ${days === 1 ? 'day' : 'days'}`
-  }
-  const lichessDaily = /^(\d+)d$/.exec(raw)
-  if (lichessDaily) {
-    const days = Number(lichessDaily[1])
-    return `${days} ${days === 1 ? 'day' : 'days'}`
-  }
-  const [base, increment = '0'] = raw.split('+')
-  const seconds = Number(base)
-  if (!Number.isFinite(seconds)) return raw
-  const minutes = seconds / 60
-  const label = Number.isInteger(minutes) ? String(minutes) : minutes.toFixed(1)
-  return `${label}+${increment}`
-}
 
 // ─── InputGames styled components ─────────────────────────────────────────────
 
@@ -1341,13 +1255,13 @@ function GameList({
                 $result={result}
                 aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${reason.toLowerCase()}, ${game.moveCount} moves. Opens on ${platform === 'lichess' ? 'Lichess' : 'Chess.com'}.`}
               >
-                <ResultPill $result={result}>
+                <RowResultPill $result={result}>
                   <span>
                     <ResultIcon result={result} />
                     {RESULT_LABELS[result]}
                   </span>
                   <small>{game.Result}</small>
-                </ResultPill>
+                </RowResultPill>
 
                 <OpponentCell>
                   {/* Same order on every row: opponent (bold) first, then
