@@ -5,6 +5,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { FaGlobe, FaRegHeart, FaTrash } from 'react-icons/fa'
 import { SiChessdotcom, SiLichess } from 'react-icons/si'
+import { MdFavorite } from 'react-icons/md'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDeleteFav } from '../hooks/useDeleteFav'
 import useFetchChessProfileBulk from '../hooks/useFetchChessProfileBulk'
@@ -24,6 +25,7 @@ import {
   platformSearch,
 } from '../helpers/platform'
 import PlatformBadge from '../ui/PlatformBadge'
+import { PageEyebrow } from '../ui/PageHeader'
 import { formatLastActive } from '../helpers/DateFormat'
 import type { ReactNode } from 'react'
 import type { Platform } from '../helpers/platform'
@@ -45,10 +47,15 @@ const PageWrapper = styled.div`
   }
 `
 
+// Same rhythm as PageHeader on the player pages: eyebrow, then title.
 const Header = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+
+  & > :first-child {
+    margin-bottom: 0.25rem;
+  }
 `
 
 const TitleRow = styled.div`
@@ -60,8 +67,14 @@ const TitleRow = styled.div`
 
 const Title = styled.h1`
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+
+  @media (max-width: 768px) {
+    font-size: 1.4rem;
+  }
 `
 
 const CountPill = styled.span`
@@ -104,7 +117,7 @@ const SectionHeading = styled.div`
   opacity: 0.55;
 `
 
-// "Your favourites" over the cards, with the count beside it.
+// "Saved players" over the cards, with the count beside it.
 const ListHeading = styled.div`
   display: flex;
   align-items: center;
@@ -506,8 +519,9 @@ function Favorites() {
   return (
     <PageWrapper>
       <Header>
+        <PageEyebrow icon={MdFavorite} section="Favourites" />
         <TitleRow>
-          <Title>Favourites</Title>
+          <Title>Your favourite players</Title>
         </TitleRow>
         <Subtitle>
           Players you've saved. Open one to see their profile, stats and games.
@@ -561,7 +575,7 @@ function Favorites() {
       ) : (
         <section>
           <ListHeading>
-            <SectionHeading as="h2">Your favourites</SectionHeading>
+            <SectionHeading as="h2">Saved players</SectionHeading>
             <CountPill>
               {count} {count === 1 ? 'player' : 'players'}
             </CountPill>
