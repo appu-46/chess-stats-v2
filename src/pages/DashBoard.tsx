@@ -216,6 +216,10 @@ const YearSelect = styled.select<{ $color: string }>`
   [data-mantine-color-scheme='light'] & {
     background: rgba(255, 255, 255, 0.5);
     border: 1.5px solid rgba(0, 0, 0, 0.15);
+    option {
+      background: rgba(255, 255, 255, 0.5);
+      color: inherit;
+    }
   }
 
   &:hover {
