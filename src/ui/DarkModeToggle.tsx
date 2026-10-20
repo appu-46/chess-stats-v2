@@ -2,7 +2,8 @@ import { Switch, useMantineColorScheme } from '@mantine/core'
 import { IconMoonStars, IconSun } from '@tabler/icons-react'
 
 // The site's original sun/moon switch.
-function DarkModeToggle() {
+function DarkModeToggle({ size = 'md' }: { size?: 'sm' | 'md' }) {
+  const iconSize = size === 'sm' ? 14 : 20
   const { colorScheme, setColorScheme } = useMantineColorScheme()
 
   function handleClick() {
@@ -11,7 +12,7 @@ function DarkModeToggle() {
 
   return (
     <Switch
-      size="md"
+      size={size}
       color="#105037"
       aria-label="Dark mode"
       onChange={() => handleClick()}
@@ -25,11 +26,15 @@ function DarkModeToggle() {
         },
       }}
       onLabel={
-        <IconSun size={20} stroke={1.5} color="var(--mantine-color-yellow-4)" />
+        <IconSun
+          size={iconSize}
+          stroke={1.5}
+          color="var(--mantine-color-yellow-4)"
+        />
       }
       offLabel={
         <IconMoonStars
-          size={20}
+          size={iconSize}
           stroke={1.5}
           color="var(--mantine-color-blue-6)"
         />

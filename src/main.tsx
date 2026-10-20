@@ -19,14 +19,13 @@ import App from './App.tsx'
 import PageNotFound from './ui/PageNotFound.tsx'
 import Stats from './pages/Stats.tsx'
 import Profile from './pages/Profile.tsx'
-import Header from './components/Header.tsx'
+import { CompactHeader } from './components/Header.tsx'
 import { TabProvider } from './contexts/TabContext.tsx'
 import Footer from './components/Footer.tsx'
 import DashBoard from './pages/DashBoard.tsx'
 import Games from './pages/Games.tsx'
 import SideBar from './components/SideBar.tsx'
-import { StyledAppLayout, ThemeCorner } from './ui/AppLayout.tsx'
-import DarkModeToggle from './ui/DarkModeToggle.tsx'
+import { StyledAppLayout } from './ui/AppLayout.tsx'
 import { GlobalStyle } from './styles/GlobalStyle.ts'
 import { supabase } from './services/supabase.ts'
 import Favorites from './pages/Favorites.tsx'
@@ -60,10 +59,10 @@ supabase.auth.onAuthStateChange((event) => {
 //     return (
 //       <>
 //         <StyledAppLayout>
-//           {pathname !== '/' && <Header />}
+//           {pathname !== '/' && <CompactHeader />}
 
 //           <SideBar />
-//           <main style={{ paddingLeft: '1rem' }}>
+//           <main style={{ padding: '2.5rem 0 0 1rem' }}>
 //             <Outlet />
 //           </main>
 //           <Footer />
@@ -112,12 +111,9 @@ const rootRoute = createRootRoute({
       <>
         <MobileNotice />
         <StyledAppLayout>
-          {pathname !== '/' && <Header />}
+          <CompactHeader showBrand={pathname !== '/'} />
           <SideBar />
-          <ThemeCorner>
-            <DarkModeToggle />
-          </ThemeCorner>
-          <main style={{ paddingLeft: '1rem' }}>
+          <main style={{ padding: '1.25rem 0 0 1rem' }}>
             <Outlet />
           </main>
           <Footer />

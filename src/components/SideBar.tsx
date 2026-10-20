@@ -28,6 +28,8 @@ import {
   parsePlatform,
   platformSearch,
 } from '../helpers/platform'
+import DarkModeToggle from '../ui/DarkModeToggle'
+import { useLogoSrc } from './Header'
 import type { ReactNode } from 'react'
 import type { IconType } from 'react-icons'
 
@@ -147,6 +149,7 @@ function SideBar() {
       routePlatform !== ownPlatform)
 
   const [collapsed, setCollapsed] = useState(readCollapsed)
+  const logoSrc = useLogoSrc()
 
   useEffect(() => {
     document.body.classList.toggle('sidebar-expanded', !collapsed)
@@ -202,18 +205,25 @@ function SideBar() {
       data-collapsed={collapsed || undefined}
       aria-label="Main"
     >
-      <UnstyledButton
-        className={classes.collapseButton}
-        onClick={() => setCollapsed((value) => !value)}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        aria-expanded={!collapsed}
-      >
-        {collapsed ? (
-          <TbLayoutSidebarLeftExpandFilled size={ICON_SIZE} />
-        ) : (
-          <TbLayoutSidebarLeftCollapseFilled size={ICON_SIZE} />
-        )}
-      </UnstyledButton>
+      <div className={classes.top}>
+        <Tooltip
+          label="Home"
+          position="right"
+          openDelay={150}
+          disabled={!collapsed}
+          events={{ hover: true, focus: true, touch: false }}
+        >
+          <Link
+            to="/"
+            search={{ changeUsername: false }}
+            className={classes.brand}
+            aria-label="Chess Stats home"
+          >
+            <img className={classes.brandLogo} src={logoSrc} alt="" />
+            <span className={classes.brandName}>Chess Stats</span>
+          </Link>
+        </Tooltip>
+      </div>
 
       <div className={classes.links}>
         <NavItem
@@ -303,6 +313,26 @@ function SideBar() {
       </div>
 
       <div className={classes.bottom}>
+        {/* Side by side when expanded, stacked when collapsed. Each sits in
+            a slot centred on the nav icons' column. */}
+        <div className={classes.controls}>
+          <div className={classes.controlSlot}>
+            <DarkModeToggle size="sm" />
+          </div>
+          <UnstyledButton
+            className={classes.collapseButton}
+            onClick={() => setCollapsed((value) => !value)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!collapsed}
+          >
+            {collapsed ? (
+              <TbLayoutSidebarLeftExpandFilled size={ICON_SIZE} />
+            ) : (
+              <TbLayoutSidebarLeftCollapseFilled size={ICON_SIZE} />
+            )}
+          </UnstyledButton>
+        </div>
+
         {googleUser ? (
           <div className={classes.account}>
             <div className={classes.accountCard}>
