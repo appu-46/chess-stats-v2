@@ -22,7 +22,7 @@ import classes from '../css/NavbarMinimal.module.css'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useGetUser from '../hooks/useGetUser'
 import usePlatform from '../hooks/usePlatform'
-import { oauthSignIn } from '../services/OAuth'
+import { signOut as endSession, signInWithGoogle } from '../services/OAuth'
 import {
   PLATFORM_LABELS,
   parsePlatform,
@@ -157,10 +157,11 @@ function SideBar() {
     }
   }, [collapsed])
 
-  function signOut() {
-    sessionStorage.removeItem('access_token')
+  async function signOut() {
+    await endSession()
     queryClient.removeQueries({ queryKey: ['googleUser'] })
     queryClient.removeQueries({ queryKey: ['user'] })
+    queryClient.removeQueries({ queryKey: ['favs'] })
     navigate({ to: '/', search: { changeUsername: false } })
   }
 
@@ -351,7 +352,7 @@ function SideBar() {
               icon={RiLoginBoxFill}
               label="Sign in"
               collapsed={collapsed}
-              onClick={oauthSignIn}
+              onClick={signInWithGoogle}
             />
           </div>
         )}

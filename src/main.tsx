@@ -28,7 +28,7 @@ import SideBar from './components/SideBar.tsx'
 import { StyledAppLayout, ThemeCorner } from './ui/AppLayout.tsx'
 import DarkModeToggle from './ui/DarkModeToggle.tsx'
 import { GlobalStyle } from './styles/GlobalStyle.ts'
-import { processAndClearAccessToken } from './helpers/urlUtility.ts'
+import { supabase } from './services/supabase.ts'
 import Favorites from './pages/Favorites.tsx'
 import MobileNotice from './ui/MobileNotice.tsx'
 import { validatePlatformSearch } from './helpers/platform.ts'
@@ -42,7 +42,17 @@ const queryClient = new QueryClient({
   },
 })
 
-processAndClearAccessToken()
+// Re-read the signed-in user whenever the session starts or ends (including
+// in another tab). Deferred, as supabase-js warns against calling back into
+// the client from inside this callback.
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['googleUser'] })
+      queryClient.invalidateQueries({ queryKey: ['user'] })
+    }, 0)
+  }
+})
 
 // const rootRoute = createRootRoute({
 //   component: () => {
@@ -191,9 +201,10 @@ const favouritesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/favourites/$sub',
   component: Favorites,
-  beforeLoad: () => {
-    const token = sessionStorage.getItem('access_token')
-    if (!token) throw redirect({ to: '/', search: { changeUsername: false } })
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession()
+    if (!data.session)
+      throw redirect({ to: '/', search: { changeUsername: false } })
   },
 })
 

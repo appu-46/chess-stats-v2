@@ -38,7 +38,7 @@ The project is built with platform-agnostic design: the schema, routing, and dat
 - **Opening trends**: most-played openings per color with W/D/L split, score, best/toughest opening, and whether each opening is being played more or less often lately.
 - **Smart time ranges**: 7D / 30D / 90D / 1Y / All, with shared caching to avoid redundant fetches.
 - **Favourites**: track players across platforms for quick access, backed by Supabase.
-- **Google Sign-In**: implicit OAuth flow with idle-timeout session expiry.
+- **Google Sign-In**: Supabase Auth (PKCE) with per-user Row Level Security.
 - **Light/dark theme support** throughout.
 
 ## Tech Stack
@@ -52,7 +52,7 @@ The project is built with platform-agnostic design: the schema, routing, and dat
 | Styling               | styled-components                              |
 | Component Library     | [Mantine UI](https://mantine.dev/) v8          |
 | Backend / DB          | [Supabase](https://supabase.com/)              |
-| Auth                  | Google OAuth 2.0 (implicit flow)               |
+| Auth                  | Supabase Auth, Google provider (PKCE)          |
 | External Data         | Chess.com Public API, Lichess API              |
 
 ## Architecture
@@ -83,7 +83,7 @@ The project is built with platform-agnostic design: the schema, routing, and dat
 |                                  |           |            |   (Games /Dashboard /       |
 |                                  |           |            |         Favourites/Profile) |
 |          Google Oath             |           |            |                             |
-|        (implicit flow)           +-----------+            +--------------+--------------+
+|        (Supabase Auth)           +-----------+            +--------------+--------------+
 |                                  |                                       |
 |                                  |                                       |
 +----------------------------------+                                       |
@@ -108,14 +108,14 @@ The project is built with platform-agnostic design: the schema, routing, and dat
 
 ## Authentication
 
-Chess-stats uses **Google OAuth 2.0 implicit flow**:
+Chess-stats signs in through **Supabase Auth** with the Google provider (PKCE flow):
 
-1. User signs in with Google; the access token is returned directly in the redirect fragment (no auth code exchange).
-2. `processAndClearAccessToken` extracts the token from the URL, stores `access_token` and `token_expiry` in `sessionStorage`, and clears the fragment from the URL.
-3. A root-level `setTimeout` watches the stored expiry and triggers idle logout. There's no per-component expiry polling.
-4. Routes that require a signed-in user (currently `favouritesRoute`) perform a `beforeLoad` check and redirect to login if no valid token is present.
+1. `signInWithGoogle` (`src/services/OAuth.tsx`) redirects to Google via Supabase; Google returns to the app with `?code=...`.
+2. The Supabase client exchanges the code for a session when it loads, strips the code from the URL, and keeps the session refreshed.
+3. Every Supabase request carries the user's JWT. A listener in `main.tsx` refetches the signed-in user on sign-in and sign-out.
+4. Routes that require a signed-in user (currently `favouritesRoute`) check `supabase.auth.getSession()` in `beforeLoad`.
 
-This flow is intentionally lightweight since the app doesn't need server-side session management. Supabase Row Level Security policies use the Google `sub` claim (`user_sub`) to scope each user's data.
+The Google account id (`sub`) stays the app's user key (`"user".sub`, `favourite_players.user_sub`). Row Level Security maps the session to it with `public.current_google_sub()`, which reads `auth.identities` (written only by the auth server), so each user can read and write only their own rows. See `supabase/migrations/20261021000000_supabase_auth_rls.sql`.
 
 ## Data Fetching & Caching Strategy
 

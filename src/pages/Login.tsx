@@ -12,7 +12,7 @@ import styled from 'styled-components'
 import Button from '../ui/Button'
 import ErrorMessage from '../ui/ErrorMessage'
 import { useTabContext } from '../contexts/TabContext'
-import { oauthSignIn } from '../services/OAuth'
+import { signInWithGoogle } from '../services/OAuth'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useUpdateChessUsername from '../hooks/useUpdateChessUsername'
 import useGetUser from '../hooks/useGetUser'
@@ -480,7 +480,7 @@ function Login() {
       {!googleUser && (
         <SignInLine>
           <span>Save your username and track players —</span>
-          <GoogleButton type="button" onClick={oauthSignIn}>
+          <GoogleButton type="button" onClick={signInWithGoogle}>
             <FcGoogle size={16} aria-hidden />
             Sign in with Google
           </GoogleButton>

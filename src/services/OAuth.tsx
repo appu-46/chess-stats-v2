@@ -1,45 +1,48 @@
-export function oauthSignIn() {
-  const OAUTH_CLIENT_ID = import.meta.env.VITE_OAUTH_CLIENT_ID
-  const REDIRECTION_URI = import.meta.env.VITE_REDIRECTION_URI
+import { supabase } from './supabase'
+import type { User } from '@supabase/supabase-js'
 
-  const oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth'
-
-  const form = document.createElement('form')
-  form.setAttribute('method', 'GET')
-  form.setAttribute('action', oauth2Endpoint)
-  // form.setAttribute('target', '_blank')
-
-  const params = {
-    client_id: OAUTH_CLIENT_ID,
-    redirect_uri: REDIRECTION_URI,
-    response_type: 'token',
-    scope: 'openid email profile',
-    include_granted_scopes: 'true',
-    state: 'pass-through value',
-  }
-
-  for (const p in params) {
-    const key = p as keyof typeof params
-    const input = document.createElement('input')
-    input.setAttribute('type', 'hidden')
-    input.setAttribute('name', p)
-    input.setAttribute('value', params[key])
-    form.appendChild(input)
-  }
-
-  // Add form to page and submit it to open the OAuth 2.0 endpoint.
-  document.body.appendChild(form)
-  form.submit()
+// The signed-in user, in the shape Google's userinfo endpoint used to return.
+// `sub` is the Google account id: it stays the app's user key ("user".sub,
+// favourite_players.user_sub), so rows saved before Supabase Auth still match.
+export type GoogleUser = {
+  sub: string
+  given_name?: string
+  family_name?: string
+  email?: string
+  picture?: string
 }
 
-export async function fetchGoogleUser(token: string) {
-  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+export function signInWithGoogle() {
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    // Back to the page sign-in started from.
+    options: { redirectTo: window.location.href },
   })
+}
 
-  if (!res.ok) throw new Error(`Failed to fetch user: ${res.status}`)
+export function signOut() {
+  return supabase.auth.signOut()
+}
 
-  return res.json()
+export function toGoogleUser(user: User): GoogleUser | null {
+  const identity = user.identities?.find((i) => i.provider === 'google')
+  const sub = identity?.id
+  if (!sub) return null
+
+  const meta = { ...user.user_metadata, ...identity.identity_data }
+  const [first, ...rest] = String(meta.full_name ?? meta.name ?? '').split(' ')
+
+  return {
+    sub,
+    given_name: meta.given_name ?? (first || undefined),
+    family_name: meta.family_name ?? (rest.join(' ') || undefined),
+    email: user.email ?? meta.email,
+    picture: meta.avatar_url ?? meta.picture,
+  }
+}
+
+export async function getGoogleUser(): Promise<GoogleUser | null> {
+  const { data, error } = await supabase.auth.getSession()
+  if (error) throw new Error(error.message)
+  return data.session ? toGoogleUser(data.session.user) : null
 }
