@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import {
+  FaChartArea,
   FaFire,
   FaGamepad,
   FaInfoCircle,
@@ -29,6 +30,7 @@ import StatCarousel, { StatCard } from '../ui/StatCarousel'
 import usePlatform from '../hooks/usePlatform'
 import { getTimeControls } from '../helpers/timeControls'
 import { LICHESS_MAX_GAMES } from '../services/apiLichess'
+import PageHeader from '../ui/PageHeader'
 import type { TransformedGame } from '../helpers/transformGame'
 import type { RawGame } from '../services/apiPlayer'
 import type { Platform } from '../helpers/platform'
@@ -53,13 +55,6 @@ export const TitleMain = styled.h2`
   margin: 0;
 `
 
-const Subtitle = styled.p`
-  text-align: center;
-  opacity: 0.5;
-  font-size: 0.95rem;
-  margin: 0;
-`
-
 const TitleSection = styled.div`
   display: flex;
   flex-direction: column;
@@ -69,7 +64,6 @@ const TitleSection = styled.div`
 const CapNotice = styled.p`
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.4rem;
   font-size: 0.8rem;
   opacity: 0.6;
@@ -78,9 +72,11 @@ const CapNotice = styled.p`
 
 // ── Tabs ────────────────────────────────────────────────────────────
 
+// Time-control switch, in the page header's right-hand slot.
 const TabRow = styled.div`
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
+  padding: 0.25rem;
   justify-content: center;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -111,13 +107,12 @@ const TabRow = styled.div`
 const Tab = styled.button<{ $active: boolean; $color: string }>`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 3.5rem;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 50px;
 
   @media (max-width: 768px) {
-    padding: 0.6rem 1.25rem;
-    font-size: 1rem !important;
+    padding: 0.5rem 1rem;
     flex-shrink: 0;
   }
   border: ${({ $active, $color }) =>
@@ -125,7 +120,7 @@ const Tab = styled.button<{ $active: boolean; $color: string }>`
   background: ${({ $active }) =>
     $active ? `rgba(0, 0, 0, 0.3);` : 'transparent'};
   color: ${({ $active, $color }) => ($active ? $color : 'inherit')};
-  font-size: ${({ $active }) => ($active ? '1.5rem' : '1.25rem')};
+  font-size: ${({ $active }) => ($active ? '1.1rem' : '1rem')};
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1) !important;
@@ -494,7 +489,6 @@ function DashboardInner({
   const navigate = useNavigate({
     from: '/dashboard/$username',
   })
-  const playerName = profile?.name ?? username
 
   const { transformedData, progress } = useProgressiveTransform(
     games,
@@ -652,8 +646,33 @@ function DashboardInner({
   return (
     <PageWrapper>
       <TitleSection>
-        <TitleMain>{`Games of ${playerName}`}</TitleMain>
-        <Subtitle>Rating performance over time</Subtitle>
+        <PageHeader
+          icon={FaChartArea}
+          section="Dashboard"
+          username={username}
+          platform={platform}
+          profile={profile}
+          subtitle={
+            isMonthlyView ? periodLabel : 'Rating performance over time'
+          }
+          aside={
+            <TabRow role="tablist" aria-label="Time control">
+              {timeControls.map(({ label, color, icon: Icon }, i) => (
+                <Tab
+                  key={label}
+                  role="tab"
+                  aria-selected={activeTab === i}
+                  $active={activeTab === i}
+                  $color={color}
+                  onClick={() => setActiveTab(i)}
+                >
+                  <Icon size={15} />
+                  {label}
+                </Tab>
+              ))}
+            </TabRow>
+          }
+        />
         {isCapped && (
           <CapNotice>
             <FaInfoCircle size={12} />
@@ -664,23 +683,6 @@ function DashboardInner({
           </CapNotice>
         )}
       </TitleSection>
-
-      {/* Tabs */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <TabRow>
-          {timeControls.map(({ label, color, icon: Icon }, i) => (
-            <Tab
-              key={label}
-              $active={activeTab === i}
-              $color={color}
-              onClick={() => setActiveTab(i)}
-            >
-              <Icon size={18} />
-              {label}
-            </Tab>
-          ))}
-        </TabRow>
-      </div>
 
       {/* Stat Cards */}
       <StatCarousel title="Overview">

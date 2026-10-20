@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import { useParams } from '@tanstack/react-router'
 import { FaGamepad } from 'react-icons/fa'
 import { FaCrown } from 'react-icons/fa6'
-import { IoPieChartSharp } from 'react-icons/io5'
+import { IoStatsChart } from 'react-icons/io5'
 import useStats from '../hooks/useStats'
 import useProfile from '../hooks/useProfile'
 import Spinner from '../ui/Spinner'
@@ -11,11 +11,17 @@ import PieGraph from '../ui/PieGraph'
 import StatsBlock from '../ui/StatsBlock'
 import usePlatform from '../hooks/usePlatform'
 import { getTimeControls } from '../helpers/timeControls'
+import PageHeader from '../ui/PageHeader'
 
+// As wide as the card grid and centred, so the header starts at the
+// cards' left edge whether they sit two or four across.
 const StyledContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
 `
 const MetaColumns = styled.div`
   display: flex;
@@ -57,9 +63,13 @@ const StyledStats = styled.div<{ $count: number }>`
     }
   }
 `
-const TitleMain = styled.h2`
-  font-size: 42px;
-  font-weight: 700;
+// Same side padding as the cards below, so the header lines up with them.
+const HeaderSlot = styled.div`
+  padding: 0.5rem 2rem 0;
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 0 0;
+  }
 `
 const Title = styled.h2`
   font-size: 28px;
@@ -142,15 +152,6 @@ const CurrentRating = styled.div`
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 `
-export const IconRow = styled.div`
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-  padding-left: 1rem;
-  justify-content: center;
-  gap: 1rem;
-`
-
 const Piesection = styled.div`
   display: flex;
   align-items: center;
@@ -184,8 +185,6 @@ function Stats() {
   if (errorStats) return <p>{`${errorStats.message}`}</p>
   if (isFetchingStats || isFetchingProfile) return <Spinner size="large" />
 
-  const playerName = profile?.name || profile?.username || username
-
   const timeControls = getTimeControls(platform)
   const cardCount = timeControls.filter(
     ({ timeClass }) => stats?.[timeClass],
@@ -193,10 +192,16 @@ function Stats() {
 
   return (
     <StyledContainer>
-      <IconRow>
-        <IoPieChartSharp size={40} />
-        <TitleMain>{`${playerName}'s Stats`}</TitleMain>
-      </IconRow>
+      <HeaderSlot>
+        <PageHeader
+          icon={IoStatsChart}
+          section="Stats"
+          username={username}
+          platform={platform}
+          profile={profile}
+          subtitle="Ratings and results by time control"
+        />
+      </HeaderSlot>
       <StyledStats $count={cardCount}>
         {timeControls.map(({ timeClass, label, color, icon: Icon }) => {
           const stat = stats?.[timeClass]

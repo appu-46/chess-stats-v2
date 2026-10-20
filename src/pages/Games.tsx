@@ -11,13 +11,8 @@ import dayjs from 'dayjs'
 import { useState } from 'react'
 
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6'
-import {
-  FaCalendarDay,
-  FaChartPie,
-  FaChessKing,
-  FaGamepad,
-  FaShieldAlt,
-} from 'react-icons/fa'
+import { FaChartPie, FaGamepad, FaShieldAlt } from 'react-icons/fa'
+import { MdGames } from 'react-icons/md'
 import { SiTarget } from 'react-icons/si'
 import { FiArrowLeft, FiExternalLink } from 'react-icons/fi'
 import useProfile from '../hooks/useProfile'
@@ -28,7 +23,7 @@ import useGames from '../hooks/useGames'
 import { useProgressiveTransform } from '../hooks/useProgressiveTransform'
 import Spinner from '../ui/Spinner'
 import { parseDayKey } from '../helpers/DateFormat'
-import PlatformBadge from '../ui/PlatformBadge'
+import PageHeader from '../ui/PageHeader'
 import {
   RESULT_COLORS,
   RESULT_LABELS,
@@ -37,8 +32,8 @@ import {
   SideDot,
 } from '../ui/GameResult'
 import { formatTimeControl, shortTermination } from '../helpers/gameFormat'
-import { TitleBadge } from './Profile'
 import type { Result } from '../ui/GameResult'
+import type { PlayerProfile } from '../helpers/normalizePlayer'
 
 // ─── Game list styled components ──────────────────────────────────────────────
 
@@ -78,68 +73,6 @@ const BackLink = styled.div`
   a:focus-visible {
     opacity: 1;
   }
-`
-
-const Header = styled.div`
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem 2rem;
-`
-
-const HeaderText = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-`
-
-const PageTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0;
-`
-
-const PageSubtitle = styled.p`
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0;
-
-  /* Dim the text only; the icons keep their full colour. */
-  & > span {
-    opacity: 0.78;
-  }
-`
-
-const SubtitleItem = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-
-  && {
-    opacity: 1;
-  }
-
-  /* The text only; the icon badge stays at full strength. */
-  & > span:last-child {
-    opacity: 0.78;
-  }
-`
-
-// Same tinted badge as the summary icons, smaller and tighter for the
-// subtitle line.
-const SubtitleIcon = styled.span<{ $accent: string }>`
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 7px;
-  color: ${({ $accent }) => $accent};
-  background: color-mix(in srgb, ${({ $accent }) => $accent} 16%, transparent);
 `
 
 const Summary = styled.div`
@@ -498,119 +431,11 @@ const SelectMonthPage = styled.div`
   min-height: 100vh;
 `
 
-const SelectMonthHeader = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  text-align: center;
-`
-
-const SelectMonthTitle = styled.h1`
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin: 0;
-  color: #fff;
-
-  [data-mantine-color-scheme='light'] & {
-    color: #0f172a;
-  }
-`
-
-const SelectMonthSubtitle = styled.p`
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.55);
-  margin: 0;
-  max-width: 36rem;
-  line-height: 1.6;
-
-  [data-mantine-color-scheme='light'] & {
-    color: rgba(0, 0, 0, 0.5);
-  }
-`
-
-const ProfileCard = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid var(--brand-ring);
-  background: rgb(0, 0, 0, 0.2);
+// Same width as the picker below, so the header lines up with it.
+const MonthHeaderSlot = styled.div`
   width: 100%;
   max-width: 36rem;
-
-  [data-mantine-color-scheme='light'] & {
-    background: rgb(255, 255, 255, 0.3);
-  }
-`
-
-const ProfileAvatar = styled.img`
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--brand-border-soft);
-`
-
-const ProfileAvatarPlaceholder = styled.div`
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--brand-fill);
-  border: 2px solid var(--brand-border-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #fff;
-  flex-shrink: 0;
-`
-
-const ProfileInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  flex: 1;
-`
-
-const ProfileName = styled.div`
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  [data-mantine-color-scheme='light'] & {
-    color: #0f172a;
-  }
-`
-
-const ProfileHandle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.45);
-
-  [data-mantine-color-scheme='light'] & {
-    color: rgba(0, 0, 0, 0.45);
-  }
-`
-
-const ProfileCountry = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-left: auto;
-
-  [data-mantine-color-scheme='light'] & {
-    color: rgba(0, 0, 0, 0.55);
-  }
+  padding-top: 0.5rem;
 `
 
 const PickerCard = styled.div`
@@ -891,57 +716,16 @@ function Games() {
 
     return (
       <SelectMonthPage>
-        <SelectMonthHeader>
-          <SelectMonthTitle>Select a month to analyze</SelectMonthTitle>
-          <SelectMonthSubtitle>
-            Explore and analyze every game played in a specific month. Dive into
-            performance, opponents and key insights.
-          </SelectMonthSubtitle>
-        </SelectMonthHeader>
-
-        <ProfileCard>
-          {profile?.avatar ? (
-            <ProfileAvatar
-              src={profile.avatar}
-              alt={profile.name || username}
-            />
-          ) : (
-            <ProfileAvatarPlaceholder>
-              {username[0].toUpperCase()}
-            </ProfileAvatarPlaceholder>
-          )}
-          <ProfileInfo>
-            <ProfileName>
-              {profile?.title && (
-                <TitleBadge
-                  style={{
-                    fontSize: '0.75rem',
-                    padding: '0.25rem 0.5rem',
-                  }}
-                >
-                  {profile.title}
-                </TitleBadge>
-              )}
-              {profile?.name || username}
-            </ProfileName>
-            <ProfileHandle>
-              {/* Without a real name the handle is already the title. */}
-              {profile?.name && `@${profile.username}`}
-              <PlatformBadge platform={platform} />
-            </ProfileHandle>
-          </ProfileInfo>
-          {profile?.country && (
-            <ProfileCountry>
-              {profile.country.code !== 'XX' && (
-                <img
-                  src={`https://flagsapi.com/${profile.country.code}/flat/32.png`}
-                  alt=""
-                />
-              )}
-              {profile.country.name}
-            </ProfileCountry>
-          )}
-        </ProfileCard>
+        <MonthHeaderSlot>
+          <PageHeader
+            icon={MdGames}
+            section="Games"
+            username={username}
+            platform={platform}
+            profile={profile}
+            subtitle="Pick a month to see its games"
+          />
+        </MonthHeaderSlot>
 
         <PickerCard>
           <YearNav>
@@ -1003,7 +787,7 @@ function Games() {
       <GameList
         games={stateGames}
         username={username}
-        playerName={playerName}
+        profile={profile}
         platform={platform}
       />
     )
@@ -1016,6 +800,7 @@ function Games() {
       month={search.month}
       dayKey={dayKey}
       playerName={playerName}
+      profile={profile}
       platform={platform}
     />
   )
@@ -1028,6 +813,7 @@ function DayGames({
   month,
   dayKey,
   playerName,
+  profile,
   platform,
 }: {
   username: string
@@ -1035,6 +821,7 @@ function DayGames({
   month: string
   dayKey: string
   playerName: string
+  profile: PlayerProfile | undefined
   platform: ReturnType<typeof usePlatform>
 }) {
   const { games, isPending, error } = useGames(username, year, month, platform)
@@ -1071,7 +858,7 @@ function DayGames({
     <GameList
       games={dayGames}
       username={username}
-      playerName={playerName}
+      profile={profile}
       platform={platform}
     />
   )
@@ -1082,12 +869,12 @@ type Filter = 'all' | Result
 function GameList({
   games,
   username,
-  playerName,
+  profile,
   platform,
 }: {
   games: Array<StandardGame>
   username: string
-  playerName: string
+  profile: PlayerProfile | undefined
   platform: ReturnType<typeof usePlatform>
 }) {
   const [filter, setFilter] = useState<Filter>('all')
@@ -1145,67 +932,61 @@ function GameList({
         </Link>
       </BackLink>
 
-      <Header>
-        <HeaderText>
-          <PageTitle>Match history</PageTitle>
-          <PageSubtitle>
-            <SubtitleItem>
-              <SubtitleIcon $accent="#ec4899">
-                <FaChessKing size={12} aria-hidden />
-              </SubtitleIcon>
-              <span>{playerName}</span>
-            </SubtitleItem>
-            <span>·</span>
-            <SubtitleItem>
-              <SubtitleIcon $accent="#38bdf8">
-                <FaCalendarDay size={11} aria-hidden />
-              </SubtitleIcon>
-              <span>{day}</span>
-            </SubtitleItem>
-          </PageSubtitle>
-        </HeaderText>
-        <Summary>
-          <SummaryItem>
-            <SummaryIcon $accent="#5fd2e6">
-              <FaGamepad size={17} aria-hidden />
-            </SummaryIcon>
-            <SummaryText>
-              <SummaryLabel>Games</SummaryLabel>
-              <SummaryValue>{games.length}</SummaryValue>
-            </SummaryText>
-          </SummaryItem>
-          <SummaryItem>
-            <SummaryIcon $accent="#f59e0b">
-              <SiTarget size={16} aria-hidden />
-            </SummaryIcon>
-            <SummaryText>
-              <SummaryLabel>Score</SummaryLabel>
-              <SummaryValue>
-                {points}
-                <span style={{ opacity: 0.5, fontWeight: 500 }}>
-                  {' '}
-                  / {games.length}
-                </span>
-              </SummaryValue>
-            </SummaryText>
-          </SummaryItem>
-          <SummaryItem>
-            <SummaryIcon $accent="#a855f7">
-              <FaChartPie size={15} aria-hidden />
-            </SummaryIcon>
-            <SummaryText>
-              <SummaryLabel>W · L · D</SummaryLabel>
-              <SummaryValue>
-                <span style={{ color: RESULT_COLORS.win }}>{counts.win}</span>
-                <span style={{ opacity: 0.4 }}> · </span>
-                <span style={{ color: RESULT_COLORS.loss }}>{counts.loss}</span>
-                <span style={{ opacity: 0.4 }}> · </span>
-                <span style={{ color: RESULT_COLORS.draw }}>{counts.draw}</span>
-              </SummaryValue>
-            </SummaryText>
-          </SummaryItem>
-        </Summary>
-      </Header>
+      <PageHeader
+        icon={MdGames}
+        section="Games"
+        username={username}
+        platform={platform}
+        profile={profile}
+        subtitle={day}
+        aside={
+          <Summary>
+            <SummaryItem>
+              <SummaryIcon $accent="#5fd2e6">
+                <FaGamepad size={17} aria-hidden />
+              </SummaryIcon>
+              <SummaryText>
+                <SummaryLabel>Games</SummaryLabel>
+                <SummaryValue>{games.length}</SummaryValue>
+              </SummaryText>
+            </SummaryItem>
+            <SummaryItem>
+              <SummaryIcon $accent="#f59e0b">
+                <SiTarget size={16} aria-hidden />
+              </SummaryIcon>
+              <SummaryText>
+                <SummaryLabel>Score</SummaryLabel>
+                <SummaryValue>
+                  {points}
+                  <span style={{ opacity: 0.5, fontWeight: 500 }}>
+                    {' '}
+                    / {games.length}
+                  </span>
+                </SummaryValue>
+              </SummaryText>
+            </SummaryItem>
+            <SummaryItem>
+              <SummaryIcon $accent="#a855f7">
+                <FaChartPie size={15} aria-hidden />
+              </SummaryIcon>
+              <SummaryText>
+                <SummaryLabel>W · L · D</SummaryLabel>
+                <SummaryValue>
+                  <span style={{ color: RESULT_COLORS.win }}>{counts.win}</span>
+                  <span style={{ opacity: 0.4 }}> · </span>
+                  <span style={{ color: RESULT_COLORS.loss }}>
+                    {counts.loss}
+                  </span>
+                  <span style={{ opacity: 0.4 }}> · </span>
+                  <span style={{ color: RESULT_COLORS.draw }}>
+                    {counts.draw}
+                  </span>
+                </SummaryValue>
+              </SummaryText>
+            </SummaryItem>
+          </Summary>
+        }
+      />
 
       <Filters role="group" aria-label="Filter by result">
         {filters.map(({ key, label, count }) => (

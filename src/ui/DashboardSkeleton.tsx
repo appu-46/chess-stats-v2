@@ -44,21 +44,36 @@ const PageWrapper = styled.div`
   }
 `
 
-const TitleSection = styled.div`
+// Shaped like PageHeader: eyebrow, avatar and name on the left, the
+// time-control tabs on the right (wrapping under on narrow screens).
+const HeaderSkeleton = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+`
+
+const HeaderIdentity = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 `
 
-const TabRowSkeleton = styled.div`
+const HeaderPlayer = styled.div`
   display: flex;
-  gap: 0.5rem;
-  justify-content: center;
+  align-items: center;
+  gap: 0.85rem;
 `
 
-const TabPill = styled(Pulse)`
-  border-radius: 50px;
+const HeaderName = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+`
+
+const TabTrack = styled(Pulse)`
+  max-width: 100%;
 `
 
 const StatCardsRow = styled.div`
@@ -126,7 +141,6 @@ const GraphHeaderSkeleton = styled.div`
 `
 
 const MessageCaption = styled.p`
-  text-align: center;
   font-size: 0.85rem;
   opacity: 0.45;
   margin: -0.75rem 0 0;
@@ -137,19 +151,21 @@ const MessageCaption = styled.p`
 function DashboardSkeleton({ message }: { message?: string }) {
   return (
     <PageWrapper aria-busy="true" aria-label="Loading dashboard">
-      <TitleSection>
-        <Pulse $w="18rem" $h="2.5rem" $radius="0.6rem" />
-        <Pulse $w="24rem" $h="1rem" />
-      </TitleSection>
+      <HeaderSkeleton>
+        <HeaderIdentity>
+          <Pulse $w="6.5rem" $h="0.75rem" />
+          <HeaderPlayer>
+            <Pulse $w="2.75rem" $h="2.75rem" $radius="50%" />
+            <HeaderName>
+              <Pulse $w="15rem" $h="1.6rem" $radius="0.5rem" />
+              <Pulse $w="18rem" $h="0.85rem" />
+            </HeaderName>
+          </HeaderPlayer>
+        </HeaderIdentity>
+        <TabTrack $w="27rem" $h="3rem" $radius="50px" />
+      </HeaderSkeleton>
 
       {message && <MessageCaption>{message}</MessageCaption>}
-
-      <TabRowSkeleton>
-        <TabPill $w="7rem" $h="2.75rem" />
-        <TabPill $w="7rem" $h="2.75rem" />
-        <TabPill $w="7rem" $h="2.75rem" />
-        <TabPill $w="7rem" $h="2.75rem" />
-      </TabRowSkeleton>
 
       <Pulse $w="5rem" $h="0.75rem" style={{ margin: '0 0.25rem -0.9rem' }} />
       <StatCardsRow>

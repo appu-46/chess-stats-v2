@@ -12,6 +12,7 @@ import { RiVipDiamondFill } from 'react-icons/ri'
 import { MdDateRange } from 'react-icons/md'
 import { FiExternalLink } from 'react-icons/fi'
 import { HiUserGroup } from 'react-icons/hi'
+import { CgProfile } from 'react-icons/cg'
 import { Link, useParams } from '@tanstack/react-router'
 import { useMutation } from '@tanstack/react-query'
 import { useEffect } from 'react'
@@ -25,6 +26,7 @@ import usePlatform from '../hooks/usePlatform'
 import { getTimeControls } from '../helpers/timeControls'
 import { platformSearch } from '../helpers/platform'
 import RecentGames from '../ui/RecentGames'
+import { PageEyebrow } from '../ui/PageHeader'
 import ProfileActions from '../ui/ProfileActions'
 import type { ReactNode } from 'react'
 // ── Layout ──────────────────────────────────────────────────────────
@@ -35,7 +37,7 @@ const PageWrapper = styled.div`
   grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
   align-items: stretch;
   gap: 1.5rem;
-  padding: 1.5rem 2rem;
+  padding: 0.5rem 2rem 1.5rem;
 
   @media (max-width: 1024px) {
     grid-template-columns: minmax(0, 1fr);
@@ -77,6 +79,13 @@ const SectionHeading = styled.h3`
   letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.55;
+`
+
+// "<icon> PROFILE" above both cards. The identity card below already is
+// the player header, so this page takes only the eyebrow.
+const EyebrowRow = styled.div`
+  grid-column: 1 / -1;
+  margin-bottom: -0.5rem;
 `
 
 // Full width under both cards.
@@ -620,6 +629,10 @@ function Profile() {
 
   return (
     <PageWrapper>
+      <EyebrowRow>
+        <PageEyebrow icon={CgProfile} section="Profile" />
+      </EyebrowRow>
+
       <ProfileCard>
         <Identity>
           <AvatarLink href={url} target="_blank" rel="noopener noreferrer">
