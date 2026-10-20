@@ -63,32 +63,42 @@ const TabPill = styled(Pulse)`
 
 const StatCardsRow = styled.div`
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.25rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 calc(100% - 3rem),
+    transparent
+  );
+  mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
 `
 
 const StatCard = styled.div`
-  flex: 1;
-  min-width: 140px;
+  flex: 0 0 auto;
+  min-width: 11rem;
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.95rem 1.1rem 0.85rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(187, 247, 208, 0.24);
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+
+  @media (max-width: 768px) {
+    min-width: 9.75rem;
+  }
 
   [data-mantine-color-scheme='light'] & {
-    background: rgba(255, 255, 255, 0.45);
-    border: 1px solid rgba(20, 83, 45, 0.24);
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.08);
   }
 `
 
-const StatCardInfo = styled.div`
+const StatCardTop = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
+  align-items: center;
+  gap: 0.55rem;
 `
 
 const GraphCard = styled.div`
@@ -141,14 +151,16 @@ function DashboardSkeleton({ message }: { message?: string }) {
         <TabPill $w="7rem" $h="2.75rem" />
       </TabRowSkeleton>
 
+      <Pulse $w="5rem" $h="0.75rem" style={{ margin: '0 0.25rem -0.9rem' }} />
       <StatCardsRow>
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: 9 }).map((_, i) => (
           <StatCard key={i}>
-            <Pulse $w="28px" $h="28px" $radius="50%" />
-            <StatCardInfo>
-              <Pulse $w="70%" $h="0.7rem" />
-              <Pulse $w="50%" $h="1.4rem" />
-            </StatCardInfo>
+            <StatCardTop>
+              <Pulse $w="1.7rem" $h="1.7rem" $radius="8px" />
+              <Pulse $w="6rem" $h="0.7rem" />
+            </StatCardTop>
+            <Pulse $w="5rem" $h="1.6rem" />
+            <Pulse $w="4.5rem" $h="0.7rem" />
           </StatCard>
         ))}
       </StatCardsRow>

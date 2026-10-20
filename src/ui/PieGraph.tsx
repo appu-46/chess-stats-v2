@@ -104,50 +104,90 @@ interface PieGraphProps {
     | undefined
 }
 
+const SIZE = 180
+
 export default function PieGraph({ record }: PieGraphProps) {
   if (!record) return <text> No Data available </text>
   const { percentageWins, percentageLosses, percentageDraws } = record
+  // Empty slices are dropped: the padding angle would otherwise still leave
+  // a gap for them in the ring.
   const data = [
-    { name: 'Wins', value: percentageWins },
-    { name: 'Losses', value: percentageLosses },
-    { name: 'Draws', value: percentageDraws },
-  ]
+    { name: 'Wins', value: percentageWins, color: COLORS[0] },
+    { name: 'Losses', value: percentageLosses, color: COLORS[1] },
+    { name: 'Draws', value: percentageDraws, color: COLORS[2] },
+  ].filter((entry) => (entry.value ?? 0) > 0)
+
   return (
-    <div style={{ width: '200px', height: '200px', padding: '0px' }}>
+    <div
+      style={{
+        position: 'relative',
+        width: SIZE,
+        height: SIZE,
+        flexShrink: 0,
+      }}
+    >
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart width={400} height={400}>
+        <PieChart>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
-            // cornerRadius="20%"
+            // Thin ring with rounded, separated segments, read clockwise
+            // from 12 o'clock.
+            innerRadius={SIZE / 2 - 16}
+            outerRadius={SIZE / 2 - 4}
+            startAngle={90}
+            endAngle={-270}
+            paddingAngle={data.length > 1 ? 4 : 0}
+            cornerRadius={6}
+            stroke="none"
             labelLine={false}
-            innerRadius={70}
-            outerRadius={100}
-            paddingAngle={3}
-            legendType="circle"
+            label={false}
             dataKey="value"
             nameKey="name"
-            label={false}
             animationBegin={0}
             animationDuration={800}
-            // activeShape={renderActiveShape}
           >
-            {data.map((entry, index) => (
-              <Cell
-                key={`cell-${entry.name}`}
-                fill={COLORS[index % COLORS.length]}
-              />
+            {data.map((entry) => (
+              <Cell key={`cell-${entry.name}`} fill={entry.color} />
             ))}
           </Pie>
-          {/* <Legend
-            aria-label="true"
-            align="right"
-            layout="vertical"
-            verticalAlign="middle"
-          /> */}
         </PieChart>
       </ResponsiveContainer>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}
+      >
+        <span
+          style={{
+            fontSize: '1.65rem',
+            fontWeight: 800,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {(percentageWins ?? 0).toFixed(1)}%
+        </span>
+        <span
+          style={{
+            marginTop: '0.3rem',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            opacity: 0.55,
+          }}
+        >
+          Win rate
+        </span>
+      </div>
     </div>
   )
 }

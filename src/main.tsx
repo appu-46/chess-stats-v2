@@ -7,6 +7,7 @@ import {
   createRoute,
   createRouter,
   redirect,
+  stringifySearchWith,
   useLocation,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
@@ -28,11 +29,13 @@ import Footer from './components/Footer.tsx'
 import DashBoard from './pages/DashBoard.tsx'
 import Games from './pages/Games.tsx'
 import SideBar from './components/SideBar.tsx'
-import { StyledAppLayout } from './ui/AppLayout.tsx'
+import { StyledAppLayout, ThemeCorner } from './ui/AppLayout.tsx'
+import DarkModeToggle from './ui/DarkModeToggle.tsx'
 import { GlobalStyle } from './styles/GlobalStyle.ts'
 import { processAndClearAccessToken } from './helpers/urlUtility.ts'
 import Favorites from './pages/Favorites.tsx'
 import MobileNotice from './ui/MobileNotice.tsx'
+import { validatePlatformSearch } from './helpers/platform.ts'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -104,6 +107,9 @@ const rootRoute = createRootRoute({
         <StyledAppLayout>
           {pathname !== '/' && <Header />}
           <SideBar />
+          <ThemeCorner>
+            <DarkModeToggle />
+          </ThemeCorner>
           <main style={{ paddingLeft: '1rem' }}>
             <Outlet />
           </main>
@@ -115,6 +121,19 @@ const rootRoute = createRootRoute({
   },
   notFoundComponent: PageNotFound,
 })
+
+// Search value as a string, whether the URL held 2026, "2026" (older,
+// quoted links) or nothing.
+function searchString(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined
+  return String(value)
+}
+
+// Months and days are kept zero-padded ("09"), as the APIs and day keys use.
+function searchPadded(value: unknown): string | undefined {
+  const text = searchString(value)
+  return text?.padStart(2, '0')
+}
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -131,12 +150,14 @@ const statRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/stats/$username',
   component: Stats,
+  validateSearch: validatePlatformSearch,
 })
 
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile/$username',
   component: Profile,
+  validateSearch: validatePlatformSearch,
 })
 
 const dashboardRoute = createRoute({
@@ -145,9 +166,10 @@ const dashboardRoute = createRoute({
   component: DashBoard,
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      range: (search.range as string) || '30D',
-      year: search.year as string | undefined,
-      month: search.month as string | undefined,
+      range: searchString(search.range) || '30D',
+      year: searchString(search.year),
+      month: searchPadded(search.month),
+      ...validatePlatformSearch(search),
     }
   },
 })
@@ -158,8 +180,12 @@ const gamesRoute = createRoute({
   component: Games,
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      year: search.year as string | undefined,
-      month: search.month as string | undefined,
+      year: searchString(search.year),
+      month: searchPadded(search.month),
+      // Set when opened from a day on the dashboard chart: the page then
+      // lists that day's games (and can be reloaded or shared).
+      day: searchPadded(search.day),
+      ...validatePlatformSearch(search),
     }
   },
 })
@@ -207,6 +233,11 @@ const routeTree = rootRoute.addChildren([
 
 const router = createRouter({
   routeTree,
+  // Without a parser argument, plain strings are written unquoted
+  // (?year=2026 rather than ?year="2026"). Reading still JSON-parses, so
+  // number-like values come back as numbers; validateSearch turns the ones
+  // we keep as strings back with searchString.
+  stringifySearch: stringifySearchWith(JSON.stringify),
   context: {},
   defaultPreload: 'intent',
   scrollRestoration: true,

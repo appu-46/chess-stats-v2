@@ -1,9 +1,7 @@
 import styled from 'styled-components'
 import { useParams } from '@tanstack/react-router'
-import { FaCircle, FaGamepad, FaStopwatch, FaSun } from 'react-icons/fa'
+import { FaGamepad } from 'react-icons/fa'
 import { FaCrown } from 'react-icons/fa6'
-import { GiBulletBill } from 'react-icons/gi'
-import { SiStackblitz } from 'react-icons/si'
 import { IoPieChartSharp } from 'react-icons/io5'
 import useStats from '../hooks/useStats'
 import useProfile from '../hooks/useProfile'
@@ -11,48 +9,53 @@ import Spinner from '../ui/Spinner'
 import { RecordPercentageCalc } from '../helpers/RecordPercentageCalc'
 import PieGraph from '../ui/PieGraph'
 import StatsBlock from '../ui/StatsBlock'
+import usePlatform from '../hooks/usePlatform'
+import { getTimeControls } from '../helpers/timeControls'
 
 const StyledContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
 `
-const StatRow = styled.div`
-  display: flex;
-  transition: all 0.2s ease;
-  justify-content: start;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-`
-
 const MetaColumns = styled.div`
   display: flex;
   flex-direction: column;
 `
 
-const StyledStats = styled.div`
-  display: flex;
-  align-items: stretch;
+// Cards have a fixed, compact width (the donut + legend need ~21rem) and
+// sit centred instead of stretching across the page. Four cards are a grid:
+// 4 across only where they fit, 2x2 otherwise (never 3 + a lone card). Any
+// other count (1-3, or 5 on lichess) is a centred row that wraps.
+const CARD_WIDTH = '23rem'
+
+const StyledStats = styled.div<{ $count: number }>`
+  display: ${({ $count }) => ($count === 4 ? 'grid' : 'flex')};
+  grid-template-columns: repeat(4, ${CARD_WIDTH});
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1.5rem;
-  overflow-x: auto;
-  padding: 1rem 3rem 1rem 1rem;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-  -webkit-mask-image: linear-gradient(to right, black 95%, transparent 100%);
-  mask-image: linear-gradient(to right, black 95%, transparent 100%);
+  padding: 1rem 2rem;
+
+  & > * {
+    flex: 0 1 ${CARD_WIDTH};
+  }
+
+  @media (max-width: 1780px) {
+    grid-template-columns: repeat(2, ${CARD_WIDTH});
+  }
+
+  @media (max-width: 1000px) {
+    grid-template-columns: minmax(0, ${CARD_WIDTH});
+  }
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    overflow-x: visible;
+    grid-template-columns: minmax(0, 1fr);
     padding: 0.5rem 0;
-    -webkit-mask-image: none;
-    mask-image: none;
+
+    & > * {
+      flex-basis: 100%;
+    }
   }
-`
-const Percentage = styled.div`
-  display: flex;
-  flex-direction: column;
 `
 const TitleMain = styled.h2`
   font-size: 42px;
@@ -63,25 +66,61 @@ const Title = styled.h2`
   text-align: center;
   font-weight: 500;
 `
+const Legend = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`
+const LegendItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+`
+const LegendLabel = styled.div<{ $color: string }>`
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.65;
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: ${({ $color }) => $color};
+  }
+`
+const LegendPct = styled.div`
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+`
+const LegendCount = styled.div`
+  font-size: 0.75rem;
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+`
 const Divider = styled.div`
   width: 100%;
   height: 1px;
   background: rgba(255, 255, 255, 0.1);
-  margin: 0.5rem 0 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.45);
 
   [data-mantine-color-scheme='light'] & {
-    border: 1px solid rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.1);
   }
 `
 const StatTitle = styled.div`
-  font-size: 1rem;
-  font-weight: 400;
+  font-size: 0.85rem;
+  opacity: 0.6;
 `
 
 const StatValue = styled.div`
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 `
 
 const TitleBadge = styled.div`
@@ -93,9 +132,15 @@ const TitleBadge = styled.div`
 `
 const RatingBadge = styled.div`
   display: flex;
-  align-items: center;
   flex-direction: column;
-  width: fit-content;
+  gap: 0.15rem;
+`
+const CurrentRating = styled.div`
+  font-size: 3.25rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 `
 export const IconRow = styled.div`
   display: flex;
@@ -109,70 +154,42 @@ export const IconRow = styled.div`
 const Piesection = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  width: fit-content;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+  justify-content: center;
+  gap: 1.25rem;
 `
 const Badge = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  gap: 1rem;
+  gap: 0.75rem;
 `
 const Statfooter = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 `
 
 function Stats() {
   const { username } = useParams({ from: '/stats/$username' })
+  const platform = usePlatform()
   const {
     data: stats,
     isPending: isFetchingStats,
     error: errorStats,
-  } = useStats(username)
-  const { data: profile, isPending: isFetchingProfile } = useProfile(username)
+  } = useStats(username, platform)
+  const { data: profile, isPending: isFetchingProfile } = useProfile(
+    username,
+    platform,
+  )
 
   if (errorStats) return <p>{`${errorStats.message}`}</p>
   if (isFetchingStats || isFetchingProfile) return <Spinner size="large" />
 
-  const { name: playerName = '' } = profile ?? {}
+  const playerName = profile?.name || profile?.username || username
 
-  // define all time controls dynamically
-  const timeControls = [
-    {
-      key: 'chess_blitz',
-      label: 'Blitz',
-      color: '#f59e0b',
-      icon: <SiStackblitz size={40} color="#f59e0b" />,
-    },
-    {
-      key: 'chess_rapid',
-      label: 'Rapid',
-      color: '#ef4444',
-
-      icon: <FaStopwatch size={40} color="#ef4444" />,
-    },
-    {
-      key: 'chess_bullet',
-      label: 'Bullet',
-      color: '#3b82f6',
-      icon: <GiBulletBill size={40} color="#3b82f6" />,
-    },
-    {
-      key: 'chess_daily',
-      label: 'Daily',
-      color: '#22c55e',
-      icon: <FaSun size={40} color="#22c55e" />,
-    },
-  ] as const
+  const timeControls = getTimeControls(platform)
+  const cardCount = timeControls.filter(
+    ({ timeClass }) => stats?.[timeClass],
+  ).length
 
   return (
     <StyledContainer>
@@ -180,16 +197,16 @@ function Stats() {
         <IoPieChartSharp size={40} />
         <TitleMain>{`${playerName}'s Stats`}</TitleMain>
       </IconRow>
-      <StyledStats>
-        {timeControls.map(({ key, label, color, icon }) => {
-          const stat = stats?.[key]
+      <StyledStats $count={cardCount}>
+        {timeControls.map(({ timeClass, label, color, icon: Icon }) => {
+          const stat = stats?.[timeClass]
           if (!stat) return null
 
-          const record = stat?.record ? RecordPercentageCalc(stat.record) : null
+          const record = RecordPercentageCalc(stat.record)
 
           return (
             <StatsBlock
-              key={key}
+              key={timeClass}
               style={{
                 border: `2px solid ${color}`,
                 // borderBottom: `2px solid ${color}`,
@@ -198,61 +215,59 @@ function Stats() {
               }}
             >
               <TitleBadge>
-                {icon}
-                <Title>{`${label}`}</Title>
+                <Icon size={32} color={color} />
+                <Title>{label}</Title>
               </TitleBadge>
               <RatingBadge>
-                <Title style={{ fontSize: '3rem', fontWeight: 900 }}>
-                  {stat?.last?.rating}
-                </Title>
-                <span>Current Rating</span>
+                <CurrentRating>{stat.current ?? '—'}</CurrentRating>
+                <StatTitle>Current rating</StatTitle>
               </RatingBadge>
               <Piesection>
                 <PieGraph record={record} />
-                <Percentage>
-                  <StatRow>
-                    <FaCircle size={32} color="#2ecc71" />
-                    <MetaColumns>
-                      <StatValue>{record?.percentageWins}%</StatValue>
-                      <StatTitle>Win</StatTitle>
-                    </MetaColumns>
-                  </StatRow>
-                  <StatRow>
-                    <FaCircle size={32} color="#e74c3c" />
-                    <MetaColumns>
-                      <StatValue>{record?.percentageLosses}%</StatValue>
-                      <StatTitle>Loss</StatTitle>
-                    </MetaColumns>
-                  </StatRow>
-                  <StatRow>
-                    <FaCircle size={32} color="#f1c40f" />
-                    <MetaColumns>
-                      <StatValue>{record?.percentageDraws}%</StatValue>
-                      <StatTitle>Draw</StatTitle>
-                    </MetaColumns>
-                  </StatRow>
-                </Percentage>
+                <Legend>
+                  {/* Win rate is shown in the centre of the donut. */}
+                  {[
+                    {
+                      label: 'Loss',
+                      color: '#e74c3c',
+                      pct: record.percentageLosses,
+                      count: stat.record.loss,
+                    },
+                    {
+                      label: 'Draw',
+                      color: '#f1c40f',
+                      pct: record.percentageDraws,
+                      count: stat.record.draw,
+                    },
+                  ].map((part) => (
+                    <LegendItem key={part.label}>
+                      <LegendLabel $color={part.color}>
+                        {part.label}
+                      </LegendLabel>
+                      <LegendPct>{part.pct.toFixed(1)}%</LegendPct>
+                      <LegendCount>
+                        {part.count.toLocaleString('en-IN')}
+                      </LegendCount>
+                    </LegendItem>
+                  ))}
+                </Legend>
               </Piesection>
               <Divider />
               <Statfooter>
                 <Badge>
-                  <FaCrown size={26} />
+                  <FaCrown size={20} style={{ opacity: 0.7 }} />
                   <MetaColumns>
-                    <p> Best Rating </p>
-                    <StatTitle style={{ fontSize: '1.25rem', fontWeight: 600 }}>
-                      {stat?.best?.rating}
-                    </StatTitle>
+                    <StatTitle>Best rating</StatTitle>
+                    <StatValue>{stat.best?.rating ?? '—'}</StatValue>
                   </MetaColumns>
                 </Badge>
                 <Badge>
-                  <FaGamepad size={26} />
+                  <FaGamepad size={20} style={{ opacity: 0.7 }} />
                   <MetaColumns>
-                    <p>Games Played</p>
-                    <TitleBadge
-                      style={{ fontSize: '1.25rem', fontWeight: 600 }}
-                    >
-                      {record?.totalGames}
-                    </TitleBadge>
+                    <StatTitle>Games played</StatTitle>
+                    <StatValue>
+                      {record.totalGames.toLocaleString('en-IN')}
+                    </StatValue>
                   </MetaColumns>
                 </Badge>
               </Statfooter>

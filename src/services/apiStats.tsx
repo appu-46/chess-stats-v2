@@ -21,6 +21,10 @@ export async function apiProfile(username: string) {
 export async function apiGames(username: string, year: string, month: string) {
   const response = await fetch(`${API_URL}${username}/games/${year}/${month}`)
 
+  // chess.com lists the current month in a player's archives but can 404
+  // on it until the month's games are published: treat that as no games
+  // rather than an error.
+  if (response.status === 404) return { games: [] }
   if (!response.ok) throw new Error(`Failed to fetch the Games!`)
 
   const data = response.json()

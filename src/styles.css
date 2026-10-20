@@ -75,3 +75,41 @@ span,
 a {
   color: var(--mantine-color-text);
 }
+
+/* PlatformToggle: inactive options use the page text colour, the selected
+   one sits on the brand fill (see ui/PlatformToggle.tsx). The colour goes
+   on the inner span too, because the global theme rule colours every
+   element directly, so it wouldn't inherit from the label. */
+.platform-toggle-label,
+.platform-toggle-label > span {
+  color: inherit;
+}
+.platform-toggle-label {
+  opacity: 0.75;
+}
+.platform-toggle-label[data-active],
+.platform-toggle-label[data-active] > span {
+  color: var(--on-brand) !important;
+}
+.platform-toggle-label[data-active],
+.platform-toggle-label:hover {
+  opacity: 1;
+}
+
+/* The global "* { transition: ... !important }" theme rule replaces
+   Mantine's own transition on the toggle's sliding highlight, so it
+   jumped between options. Restore a smooth slide (and fade the labels in
+   step with it). Two classes each, to outrank that rule, which is injected
+   after this file. */
+.mantine-SegmentedControl-root .mantine-SegmentedControl-indicator {
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s ease !important;
+}
+.mantine-SegmentedControl-root .platform-toggle-label,
+.mantine-SegmentedControl-root .platform-toggle-label > span {
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease !important;
+}

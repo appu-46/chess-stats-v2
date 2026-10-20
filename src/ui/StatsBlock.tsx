@@ -4,8 +4,8 @@ const StatsBlock = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 1.1rem;
+  padding: 1.6rem 1rem;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);

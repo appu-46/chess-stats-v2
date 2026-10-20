@@ -7,7 +7,21 @@ const Container = styled.div`
   align-item: center;
 `
 
+// Theme switch in the page's top-right corner, on every page.
+export const ThemeCorner = styled.div`
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 10;
+
+  @media (max-width: 768px) {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+`
+
 export const StyledAppLayout = styled.div`
+  position: relative;
   display: grid;
   min-height: 100vh;
   grid-template-areas:

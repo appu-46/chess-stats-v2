@@ -1,15 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiGames } from '../services/apiStats'
+import { fetchMonthGames } from '../services/apiPlayer'
+import { DEFAULT_PLATFORM } from '../helpers/platform'
+import type { Platform } from '../helpers/platform'
 
-function useGames(username: string, year: string, month: string) {
+function useGames(
+  username: string,
+  year: string,
+  month: string,
+  platform: Platform = DEFAULT_PLATFORM,
+) {
   const { data, isPending, error } = useQuery({
-    queryKey: ['games', username, month, year],
-    queryFn: () => apiGames(username, year, month),
+    queryKey: ['games', platform, username, month, year],
+    queryFn: () => fetchMonthGames(platform, username, year, month),
   })
 
-  const games = data?.games
-
-  return { games, isPending, error }
+  return { games: data, isPending, error }
 }
 
 export default useGames

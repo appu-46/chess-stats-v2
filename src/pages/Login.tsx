@@ -1,207 +1,410 @@
-import { useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { FaChartLine, FaGamepad, FaTrophy } from 'react-icons/fa'
+import { FcGoogle } from 'react-icons/fc'
+import {
+  IconChartLine,
+  IconChessKnight,
+  IconHeart,
+  IconListDetails,
+} from '@tabler/icons-react'
 import styled from 'styled-components'
-import Input from '../ui/Input'
 import Button from '../ui/Button'
-import Form from '../ui/Form'
 import ErrorMessage from '../ui/ErrorMessage'
 import { useTabContext } from '../contexts/TabContext'
 import { oauthSignIn } from '../services/OAuth'
-import GoogleOAuthButton from '../ui/GoogleAuthButton'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useUpdateChessUsername from '../hooks/useUpdateChessUsername'
 import useGetUser from '../hooks/useGetUser'
 import Header, { StyledHeader } from '../components/Header'
+import PlatformToggle from '../ui/PlatformToggle'
+import UsernameAutocomplete from '../ui/UsernameAutocomplete'
+import {
+  DEFAULT_PLATFORM,
+  PLATFORM_LABELS,
+  parsePlatform,
+  platformSearch,
+} from '../helpers/platform'
+import type { Platform } from '../helpers/platform'
+import type { Icon as TablerIcon } from '@tabler/icons-react'
+
+// ── Layout ──────────────────────────────────────────────────────────
 
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 80vh;
-  gap: 3rem;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+
+  @media (max-width: 768px) {
+    gap: 2rem;
+    padding: 0 0 2rem;
+  }
 `
 
 const Hero = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  jutify-item: center;
-  gap: 1.5rem;
+  gap: 1rem;
+  width: 100%;
   text-align: center;
-  max-width: 700px;
 `
 
 const Subtitle = styled.p`
-  font-size: 1.1rem;
-  opacity: 0.7;
-  max-width: 550px;
-  line-height: 1.6;
+  max-width: 34rem;
   margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  opacity: 0.75;
 `
 
-export const SearchRow = styled.div`
-  display: flex;
-  gap: 1rem;
-  // width: 100%;
-  max-width: 600px;
-  align-items: center;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    width: 100%;
-  }
-`
-
-const WelcomeText = styled.p`
-  font-size: 1rem;
-  opacity: 0.8;
-`
-
-const FeatureGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  max-width: 900px;
+const Panel = styled.div`
   width: 100%;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`
-
-const FeatureCard = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  &:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-  }
   [data-mantine-color-scheme='light'] & {
-    background: rgba(255, 255, 255, 0.65);
-    border: 1.5px solid #333;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   }
 `
 
-export const Searchbox = styled.div`
-  flex: 1;
+// ── Search ──────────────────────────────────────────────────────────
+
+// The original gradient ring: a 2px gradient frame around an opaque panel.
+const SearchRing = styled.div`
+  width: 100%;
+  padding: 2px;
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    #34a37e 0%,
+    #6ee7b7 40%,
+    white 65%,
+    #99f6e4 100%
+  );
+`
+
+const SearchPanel = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
-  padding: 2rem 5rem;
-  border-radius: 1rem;
-  width: max-content;
-  max-width: 100%;
   align-items: center;
-  justify-content: center;
+  gap: 1.25rem;
+  padding: 2.25rem 2.5rem 2rem;
+  border-radius: 16px;
   background: radial-gradient(110% 110% at 50% 10%, #0c2018 0%, #04120c 100%);
-
-  @media (max-width: 768px) {
-    width: 100%;
-    padding: 1.5rem 1rem;
-  }
-  box-shadow:
-    0px 20px 50px rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  transition:
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.35s ease,
-    border-color 0.35s ease;
-  opacity: 0.9;
 
   [data-mantine-color-scheme='light'] & {
     background: radial-gradient(110% 110% at 50% 10%, #dcefe6 0%, #f1faf6 100%);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem 1.1rem;
   }
 `
 
-const FeatureIconWrapper = styled.div<{ color: string }>`
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: ${({ color }) => color};
+const SearchHeading = styled.h2`
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 1.4rem;
+  }
+`
+
+const SearchForm = styled.form`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 34rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`
+
+const InputSlot = styled.div`
+  flex: 1;
+  min-width: 0;
+`
+
+const AnalyzeButton = styled(Button)`
+  height: 3rem;
+  padding: 0 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+`
+
+const QuickStart = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+`
+
+const QuickLabel = styled.span`
+  opacity: 0.7;
+`
+
+const Chip = styled.button`
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--brand-border);
+  background: transparent;
+  color: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  opacity: 0.85;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    background: light-dark(rgba(20, 83, 45, 0.08), rgba(187, 247, 208, 0.08));
+  }
+
+  small {
+    opacity: 0.6;
+  }
+`
+
+const SignInLine = styled.p`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 0.9rem;
+
+  & > span {
+    opacity: 0.75;
+  }
+`
+
+const GoogleButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  [data-mantine-color-scheme='light'] & {
+    border-color: rgba(0, 0, 0, 0.15);
+    background: #fff;
+  }
+`
+
+const Welcome = styled.p`
+  margin: 0;
+  font-size: 0.95rem;
+
+  strong {
+    color: var(--brand-soft);
+  }
+
+  [data-mantine-color-scheme='light'] & strong {
+    color: var(--brand);
+  }
+`
+
+// ── Features ────────────────────────────────────────────────────────
+
+const FeatureGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+`
+
+const FeatureCard = styled(Panel)`
+  display: flex;
+  gap: 0.9rem;
+  padding: 1.1rem 1.2rem;
+  text-align: left;
+
+  /* && outranks the global "* { transition: ... !important }" theme rule,
+     which would otherwise drop the lift's transition. */
+  && {
+    transition:
+      transform 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease !important;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(187, 247, 208, 0.3);
+  }
+
+  [data-mantine-color-scheme='light'] &:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(20, 83, 45, 0.3);
+  }
+`
+
+const FeatureIcon = styled.span<{ $bg: string; $fg: string }>`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  color: ${({ $fg }) => $fg};
+  background: ${({ $bg }) => $bg};
 `
 
 const FeatureTitle = styled.h3`
-  font-size: 1rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.98rem;
   font-weight: 600;
-  margin: 0;
 `
 
 const FeatureDesc = styled.p`
-  font-size: 0.875rem;
-  opacity: 0.6;
   margin: 0;
+  font-size: 0.86rem;
   line-height: 1.5;
+  opacity: 0.75;
 `
 
-const Divider = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  color: #eee;
-  font-size: 0.85rem;
-  [data-mantine-color-scheme='light'] & {
-    color: #222;
-  }
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: currentColor;
-  }
-`
+// The original feature colours (indigo, purple, green), plus pink for the
+// fourth card.
+const FEATURES: Array<{
+  icon: TablerIcon
+  title: string
+  desc: string
+  bg: string
+  fg: string
+}> = [
+  {
+    icon: IconChartLine,
+    bg: '#3b3f8c',
+    fg: '#818cf8',
+    title: 'Rating over time',
+    desc: 'Every time control on one chart, from the last week to all time, with a day-by-day breakdown.',
+  },
+  {
+    icon: IconChessKnight,
+    bg: '#5b2d6e',
+    fg: '#c084fc',
+    title: 'Openings & streaks',
+    desc: 'Your best and worst openings with each colour, win streaks and how you bounce back after a loss.',
+  },
+  {
+    icon: IconListDetails,
+    bg: '#1e4d3b',
+    fg: '#34d399',
+    title: 'Match history',
+    desc: 'Any day’s games with opponents, openings and how each one ended, linked to the original game.',
+  },
+  {
+    icon: IconHeart,
+    bg: '#6b2340',
+    fg: '#f472b6',
+    title: 'Tracked players',
+    desc: 'Follow friends, rivals and favourite streamers across Chess.com and Lichess in one list.',
+  },
+]
+
+const EXAMPLES: Array<{ username: string; platform: Platform }> = [
+  { username: 'Hikaru', platform: 'chess.com' },
+  { username: 'MagnusCarlsen', platform: 'chess.com' },
+  { username: 'DrNykterstein', platform: 'lichess' },
+]
 
 type Inputs = { username: string }
 
 function Login() {
   const navigate = useNavigate()
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
-  } = useForm<Inputs>()
+  } = useForm<Inputs>({ defaultValues: { username: '' } })
   const { activeTab } = useTabContext()
   const { data: googleUser } = useGoogleUser()
   const { data: dbUser } = useGetUser(googleUser?.sub)
   const { mutateAsync } = useUpdateChessUsername()
   const { changeUsername } = useSearch({ from: '/' })
 
-  const { given_name: FirstName } = googleUser ?? {}
+  const firstName: string | undefined = googleUser?.given_name
+  const savedPlatform = parsePlatform(dbUser?.chessPlatform)
+  const [platform, setPlatform] = useState<Platform>(DEFAULT_PLATFORM)
 
-  if (dbUser?.chessUserId && !changeUsername) {
+  // Start on whichever platform the signed-in user last saved.
+  useEffect(() => {
+    if (dbUser?.chessPlatform) setPlatform(savedPlatform)
+  }, [dbUser?.chessPlatform])
+
+  // Signed-in users with a saved username go straight to their profile,
+  // unless they came here to change it.
+  useEffect(() => {
+    if (dbUser?.chessUserId && !changeUsername) {
+      navigate({
+        to: '/profile/$username',
+        params: { username: dbUser.chessUserId },
+        search: platformSearch(savedPlatform),
+      })
+    }
+  }, [dbUser?.chessUserId, changeUsername])
+
+  function openPlayer(username: string, playerPlatform: Platform) {
     navigate({
-      to: '/profile/$username',
-      params: { username: dbUser.chessUserId },
+      to: activeTab === 0 ? '/profile/$username' : '/stats/$username',
+      params: { username },
+      search: platformSearch(playerPlatform),
     })
   }
 
-  async function onSubmit(data: { username: string }) {
+  async function onSubmit(data: Inputs) {
+    const username = data.username.trim()
     if (googleUser) {
-      await mutateAsync({ sub: googleUser.sub, chessUsername: data.username })
-    }
-    if (activeTab === 0) {
-      navigate({
-        to: '/profile/$username',
-        params: { username: data.username },
+      await mutateAsync({
+        sub: googleUser.sub,
+        chessUsername: username,
+        platform,
       })
-    } else {
-      navigate({ to: '/stats/$username', params: { username: data.username } })
     }
+    openPlayer(username, platform)
   }
+
+  const isChanging = !!googleUser && !!changeUsername
 
   return (
     <PageWrapper>
@@ -210,87 +413,92 @@ function Login() {
           <Header />
         </StyledHeader>
         <Subtitle>
-          Analyze your Chess.com performance with beautiful visualizations,
-          track rating progress, and review game history
+          Ratings, openings and game history for any Chess.com or Lichess
+          player, in one place.
         </Subtitle>
-
-        {googleUser && (
-          <WelcomeText>
-            Welcome back,{' '}
-            <strong style={{ color: '#34d399' }}>{FirstName} 👋</strong>
-          </WelcomeText>
+        {firstName && (
+          <Welcome>
+            Welcome back, <strong>{firstName}</strong> 👋
+          </Welcome>
         )}
-        <div
-          style={{
-            borderRadius: '1rem',
-            padding: '0.12rem',
-            background:
-              'linear-gradient(135deg, #34a37e 0%, #6ee7b7 40%, white 65%, #99f6e4 100%)',
-          }}
-        >
-          <Searchbox>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: '600' }}>
-              Enter your Chess.com username
-            </h1>
-
-            <SearchRow>
-              <Form onSubmit={handleSubmit(onSubmit)}>
-                <Input
-                  style={{
-                    border: '1.5px solid var(--brand)',
-                    borderRadius: '1rem',
-                  }}
-                  defaultValue="Hikaru"
-                  placeholder="for e.g. gothamchess"
-                  {...register('username', { required: true })}
-                />
-                <Button>Analyze</Button>
-              </Form>
-            </SearchRow>
-            {errors.username && (
-              <ErrorMessage message="Username is mandatory!" />
-            )}
-          </Searchbox>
-        </div>
       </Hero>
 
+      <SearchRing>
+        <SearchPanel>
+          <SearchHeading>
+            {isChanging
+              ? 'Change your saved username'
+              : googleUser
+                ? 'Your username'
+                : 'Look up a player'}
+          </SearchHeading>
+
+          <PlatformToggle value={platform} onChange={setPlatform} />
+
+          <SearchForm onSubmit={handleSubmit(onSubmit)}>
+            <InputSlot>
+              <Controller
+                name="username"
+                control={control}
+                rules={{ required: true, validate: (v) => !!v.trim() }}
+                render={({ field }) => (
+                  <UsernameAutocomplete
+                    platform={platform}
+                    name={field.name}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    fullWidth
+                    placeholder={`${PLATFORM_LABELS[platform]} username`}
+                  />
+                )}
+              />
+            </InputSlot>
+            <AnalyzeButton>{isChanging ? 'Save' : 'Analyze'}</AnalyzeButton>
+          </SearchForm>
+
+          {errors.username && <ErrorMessage message="Enter a username." />}
+
+          {!isChanging && (
+            <QuickStart>
+              <QuickLabel>Try:</QuickLabel>
+              {EXAMPLES.map(({ username, platform: examplePlatform }) => (
+                <Chip
+                  key={username}
+                  type="button"
+                  onClick={() => openPlayer(username, examplePlatform)}
+                >
+                  {username}
+                  {examplePlatform === 'lichess' && <small> · Lichess</small>}
+                </Chip>
+              ))}
+            </QuickStart>
+          )}
+        </SearchPanel>
+      </SearchRing>
+
       {!googleUser && (
-        <>
-          <Divider>Sign in with Google to save your username</Divider>
-          <GoogleOAuthButton onClick={oauthSignIn} />
-        </>
+        <SignInLine>
+          <span>Save your username and track players —</span>
+          <GoogleButton type="button" onClick={oauthSignIn}>
+            <FcGoogle size={16} aria-hidden />
+            Sign in with Google
+          </GoogleButton>
+        </SignInLine>
       )}
 
-      {/* Feature cards */}
       <FeatureGrid>
-        <FeatureCard>
-          <FeatureIconWrapper color="#3b3f8c">
-            <FaChartLine color="#818cf8" size={20} />
-          </FeatureIconWrapper>
-          <FeatureTitle>Rating History</FeatureTitle>
-          <FeatureDesc>
-            Track rating progression across Blitz, Bullet, and Rapid with
-            interactive charts
-          </FeatureDesc>
-        </FeatureCard>
-        <FeatureCard>
-          <FeatureIconWrapper color="#5b2d6e">
-            <FaTrophy color="#c084fc" size={20} />
-          </FeatureIconWrapper>
-          <FeatureTitle>Performance Stats</FeatureTitle>
-          <FeatureDesc>
-            View win rates, best ratings, total games, and detailed metrics
-          </FeatureDesc>
-        </FeatureCard>
-        <FeatureCard>
-          <FeatureIconWrapper color="#1e4d3b">
-            <FaGamepad color="#34d399" size={20} />
-          </FeatureIconWrapper>
-          <FeatureTitle>Game History</FeatureTitle>
-          <FeatureDesc>
-            Browse recent games with details and direct links to Chess.com
-          </FeatureDesc>
-        </FeatureCard>
+        {FEATURES.map(({ icon: Icon, title, desc, bg, fg }) => (
+          <FeatureCard key={title}>
+            <FeatureIcon $bg={bg} $fg={fg}>
+              <Icon size={19} stroke={1.7} aria-hidden />
+            </FeatureIcon>
+            <div>
+              <FeatureTitle>{title}</FeatureTitle>
+              <FeatureDesc>{desc}</FeatureDesc>
+            </div>
+          </FeatureCard>
+        ))}
       </FeatureGrid>
     </PageWrapper>
   )

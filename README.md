@@ -1,8 +1,8 @@
 # Chess-stats
 
-A multi-platform chess statistics and analytics web app. Pull your game history from Chess.com (with Lichess support on the way), break it down by time period, and track favourite players across platforms, all in a fast, cached, type-safe React app.
+A multi-platform chess statistics and analytics web app. Pull your game history from Chess.com or Lichess, break it down by time period, and track favourite players across platforms, all in a fast, cached, type-safe React app.
 
-> **Status:** Active development. Chess.com integration is functional; Lichess integration and a multi-platform schema redesign are in progress.
+> **Status:** Active development. Chess.com and Lichess are both supported end to end (profile, stats, dashboard, games, favourites).
 
 ---
 
@@ -24,15 +24,18 @@ A multi-platform chess statistics and analytics web app. Pull your game history 
 
 ## Overview
 
-Chess-stats lets a player look up any Chess.com username, select a month, and get a full analytical breakdown of every game played in that window: opponents, results, ratings, time controls, and move counts, rendered in a clean, dashboard-style UI. Players you care about can be bookmarked as **Favourites** for quick re-analysis later.
+Chess-stats lets a player look up any Chess.com or Lichess username, select a month, and get a full analytical breakdown of every game played in that window: opponents, results, ratings, time controls, and move counts, rendered in a clean, dashboard-style UI. Players you care about can be bookmarked as **Favourites** for quick re-analysis later.
 
-The project is built with platform-agnostic design from day one: the schema, routing, and data layer are structured so that Lichess (and potentially other platforms) can be added without reworking the core app.
+The project is built with platform-agnostic design: the schema, routing, and data layer normalize every platform into one shape, so adding another platform means writing an adapter, not reworking the app.
 
 ## Features
 
-- **Player lookup**: search any Chess.com username and pull their public profile (avatar, title, country, join date).
+- **Player lookup**: search any Chess.com or Lichess username and pull their public profile (avatar, title, country, join date).
+- **Username autocomplete**: Lichess usernames are suggested as you type (debounced, with titles and online status).
 - **Month picker**: custom year/month navigation UI, bounded by the player's join date and the current month.
-- **Dashboard**: win/loss/draw breakdown, rating trends, and game-level detail for the selected range.
+- **Dashboard**: win/loss/draw breakdown, rating trends, streaks, win rate by color, how games end, and game-level detail for the selected range.
+- **Rating over time**: every time control on one chart, bucketed daily/weekly/monthly by the span shown, with a table view.
+- **Opening trends**: most-played openings per color with W/D/L split, score, best/toughest opening, and whether each opening is being played more or less often lately.
 - **Smart time ranges**: 7D / 30D / 90D / 1Y / All, with shared caching to avoid redundant fetches.
 - **Favourites**: track players across platforms for quick access, backed by Supabase.
 - **Google Sign-In**: implicit OAuth flow with idle-timeout session expiry.
@@ -50,7 +53,7 @@ The project is built with platform-agnostic design from day one: the schema, rou
 | Component Library     | [Mantine UI](https://mantine.dev/) v8          |
 | Backend / DB          | [Supabase](https://supabase.com/)              |
 | Auth                  | Google OAuth 2.0 (implicit flow)               |
-| External Data         | Chess.com Public API, Lichess API (planned)    |
+| External Data         | Chess.com Public API, Lichess API              |
 
 ## Architecture
 
@@ -69,7 +72,7 @@ The project is built with platform-agnostic design from day one: the schema, rou
 |                                  |           |            |                             |
 |                                  |           |            +--------------+--------------+
 |          Lichess                 |           |                           |
-|          (planned)               +-----------+                           |
+|       (public REST API)          +-----------+                           |
 |                                  |           |                           |
 |                                  |           |                           |
 +----------------------------------+           |                           |
@@ -99,7 +102,8 @@ The project is built with platform-agnostic design from day one: the schema, rou
 **Key principles:**
 
 - **Single source of truth for auth state.** Token expiry is checked once at the root of the app rather than in every consumer component. This was an explicit simplification over a more "defensive" per-component check.
-- **Cache-first, platform-agnostic data layer.** Hooks like `useGames` and `useProfile` abstract over the underlying platform so the UI doesn't need to know whether data came from Chess.com or Lichess.
+- **Cache-first, platform-agnostic data layer.** Hooks like `useGames` and `useProfile` take a platform and return normalized data (`PlayerProfile`, `PlayerStats`, `TransformedGame`), so the UI doesn't need to know whether data came from Chess.com or Lichess. `services/apiPlayer.tsx` dispatches per platform; the adapters live in `helpers/normalizePlayer.ts` and `helpers/transformGame.ts`.
+- **Platform lives in the URL.** Player routes take an optional `?platform=lichess` search param (`usePlatform()` reads it). Chess.com is the default and is left out of the URL, so existing links keep working.
 - **Protected routes are minimal.** Rather than wrapping every route in guard logic, only routes that strictly require auth (e.g. Favourites) redirect via a `beforeLoad` check.
 
 ## Authentication
@@ -119,21 +123,24 @@ All remote data goes through **TanStack Query**, with a caching scheme tuned to 
 
 - **7D / 30D / 90D ranges share a single cache key (`'90D'`).** Since 90 days is the largest of the three "short" ranges, fetching it once covers all three views without re-fetching when a user toggles between them.
 - **1Y / All ranges are fetched lazily**, and when a user navigates back to a shorter range, `getQueryData` is used to read from the existing cache rather than triggering a new request.
-- **Variant games are filtered out.** Chess.com's API returns bughouse/crazyhouse/other variant games with undefined PGNs; only `chess` and `chess960` rule types are kept to avoid downstream FEN-parsing errors.
+- **Variant games are filtered out.** Chess.com's API returns bughouse/crazyhouse/other variant games with undefined PGNs; only standard `chess` games are analyzed. Lichess exports are requested for standard speeds only (`bullet,blitz,rapid,classical,correspondence`).
+- **Every query key includes the platform**, so the same username on Chess.com and Lichess never shares a cache entry.
+- **Lichess exports are capped.** Lichess streams game exports at ~20 games/second for anonymous clients, so each export is capped to the most recent 1,000 games (`LICHESS_MAX_GAMES`) and the dashboard says so when the cap is hit.
 
 ## Database Schema
 
-Supabase is used for persistent app data (currently: favourites, and session-related metadata). The schema is being actively redesigned to support multiple platforms cleanly:
+Supabase is used for persistent app data (currently: favourites, and session-related metadata). The schema stores players from both platforms side by side:
 
-**Current vs. planned changes:**
+| Column                     | Type / meaning                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| `player_id`                | `text`: Chess.com numeric IDs stringified, Lichess IDs (lowercase usernames)   |
+| `platform`                 | `'chess.com'` or `'lichess'` (check constraint), on `chess_profile` and `favourite_players` |
+| `user_sub`                 | Google OAuth subject claim, used to scope rows per signed-in user              |
+| `user."chessPlatform"`     | which platform the signed-in user's saved username (`chessUserId`) belongs to  |
 
-| Column      | Current                                                           | Planned                                                    |
-| ----------- | ----------------------------------------------------------------- | ---------------------------------------------------------- |
-| `player_id` | `int8` (Chess.com numeric ID)                                     | string-compatible type (Lichess IDs aren't purely numeric) |
-| `platform`  | _(not present)_                                                   | new column, e.g. `'chess.com'` or `'lichess'`              |
-| `user_sub`  | Google OAuth subject claim, used to scope rows per signed-in user | unchanged                                                  |
+Uniqueness is platform-scoped: `chess_profile (platform, player_id)` and `favourite_players (user_sub, platform, player_id)`, which are also the app's upsert conflict targets. This keeps the same logical favourite independent of which platform it came from, with no collisions between platforms that reuse similar IDs/usernames.
 
-This redesign is driven by the need to store the same logical favourite (a player) independently of which platform their data came from, without collisions between platforms that might reuse similar IDs/usernames.
+The migration lives in `supabase/migrations/20261020000000_multi_platform_players.sql`. **Apply it before deploying the app version that ships with it**, since the new upserts fail against the old constraints. Paste it into the Supabase SQL editor or run `supabase db push`. It discovers and replaces the existing `player_id` keys itself and is safe to re-run.
 
 ## API Integrations
 
@@ -142,16 +149,18 @@ This redesign is driven by the need to store the same logical favourite (a playe
 - Public REST API, no auth required for profile/game data.
 - Used for: player profiles, monthly game archives, avatars, titles, country flags.
 
-### Lichess (planned)
+### Lichess (active)
 
-- Lichess API integration is the next major milestone.
-- Username autocomplete will use Lichess's autocomplete endpoint:
+- Public REST API, no auth required.
+- `GET /api/user/{username}`: profile, flag, play time, per-speed game counts.
+- `GET /api/user/{username}/perf/{perf}`: current/peak rating and W/L/D per speed. Fetched one at a time (Lichess asks API clients not to parallelize), only for speeds the player has played.
+- `GET /api/games/user/{username}` (NDJSON): game export with openings, capped as described above. Lichess answers `404` on this endpoint to clients it treats as bots (curl's default user agent, headless Chrome), so drive it from a real browser when testing.
+- Username autocomplete uses:
   ```
   https://lichess.org/api/player/autocomplete?term={query}&object=true
   ```
-- Autocomplete UX is intentionally deferred until this integration lands, rather than building a Chess.com-only version first.
 
-> **Note:** There is no documented Chess.com search/autocomplete endpoint at this time. Autocomplete is being built around Lichess first for that reason.
+> **Note:** There is no documented Chess.com search/autocomplete endpoint, so autocomplete is Lichess-only; on Chess.com the same input works as a plain text field.
 
 ## Project Structure
 
@@ -168,11 +177,13 @@ This redesign is driven by the need to store the same logical favourite (a playe
     ├── components/          # Footer, Header, SideBar
     ├── contexts/            # TabContext
     ├── css/                 # CSS modules (FloatingTab, NavbarMinimal)
-    ├── helpers/             # DateFormat, RecordPercentageCalc,
-    │                        # TransformGames, gamesDateWise, urlUtility
+    ├── helpers/             # platform, timeControls, normalizePlayer,
+    │                        # transformGame, openings, calculateOpeningStats,
+    │                        # calculateRatingHistory, calculateStreaks,
+    │                        # calculateWinRateBreakdown, DateFormat, ...
     ├── hooks/               # Data-fetching & mutation hooks
     │   ├── useGames.tsx / useGamesRecentdays.tsx
-    │   ├── useProfile.tsx / useCountry.tsx
+    │   ├── useProfile.tsx / usePlatform.tsx / useLichessAutocomplete.tsx
     │   ├── useGetUser.tsx / useGetUserFromChessId.tsx
     │   ├── useGoogleUser.tsx
     │   ├── useFetchChessProfileBulk.tsx / useFetchChessprofileFromSupa.tsx
@@ -188,6 +199,8 @@ This redesign is driven by the need to store the same logical favourite (a playe
     │   └── Login.tsx
     ├── services/            # External API & backend clients
     │   ├── OAuth.tsx
+    │   ├── apiPlayer.tsx    # per-platform dispatch (profile, stats, games)
+    │   ├── apiLichess.tsx
     │   ├── apiFlags.tsx
     │   ├── apiStats.tsx
     │   ├── apiUser.ts
@@ -197,7 +210,9 @@ This redesign is driven by the need to store the same logical favourite (a playe
     └── ui/                  # Shared/presentational components
         ├── AppLayout.tsx / Form.tsx / Button.tsx / Input.tsx
         ├── PlayerAvatar.tsx / Profilething.tsx
-        ├── AreaGraph.tsx / PieGraph.tsx
+        ├── AreaGraph.tsx / PieGraph.tsx / RatingHistoryGraph.tsx
+        ├── OpeningTrends.tsx / WinRateBreakdown.tsx
+        ├── PlatformToggle.tsx / UsernameAutocomplete.tsx
         ├── DarkModeToggle.tsx / FloatingTab.tsx
         └── Spinner.tsx / ErrorMessage.tsx / PageNotFound.tsx
 ```
@@ -218,16 +233,21 @@ cp .env.example .env
 
 # Run locally (Vite dev server)
 npm run dev
+
+# Unit tests (Vitest)
+npm test
 ```
 
 > Update env var names above to match what's actually read in `services/supabase.ts` and `services/OAuth.tsx`.
 
 ## Roadmap
 
-- [ ] Lichess API integration
-- [ ] Username autocomplete (Lichess-first)
-- [ ] Schema migration: `player_id` to string type, add `platform` column
-- [ ] Extend Dashboard analytics (opening trends, rating graphs over time)
+- [x] Lichess API integration
+- [x] Username autocomplete (Lichess-first)
+- [x] Schema migration: `player_id` to string type, add `platform` column
+- [x] Extend Dashboard analytics (opening trends, rating graphs over time)
+- [ ] Stream Lichess exports progressively instead of waiting for the full (capped) download
+- [ ] More platforms behind the same adapter layer
 
 ---
 

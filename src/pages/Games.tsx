@@ -1,277 +1,578 @@
 import styled from 'styled-components'
-import { useLocation, useNavigate, useParams } from '@tanstack/react-router'
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useRouter,
+  useSearch,
+} from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 
-import { SiTarget } from 'react-icons/si'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6'
-import { GiTrophy } from 'react-icons/gi'
 import {
-  FaCalendarAlt,
   FaCalendarDay,
-  FaChartBar,
+  FaChartPie,
   FaChessKing,
+  FaGamepad,
   FaHandshake,
   FaHeartBroken,
   FaShieldAlt,
 } from 'react-icons/fa'
-import { useFetchChessprofileFromSupa } from '../hooks/useFetchChessprofileFromSupa'
+import { GiTrophy } from 'react-icons/gi'
+import { SiTarget } from 'react-icons/si'
+import { FiArrowLeft, FiExternalLink } from 'react-icons/fi'
+import useProfile from '../hooks/useProfile'
+import usePlatform from '../hooks/usePlatform'
+import { platformSearch } from '../helpers/platform'
+import useArchiveMonths from '../hooks/useArchiveMonths'
+import useGames from '../hooks/useGames'
+import { useProgressiveTransform } from '../hooks/useProgressiveTransform'
 import Spinner from '../ui/Spinner'
-import { queryFormatDate } from '../helpers/DateFormat'
+import { parseDayKey } from '../helpers/DateFormat'
+import PlatformBadge from '../ui/PlatformBadge'
 import { TitleBadge } from './Profile'
 
 // ─── Game list styled components ──────────────────────────────────────────────
 
+type Result = 'win' | 'loss' | 'draw'
+
+const RESULT_COLORS: Record<Result, string> = {
+  win: '#22c55e',
+  loss: '#ef4444',
+  draw: '#7f9cc9', // blue-grey: neutral, but distinct from the grey UI text
+}
+
+const RESULT_LABELS: Record<Result, string> = {
+  win: 'Win',
+  loss: 'Loss',
+  draw: 'Draw',
+}
+
 const PageContainer = styled.div`
-  padding: 0.5rem 1rem;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.5rem 1rem 1rem;
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 0 1rem;
+  }
+`
+
+// Styles the router <Link> inside it; styled(Link) would lose the route
+// typing of its params and search.
+const BackLink = styled.div`
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.6;
+  }
+
+  a:hover,
+  a:focus-visible {
+    opacity: 1;
+  }
 `
 
 const Header = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+`
+
+const HeaderText = styled.div`
+  display: flex;
   flex-direction: column;
-  justify-content: center;
-  margin-bottom: 1.5rem;
+  gap: 0.35rem;
 `
 
 const PageTitle = styled.h1`
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   margin: 0;
 `
 
-const PageSubtitle = styled.div`
+const PageSubtitle = styled.p`
   display: flex;
   align-items: center;
-  gap: 1rem;
-  font-size: 1.1rem;
-  opacity: 0.7;
-  margin-top: 0.5rem;
-`
-
-const GamesGrid = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  height: 72vh;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-  -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-  padding-bottom: 2rem;
-
-  @media (max-width: 768px) {
-    min-width: 700px;
-    overflow-x: visible;
-  }
-`
-
-const TableWrapper = styled.div`
-  padding: 2rem;
-  border-radius: 2rem;
-  background: #08140f;
-  box-shadow:
-    inset 0 0 20px rgba(255, 255, 255, 0.25),
-    0 4px 12px rgba(0, 0, 0, 0.2);
-  border: 1px solid #fff7;
-
-  @media (max-width: 768px) {
-    padding: 1rem;
-    border-radius: 1.25rem;
-    /* Table keeps its columns and scrolls sideways instead of cramming. */
-    overflow-x: auto;
-  }
-
-  [data-mantine-color-scheme='light'] & {
-    background: rgba(255, 255, 255, 0.45);
-    box-shadow:
-      inset 0 0 20px rgba(0, 0, 0, 0.15),
-      0 4px 12px rgba(0, 0, 0, 0.2);
-    border: 1.5px solid rgba(0, 0, 0, 0.15);
-  }
-`
-
-const TableHeader = styled.div`
-  display: grid;
-  margin-bottom: 1rem;
-  grid-template-columns: 2fr 1fr 1.5fr 0.8fr 1.2fr 0.3fr;
-  padding: 0rem 2rem;
-
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin: 0;
-  }
-
-  @media (max-width: 768px) {
-    min-width: 700px;
-    padding: 0 1rem;
-  }
-`
-
-const GameCard = styled.a<{ $result: 'win' | 'loss' | 'draw' }>`
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1.5fr 0.8fr 1.2fr 0.3fr;
-  align-items: center;
-  padding: 0.75rem 2rem;
-  border-radius: 2rem;
-
-  @media (max-width: 768px) {
-    padding: 0.75rem 1rem;
-    border-radius: 1rem;
-  }
-  background: ${(props) => {
-    if (props.$result === 'win') return 'rgba(34, 197, 94, 0.2)'
-    if (props.$result === 'loss') return 'rgba(239, 68, 68, 0.2)'
-    return 'rgba(59, 130, 246, 0.2)'
-  }};
-  border: 1px solid
-    ${(props) => {
-      if (props.$result === 'win') return 'rgba(34, 197, 94, 0.35)'
-      if (props.$result === 'loss') return 'rgba(239, 68, 68, 0.35)'
-      return 'rgba(59, 130, 246, 0.25)'
-    }};
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  box-shadow: ${(props) => {
-    if (props.$result === 'win')
-      return 'inset 0 0 20px rgba(34, 197, 94, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
-    if (props.$result === 'loss')
-      return 'inset 0 0 20px rgba(239, 68, 68, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
-    return 'inset 0 0 20px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)'
-  }};
-
-  &:hover {
-    box-shadow: ${(props) => {
-      if (props.$result === 'win')
-        return 'inset 0 0 30px rgba(34, 197, 94, 0.5), 0 8px 20px rgba(0, 0, 0, 0.3)'
-      if (props.$result === 'loss')
-        return 'inset 0 0 30px rgba(239, 68, 68, 0.5), 0 8px 20px rgba(0, 0, 0, 0.3)'
-      return 'inset 0 0 30px rgba(59, 130, 246, 0.5), 0 8px 20px rgba(0, 0, 0, 0.3)'
-    }};
-    background: ${(props) => {
-      if (props.$result === 'win') return 'rgba(34, 197, 94, 0.4)'
-      if (props.$result === 'loss') return 'rgba(239, 68, 68, 0.4)'
-      return 'rgba(59, 130, 246, 0.25)'
-    }};
-    border-color: ${(props) => {
-      if (props.$result === 'win') return 'rgba(34, 197, 94, 0.4)'
-      if (props.$result === 'loss') return 'rgba(239, 68, 68, 0.4)'
-      return 'rgba(59, 130, 246, 0.4)'
-    }};
-  }
-`
-
-const PlayersSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`
-
-const PlayerRow = styled.div<{ $highlight?: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.1rem;
-  font-weight: ${(props) => (props.$highlight ? '600' : '400')};
-  opacity: ${(props) => (props.$highlight ? '1' : '0.7')};
-`
-
-const ColorDot = styled.div<{ $color: 'white' | 'black' }>`
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: ${(props) => (props.$color === 'white' ? '#fff' : '#1a1a1a')};
-  border: 2px solid ${(props) => (props.$color === 'white' ? '#333' : '#666')};
-
-  [data-mantine-color-scheme='light'] & {
-    border: 2px solid ${(props) => (props.$color === 'white' ? '#999' : '#333')};
-  }
-`
-
-const Rating = styled.span`
-  font-size: 1rem;
-  color: #fff;
-  [data-mantine-color-scheme='light'] & {
-    color: #333;
-  }
-`
-
-const PlayerName = styled.span`
-  font-size: 1.15rem;
-  color: #fff;
-  [data-mantine-color-scheme='light'] & {
-    color: #333;
-  }
-`
-
-const ResultSection = styled.div<{ $result: 'win' | 'loss' | 'draw' }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  margin: 0;
+
+  /* Dim the text only; the icons keep their full colour. */
+  & > span {
+    opacity: 0.78;
+  }
 `
 
-const ResultScore = styled.div<{ $result: 'win' | 'loss' | 'draw' }>`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: ${(props) => {
-    if (props.$result === 'win') return '#22c55e'
-    if (props.$result === 'loss') return '#ef4444'
-    return '#3b82f6'
-  }};
+const SubtitleItem = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  && {
+    opacity: 1;
+  }
+
+  /* The text only; the icon badge stays at full strength. */
+  & > span:last-child {
+    opacity: 0.78;
+  }
 `
 
-const ResultLabel = styled.div<{ $result: 'win' | 'loss' | 'draw' }>`
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: ${(props) => {
-    if (props.$result === 'win') return '#22c55e'
-    if (props.$result === 'loss') return '#ef4444'
-    return '#3b82f6'
-  }};
+// Same tinted badge as the summary icons, smaller and tighter for the
+// subtitle line.
+const SubtitleIcon = styled.span<{ $accent: string }>`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 7px;
+  color: ${({ $accent }) => $accent};
+  background: color-mix(in srgb, ${({ $accent }) => $accent} 16%, transparent);
 `
 
-const InfoText = styled.div`
-  font-size: 1rem;
-  opacity: 0.8;
+const Summary = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.75rem;
 `
 
-const MovesCount = styled.div`
-  font-size: 1.2rem;
-  font-weight: 600;
+// Icon badge beside a label-over-value stack, like the dashboard's cards.
+const SummaryItem = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  /* Faint hairline between stats, centred in the gap. Hidden on phones,
+     where the stats wrap and a divider could end up at a line end. */
+  & + &::before {
+    content: '';
+    position: absolute;
+    left: -0.875rem;
+    top: 20%;
+    bottom: 20%;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  [data-mantine-color-scheme='light'] & + &::before {
+    background: rgba(0, 0, 0, 0.12);
+  }
+
+  @media (max-width: 768px) {
+    & + &::before {
+      display: none;
+    }
+  }
+`
+
+// Label and value centred on each other, so the short labels sit over the
+// middle of wider values like "41.5 / 42".
+const SummaryText = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
   text-align: center;
 `
 
-const DateSection = styled.div`
+const SummaryIcon = styled.span<{ $accent: string }>`
+  flex-shrink: 0;
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 1.15rem;
-  opacity: 0.7;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  color: ${({ $accent }) => $accent};
+  background: color-mix(in srgb, ${({ $accent }) => $accent} 16%, transparent);
 `
 
-const ChevronIcon = styled(FaChevronRight)`
-  opacity: 0.5;
-  transition: all 0.2s;
+const SummaryLabel = styled.span`
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.68;
+`
 
-  ${GameCard}:hover & {
+const SummaryValue = styled.span`
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+`
+
+const Filters = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+`
+
+const FilterChip = styled.button<{ $active: boolean; $color?: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: ${({ $active }) => ($active ? 'var(--on-brand)' : 'inherit')};
+  background: ${({ $active }) =>
+    $active ? 'var(--brand-fill)' : 'transparent'};
+  border: 1px solid
+    ${({ $active }) => ($active ? 'transparent' : 'var(--brand-border)')};
+  opacity: ${({ $active }) => ($active ? 1 : 0.8)};
+
+  &:hover {
     opacity: 1;
-    transform: translateX(4px);
+  }
+
+  &::before {
+    content: '';
+    display: ${({ $color }) => ($color ? 'block' : 'none')};
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: ${({ $color }) => $color};
   }
 `
 
-const IconRow = styled.div`
+const ChipCount = styled.span`
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+`
+
+// Neutral (not green) so the green page doesn't show through and blur
+// with the green win rows; the result tints are the only colour inside.
+const Panel = styled.div`
+  border-radius: 16px;
+  background: #121517;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  padding: 0.75rem;
+
+  [data-mantine-color-scheme='light'] & {
+    background: #fbfcfc;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+  }
+`
+
+const COLUMNS =
+  '6rem minmax(0, 1.4fr) minmax(0, 1.6fr) 5.5rem 4rem 4.5rem 1.5rem'
+// Mid widths: narrower numeric columns so names and openings keep room.
+const COLUMNS_MID =
+  '6rem minmax(0, 1.5fr) minmax(0, 1.3fr) 3.75rem 3rem 3.5rem 1rem'
+
+const TableHeader = styled.div`
+  display: grid;
+  grid-template-columns: ${COLUMNS};
+  gap: 1rem;
+  padding: 0.25rem 1rem 0.6rem;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: ${COLUMNS_MID};
+    gap: 0.75rem;
+  }
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.62;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`
+
+const GamesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 68vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+
+  @media (max-width: 768px) {
+    max-height: none;
+    overflow: visible;
+  }
+`
+
+const GameRow = styled.a<{ $result: Result }>`
+  display: grid;
+  grid-template-columns: ${COLUMNS};
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  /* A faint wash of the result colour, plus a solid bar on the left edge. */
+  background: color-mix(
+    in srgb,
+    ${({ $result }) => RESULT_COLORS[$result]} 7%,
+    transparent
+  );
+  border: 1px solid
+    color-mix(
+      in srgb,
+      ${({ $result }) => RESULT_COLORS[$result]} 16%,
+      transparent
+    );
+  box-shadow: inset 3px 0 0 ${({ $result }) => RESULT_COLORS[$result]};
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(
+      in srgb,
+      ${({ $result }) => RESULT_COLORS[$result]} 13%,
+      transparent
+    );
+    border-color: color-mix(
+      in srgb,
+      ${({ $result }) => RESULT_COLORS[$result]} 35%,
+      transparent
+    );
+  }
+
+  [data-mantine-color-scheme='light'] & {
+    background: color-mix(
+      in srgb,
+      ${({ $result }) => RESULT_COLORS[$result]} 9%,
+      rgba(255, 255, 255, 0.6)
+    );
+
+    &:hover,
+    &:focus-visible {
+      background: color-mix(
+        in srgb,
+        ${({ $result }) => RESULT_COLORS[$result]} 15%,
+        rgba(255, 255, 255, 0.8)
+      );
+    }
+  }
+
+  @media (max-width: 1100px) {
+    grid-template-columns: ${COLUMNS_MID};
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 4.5rem minmax(0, 1fr) 1.25rem;
+    grid-template-areas:
+      'result opponent open'
+      'result meta open';
+    gap: 0.25rem 0.75rem;
+    padding: 0.7rem 0.8rem;
+  }
+`
+
+const ResultPill = styled.span<{ $result: Result }>`
+  justify-self: start;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 4.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: ${({ $result }) => RESULT_COLORS[$result]};
+  background: color-mix(
+    in srgb,
+    ${({ $result }) => RESULT_COLORS[$result]} 14%,
+    transparent
+  );
+
+  /* inherit: the global theme gives every span the page text colour. */
+  & > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: inherit;
+  }
+
+  small {
+    font-size: 0.68rem;
+    font-weight: 600;
+    opacity: 0.8;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 768px) {
+    grid-area: result;
+  }
+`
+
+function ResultIcon({ result }: { result: Result }) {
+  const props = { size: 12, 'aria-hidden': true } as const
+  if (result === 'win') return <GiTrophy {...props} />
+  if (result === 'loss') return <FaHeartBroken {...props} />
+  return <FaHandshake {...props} />
+}
+
+const Cell = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+`
+
+const OpponentCell = styled(Cell)`
+  @media (max-width: 768px) {
+    grid-area: opponent;
+  }
+`
+
+const Ellipsis = styled.span`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
+const Secondary = styled.span`
   display: flex;
   align-items: center;
-  flex-direction: row;
-  justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: 0.78rem;
+  opacity: 0.72;
 `
+
+const Rating = styled.span`
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.72;
+  font-variant-numeric: tabular-nums;
+`
+
+const SideDot = styled.span<{ $side: 'white' | 'black' }>`
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: ${({ $side }) => ($side === 'white' ? '#f4f4f4' : '#111')};
+  box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.8);
+`
+
+// The opponent's line is the bold one; the viewed player's is muted.
+const PlayerLine = styled.span<{ $isPlayer: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: ${({ $isPlayer }) => ($isPlayer ? '0.85rem' : '0.95rem')};
+  font-weight: ${({ $isPlayer }) => ($isPlayer ? 400 : 600)};
+
+  & > :not(${SideDot}) {
+    opacity: ${({ $isPlayer }) => ($isPlayer ? 0.72 : 1)};
+  }
+`
+
+const DesktopCell = styled(Cell)`
+  @media (max-width: 768px) {
+    display: none;
+  }
+`
+
+const Numeric = styled(DesktopCell)`
+  font-variant-numeric: tabular-nums;
+`
+
+// Phones fold reason, time control, moves and time into one line.
+const MobileMeta = styled(Secondary)`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    grid-area: meta;
+  }
+`
+
+const OpenIcon = styled(FiExternalLink)`
+  opacity: 0.35;
+  justify-self: end;
+
+  /* && outranks the global "* { transition: ... !important }" theme rule,
+     which would otherwise drop the transform transition. */
+  && {
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease !important;
+  }
+
+  /* Nudge toward where the arrow points: this opens the game off-site. */
+  ${GameRow}:hover &,
+  ${GameRow}:focus-visible & {
+    opacity: 0.9;
+    transform: translate(2px, -2px);
+  }
+
+  @media (max-width: 768px) {
+    grid-area: open;
+  }
+`
+
+const EmptyFilter = styled.p`
+  margin: 0;
+  padding: 2rem 1rem;
+  text-align: center;
+  opacity: 0.6;
+`
+
+// "Hikaru won by resignation" -> "Resignation"; the result pill already
+// says who won.
+function shortTermination(text: string): string {
+  if (!text) return '—'
+  if (/on time/i.test(text)) return 'Timeout'
+  const reason = /\bby\s+(.+)$/i.exec(text)?.[1]
+  if (!reason) return text
+  return reason.charAt(0).toUpperCase() + reason.slice(1)
+}
+
+// "180+2" -> "3+2", "60" -> "1+0", "1/86400" or "1d" -> "1 day".
+function formatTimeControl(raw: string): string {
+  if (!raw || raw === '-') return '—'
+  const daily = /^1\/(\d+)$/.exec(raw)
+  if (daily) {
+    const days = Math.round(Number(daily[1]) / 86400)
+    return `${days} ${days === 1 ? 'day' : 'days'}`
+  }
+  const lichessDaily = /^(\d+)d$/.exec(raw)
+  if (lichessDaily) {
+    const days = Number(lichessDaily[1])
+    return `${days} ${days === 1 ? 'day' : 'days'}`
+  }
+  const [base, increment = '0'] = raw.split('+')
+  const seconds = Number(base)
+  if (!Number.isFinite(seconds)) return raw
+  const minutes = seconds / 60
+  const label = Number.isInteger(minutes) ? String(minutes) : minutes.toFixed(1)
+  return `${label}+${increment}`
+}
 
 // ─── InputGames styled components ─────────────────────────────────────────────
 
@@ -374,6 +675,9 @@ const ProfileName = styled.div`
 `
 
 const ProfileHandle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.45);
 
@@ -417,36 +721,6 @@ const PickerCard = styled.div`
     box-shadow:
       0 0 0 1px var(--brand-ring),
       0 8px 32px rgba(0, 0, 0, 0.1);
-  }
-`
-
-const PickerCardHeader = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  text-align: center;
-`
-
-const PickerCardTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #fff;
-
-  [data-mantine-color-scheme='light'] & {
-    color: #0f172a;
-  }
-`
-
-const PickerCardSubtitle = styled.div`
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.45);
-
-  [data-mantine-color-scheme='light'] & {
-    color: rgba(0, 0, 0, 0.45);
   }
 `
 
@@ -559,45 +833,6 @@ const MonthButton = styled.button<{ $selected: boolean; $disabled: boolean }>`
   }
 `
 
-const AnalyzeButton = styled.button<{ $disabled: boolean }>`
-  width: 100%;
-  padding: 0.9rem;
-  border-radius: 0.8rem;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: ${(props) => (props.$disabled ? 'not-allowed' : 'pointer')};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  transition: all 0.2s;
-  background: ${(props) =>
-    props.$disabled ? 'rgba(255, 255, 255, 0.08)' : 'var(--brand-fill)'};
-  color: ${(props) => (props.$disabled ? 'rgba(255, 255, 255, 0.3)' : '#fff')};
-  box-shadow: ${(props) =>
-    props.$disabled
-      ? 'none'
-      : '0 4px 24px var(--brand-glow), 0 2px 8px rgba(0, 0, 0, 0.3)'};
-
-  [data-mantine-color-scheme='light'] & {
-    background: ${(props) =>
-      props.$disabled ? 'rgba(0, 0, 0, 0.08)' : 'var(--brand-fill)'};
-    color: ${(props) => (props.$disabled ? 'rgba(0, 0, 0, 0.3)' : '#fff')};
-  }
-
-  &:hover:not(:disabled) {
-    box-shadow:
-      0 6px 32px var(--brand-glow-strong),
-      0 4px 12px rgba(0, 0, 0, 0.35);
-    transform: translateY(-1px);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-`
-
 const FooterNote = styled.div`
   display: flex;
   align-items: center;
@@ -653,6 +888,7 @@ interface StandardGame {
   url: string
   whitePlayer: string
   Termination: string
+  opening?: string | null
 }
 
 interface LocationState {
@@ -665,13 +901,15 @@ function Games() {
   const navigate = useNavigate()
   const { username } = useParams({ from: '/games/$username' })
   const location = useLocation()
-  const games = (location.state as LocationState).games
+  const stateGames = (location.state as LocationState).games
+  const search = useSearch({ from: '/games/$username' })
 
+  const platform = usePlatform()
   const {
     data: profile,
     isPending: isFetchingProfile,
     error: errorProfile,
-  } = useFetchChessprofileFromSupa(username)
+  } = useProfile(username, platform)
 
   if (isFetchingProfile) return <Spinner />
 
@@ -689,7 +927,12 @@ function Games() {
     navigate({
       to: '/dashboard/$username',
       params: { username },
-      search: { year, month: inputmonth, range: '30D' },
+      search: {
+        year,
+        month: inputmonth,
+        range: '30D',
+        ...platformSearch(platform),
+      },
     })
   }
 
@@ -702,20 +945,33 @@ function Games() {
     const maxYear = dayjs().year()
     const maxMonth = dayjs().month() // 0-indexed
 
-    const [year, setYear] = useState(maxYear)
-    const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
+    // chess.com only; undefined (still loading, or lichess) falls back to
+    // the joined-date range alone.
+    const archiveMonths = useArchiveMonths(username, platform)
+    // Until the user steps through years, open on the latest year that has
+    // games, not a current year the player may not have played in.
+    const latestArchiveYear = archiveMonths?.size
+      ? Math.max(...[...archiveMonths].map((key) => Number(key.slice(0, 4))))
+      : null
+    const [pickedYear, setPickedYear] = useState<number | null>(null)
+    const year = pickedYear ?? latestArchiveYear ?? maxYear
+    const setYear = (step: number) => setPickedYear(year + step)
 
     const isMonthDisabled = (monthIdx: number) => {
       if (year < minYear) return true
       if (year === minYear && monthIdx < minMonth) return true
       if (year > maxYear) return true
       if (year === maxYear && monthIdx > maxMonth) return true
+      if (archiveMonths) {
+        const key = `${year}-${String(monthIdx + 1).padStart(2, '0')}`
+        return !archiveMonths.has(key)
+      }
       return false
     }
 
-    const handleSubmit = () => {
-      if (selectedMonth === null) return
-      const monthStr = String(selectedMonth + 1).padStart(2, '0')
+    // One click: picking a month opens it.
+    const openMonth = (monthIdx: number) => {
+      const monthStr = String(monthIdx + 1).padStart(2, '0')
       onSubmit(`${year}-${monthStr}`)
     }
 
@@ -754,43 +1010,38 @@ function Games() {
               )}
               {profile?.name || username}
             </ProfileName>
-            <ProfileHandle>@{username}</ProfileHandle>
+            <ProfileHandle>
+              {/* Without a real name the handle is already the title. */}
+              {profile?.name && `@${profile.username}`}
+              <PlatformBadge platform={platform} />
+            </ProfileHandle>
           </ProfileInfo>
           {profile?.country && (
             <ProfileCountry>
-              <img src={profile?.country_flag_url} />
-              {profile?.country?.name}
+              {profile.country.code !== 'XX' && (
+                <img
+                  src={`https://flagsapi.com/${profile.country.code}/flat/32.png`}
+                  alt=""
+                />
+              )}
+              {profile.country.name}
             </ProfileCountry>
           )}
         </ProfileCard>
 
         <PickerCard>
-          <PickerCardHeader>
-            <PickerCardTitle>
-              <FaCalendarAlt size={20} color="#84CC16" />
-              Choose Month
-            </PickerCardTitle>
-            <PickerCardSubtitle>
-              Pick a month and year to view your game history
-            </PickerCardSubtitle>
-          </PickerCardHeader>
-
           <YearNav>
             <YearNavButton
-              onClick={() => {
-                setYear((y) => y - 1)
-                setSelectedMonth(null)
-              }}
+              aria-label="Previous year"
+              onClick={() => setYear(-1)}
               disabled={year <= minYear}
             >
               <FaChevronLeft size={14} />
             </YearNavButton>
             <YearDisplay>{year}</YearDisplay>
             <YearNavButton
-              onClick={() => {
-                setYear((y) => y + 1)
-                setSelectedMonth(null)
-              }}
+              aria-label="Next year"
+              onClick={() => setYear(1)}
               disabled={year >= maxYear}
             >
               <FaChevronRight size={14} />
@@ -803,10 +1054,11 @@ function Games() {
               return (
                 <MonthButton
                   key={label}
-                  $selected={selectedMonth === idx}
+                  $selected={false}
                   $disabled={disabled}
                   disabled={disabled}
-                  onClick={() => setSelectedMonth(idx)}
+                  title={disabled ? 'No games this month' : undefined}
+                  onClick={() => openMonth(idx)}
                 >
                   {label}
                 </MonthButton>
@@ -814,138 +1066,353 @@ function Games() {
             })}
           </MonthGrid>
 
-          <AnalyzeButton
-            $disabled={selectedMonth === null}
-            disabled={selectedMonth === null}
-            onClick={handleSubmit}
-          >
-            <FaChartBar size={16} />
-            Analyze Games
-          </AnalyzeButton>
-
           <FooterNote>
             <FaShieldAlt size={12} />
-            Only completed games are included in the analysis
+            Pick a month to open its games. Only completed games are included.
           </FooterNote>
         </PickerCard>
       </SelectMonthPage>
     )
   }
 
-  if (!username || !games || games.length === 0) {
+  if (!username || !search.year || !search.month || !search.day) {
     return <InputGames />
   }
 
-  const gameDate = games[0]?.gameEndDate || ''
+  const dayKey = `${search.year}.${search.month}.${search.day}`
+  const playerName = profile?.name || profile?.username || username
 
-  const getResultIcon = (result: string) => {
-    if (result === 'win') return <GiTrophy size={24} color="#22c55e" />
-    if (result === 'loss') return <FaHeartBroken size={24} color="#ef4444" />
-    return <FaHandshake size={24} color="#3b82f6" />
+  // Opened from the chart: the day's games came along in router state, so
+  // show them straight away. Otherwise (reload, shared link) load them.
+  if (stateGames?.length && stateGames[0].gameEndDate === dayKey) {
+    return (
+      <GameList
+        games={stateGames}
+        username={username}
+        playerName={playerName}
+        platform={platform}
+      />
+    )
   }
 
-  const score = games.reduce((acc, game) => {
-    if (game.resultForPlayer === 'win') return acc + 1
-    if (game.resultForPlayer === 'draw') return acc + 0.5
-    return acc
-  }, 0)
+  return (
+    <DayGames
+      username={username}
+      year={search.year}
+      month={search.month}
+      dayKey={dayKey}
+      playerName={playerName}
+      platform={platform}
+    />
+  )
+}
+
+// Loads the month's archive and keeps the requested day's games.
+function DayGames({
+  username,
+  year,
+  month,
+  dayKey,
+  playerName,
+  platform,
+}: {
+  username: string
+  year: string
+  month: string
+  dayKey: string
+  playerName: string
+  platform: ReturnType<typeof usePlatform>
+}) {
+  const { games, isPending, error } = useGames(username, year, month, platform)
+  const { transformedData, progress } = useProgressiveTransform(
+    games,
+    username,
+    platform,
+  )
+
+  if (error) {
+    return (
+      <ErrorContainer>
+        <h1>Error</h1>
+        <p>{error.message}</p>
+      </ErrorContainer>
+    )
+  }
+  if (isPending || progress < 100) return <Spinner />
+
+  const dayGames = transformedData.standardgamesData.filter(
+    (game) => game.gameEndDate === dayKey,
+  )
+
+  if (dayGames.length === 0) {
+    return (
+      <ErrorContainer>
+        <h1>No games</h1>
+        <p>{playerName} has no finished games on this day.</p>
+      </ErrorContainer>
+    )
+  }
+
+  return (
+    <GameList
+      games={dayGames}
+      username={username}
+      playerName={playerName}
+      platform={platform}
+    />
+  )
+}
+
+type Filter = 'all' | Result
+
+function GameList({
+  games,
+  username,
+  playerName,
+  platform,
+}: {
+  games: Array<StandardGame>
+  username: string
+  playerName: string
+  platform: ReturnType<typeof usePlatform>
+}) {
+  const [filter, setFilter] = useState<Filter>('all')
+  const router = useRouter()
+
+  const counts: Record<Result, number> = { win: 0, loss: 0, draw: 0 }
+  for (const game of games) counts[game.resultForPlayer as Result]++
+  const points = counts.win + counts.draw / 2
+
+  // Every game here is from the one day that was clicked on the chart.
+  const day = games[0]?.gameEndDate
+    ? parseDayKey(games[0].gameEndDate).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : ''
+
+  const shown =
+    filter === 'all'
+      ? games
+      : games.filter((game) => game.resultForPlayer === filter)
+
+  const lowerUsername = username.toLowerCase()
+  const filters: Array<{ key: Filter; label: string; count: number }> = [
+    { key: 'all', label: 'All', count: games.length },
+    { key: 'win', label: 'Wins', count: counts.win },
+    { key: 'loss', label: 'Losses', count: counts.loss },
+    { key: 'draw', label: 'Draws', count: counts.draw },
+  ]
 
   return (
     <PageContainer>
+      <BackLink>
+        <Link
+          to="/dashboard/$username"
+          params={{ username }}
+          search={{
+            range: '90D',
+            year: undefined,
+            month: undefined,
+            ...platformSearch(platform),
+          }}
+          onClick={(event) => {
+            // Return to the dashboard exactly as it was left (its range,
+            // tab and scroll); the link is the fallback for direct visits.
+            if (window.history.length > 1 && !event.metaKey && !event.ctrlKey) {
+              event.preventDefault()
+              router.history.back()
+            }
+          }}
+        >
+          <FiArrowLeft size={14} /> Back to dashboard
+        </Link>
+      </BackLink>
+
       <Header>
-        <PageTitle>Match History</PageTitle>
-        <PageSubtitle>
-          <IconRow>
-            <FaCalendarDay size={24} color="aqua" />{' '}
-            {queryFormatDate(gameDate).yearMonth}
-          </IconRow>
-          <span>•</span>
-          <IconRow>
-            <FaChessKing size={24} color="#ff42c6" /> {profile?.name}
-          </IconRow>
-          <span>•</span>
-          <IconRow>
-            <SiTarget size={24} color="crimson" /> {score}/{games.length}
-          </IconRow>
-        </PageSubtitle>
+        <HeaderText>
+          <PageTitle>Match history</PageTitle>
+          <PageSubtitle>
+            <SubtitleItem>
+              <SubtitleIcon $accent="#ec4899">
+                <FaChessKing size={12} aria-hidden />
+              </SubtitleIcon>
+              <span>{playerName}</span>
+            </SubtitleItem>
+            <span>·</span>
+            <SubtitleItem>
+              <SubtitleIcon $accent="#38bdf8">
+                <FaCalendarDay size={11} aria-hidden />
+              </SubtitleIcon>
+              <span>{day}</span>
+            </SubtitleItem>
+          </PageSubtitle>
+        </HeaderText>
+        <Summary>
+          <SummaryItem>
+            <SummaryIcon $accent="#5fd2e6">
+              <FaGamepad size={17} aria-hidden />
+            </SummaryIcon>
+            <SummaryText>
+              <SummaryLabel>Games</SummaryLabel>
+              <SummaryValue>{games.length}</SummaryValue>
+            </SummaryText>
+          </SummaryItem>
+          <SummaryItem>
+            <SummaryIcon $accent="#f59e0b">
+              <SiTarget size={16} aria-hidden />
+            </SummaryIcon>
+            <SummaryText>
+              <SummaryLabel>Score</SummaryLabel>
+              <SummaryValue>
+                {points}
+                <span style={{ opacity: 0.5, fontWeight: 500 }}>
+                  {' '}
+                  / {games.length}
+                </span>
+              </SummaryValue>
+            </SummaryText>
+          </SummaryItem>
+          <SummaryItem>
+            <SummaryIcon $accent="#a855f7">
+              <FaChartPie size={15} aria-hidden />
+            </SummaryIcon>
+            <SummaryText>
+              <SummaryLabel>W · L · D</SummaryLabel>
+              <SummaryValue>
+                <span style={{ color: RESULT_COLORS.win }}>{counts.win}</span>
+                <span style={{ opacity: 0.4 }}> · </span>
+                <span style={{ color: RESULT_COLORS.loss }}>{counts.loss}</span>
+                <span style={{ opacity: 0.4 }}> · </span>
+                <span style={{ color: RESULT_COLORS.draw }}>{counts.draw}</span>
+              </SummaryValue>
+            </SummaryText>
+          </SummaryItem>
+        </Summary>
       </Header>
 
-      <TableWrapper>
+      <Filters role="group" aria-label="Filter by result">
+        {filters.map(({ key, label, count }) => (
+          <FilterChip
+            key={key}
+            type="button"
+            $active={filter === key}
+            $color={key === 'all' ? undefined : RESULT_COLORS[key]}
+            aria-pressed={filter === key}
+            onClick={() => setFilter(key)}
+          >
+            {label} <ChipCount>{count}</ChipCount>
+          </FilterChip>
+        ))}
+      </Filters>
+
+      <Panel>
         <TableHeader>
-          <h2>Player</h2>
-          <h2>Score</h2>
-          <h2>Result</h2>
-          <h2>Moves</h2>
-          <h2>Date Time</h2>
+          <span>Result</span>
+          <span>Players</span>
+          <span>How it ended</span>
+          <span>Time</span>
+          <span>Moves</span>
+          <span>Ended</span>
+          <span />
         </TableHeader>
-        <GamesGrid>
-          {games.map((game) => {
-            const isUserWhite =
-              game.whitePlayer.toLowerCase() === username.toLowerCase()
-            const opponentName = isUserWhite
-              ? game.blackPlayer
-              : game.whitePlayer
+        <GamesList>
+          {shown.length === 0 && (
+            <EmptyFilter>
+              No {filter === 'loss' ? 'losses' : `${filter}s`} on this day.
+            </EmptyFilter>
+          )}
+          {shown.map((game) => {
+            const result = game.resultForPlayer as Result
+            const isWhite = game.whitePlayer.toLowerCase() === lowerUsername
+            const opponent = isWhite ? game.blackPlayer : game.whitePlayer
+            const reason = shortTermination(game.Termination)
+            const timeControl = formatTimeControl(game.TimeControl)
+            const endedAt = game.date_time.split(' ')[1]?.slice(0, 5) ?? ''
 
             return (
-              <GameCard
+              <GameRow
                 key={game.url}
                 href={game.url}
                 target="_blank"
-                $result={game.resultForPlayer as 'win' | 'loss' | 'draw'}
+                rel="noopener noreferrer"
+                $result={result}
+                aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${reason.toLowerCase()}, ${game.moveCount} moves. Opens on ${platform === 'lichess' ? 'Lichess' : 'Chess.com'}.`}
               >
-                <PlayersSection>
-                  <PlayerRow
-                    $highlight={isUserWhite && game.resultForPlayer === 'win'}
-                  >
-                    <ColorDot $color="white" />
-                    <PlayerName>{game.whitePlayer}</PlayerName>
-                    <Rating>({game.WhiteElo})</Rating>
-                  </PlayerRow>
-                  <PlayerRow
-                    $highlight={!isUserWhite && game.resultForPlayer === 'win'}
-                  >
-                    <ColorDot $color="black" />
-                    <PlayerName>{game.blackPlayer}</PlayerName>
-                    <Rating>({game.BlackElo})</Rating>
-                  </PlayerRow>
-                </PlayersSection>
+                <ResultPill $result={result}>
+                  <span>
+                    <ResultIcon result={result} />
+                    {RESULT_LABELS[result]}
+                  </span>
+                  <small>{game.Result}</small>
+                </ResultPill>
 
-                <ResultSection
-                  $result={game.resultForPlayer as 'win' | 'loss' | 'draw'}
-                >
-                  <ResultScore
-                    $result={game.resultForPlayer as 'win' | 'loss' | 'draw'}
-                  >
-                    <IconRow>
-                      {getResultIcon(game.resultForPlayer)}
-                      {game.Result}
-                    </IconRow>
-                  </ResultScore>
-                  <ResultLabel
-                    $result={game.resultForPlayer as 'win' | 'loss' | 'draw'}
-                  >
-                    {game.resultForPlayer === 'win'
-                      ? `${username} Won`
-                      : game.resultForPlayer === 'loss'
-                        ? `${opponentName} Won`
-                        : 'Draw'}
-                  </ResultLabel>
-                </ResultSection>
+                <OpponentCell>
+                  {/* Same order on every row: opponent (bold) first, then
+                      the viewed player (muted). The dot shows who had
+                      White; the result colour doesn't depend on it. */}
+                  {(
+                    [
+                      {
+                        isPlayer: false,
+                        side: isWhite ? 'black' : 'white',
+                        name: opponent,
+                        rating: isWhite ? game.BlackElo : game.WhiteElo,
+                      },
+                      {
+                        isPlayer: true,
+                        side: isWhite ? 'white' : 'black',
+                        name: isWhite ? game.whitePlayer : game.blackPlayer,
+                        rating: isWhite ? game.WhiteElo : game.BlackElo,
+                      },
+                    ] as const
+                  ).map(({ isPlayer, side, name, rating }) => (
+                    <PlayerLine key={side} $isPlayer={isPlayer}>
+                      <SideDot
+                        $side={side}
+                        title={side === 'white' ? 'White' : 'Black'}
+                      />
+                      <Ellipsis>{name}</Ellipsis>
+                      <Rating>{rating}</Rating>
+                    </PlayerLine>
+                  ))}
+                </OpponentCell>
 
-                <InfoText>{game.Termination}</InfoText>
-                <MovesCount>{game.moveCount}</MovesCount>
+                <DesktopCell>
+                  <Ellipsis>{reason}</Ellipsis>
+                  {game.opening && (
+                    <Secondary>
+                      <Ellipsis title={game.opening}>{game.opening}</Ellipsis>
+                    </Secondary>
+                  )}
+                </DesktopCell>
 
-                <DateSection>
-                  <div>{game.date_time.split(' ')[0]}</div>
-                  <div>{game.date_time.split(' ')[1]}</div>
-                </DateSection>
+                <Numeric>
+                  <span>{timeControl}</span>
+                  <Secondary style={{ textTransform: 'capitalize' }}>
+                    {game.time_class}
+                  </Secondary>
+                </Numeric>
+                <Numeric>{game.moveCount}</Numeric>
+                <Numeric>{endedAt}</Numeric>
 
-                <ChevronIcon />
-              </GameCard>
+                <MobileMeta>
+                  {/* Time first: if the line is cut short, the move count
+                      goes, not the time. */}
+                  <Ellipsis>
+                    {endedAt} · {reason} · {timeControl} · {game.moveCount}{' '}
+                    moves
+                  </Ellipsis>
+                </MobileMeta>
+
+                <OpenIcon size={15} aria-hidden />
+              </GameRow>
             )
           })}
-        </GamesGrid>
-      </TableWrapper>
+        </GamesList>
+      </Panel>
     </PageContainer>
   )
 }

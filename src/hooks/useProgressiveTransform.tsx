@@ -1,53 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { formatDate } from '../helpers/DateFormat'
-import { parsePgnLite } from '../helpers/PgnParseLite'
-
-type Game = {
-  url: string
-  time_control: string
-  black: { username: string; result: string }
-  white: { username: string; result: string }
-  pgn: string
-  end_time: number
-  time_class: string
-  result: string
-  rules?: string
-  fen: string
-}
-
-type TransformedGame = {
-  BlackElo: string
-  PlayerELO: string
-  Result: string
-  TimeControl: string
-  WhiteElo: string
-  blackPlayer: string
-  date_time: string
-  gameEndDate: string
-  moveCount: number
-  resultForPlayer: 'win' | 'loss' | 'draw'
-  time_class: string
-  url: string
-  whitePlayer: string
-  Termination: string
-}
-
-type Chess960Game = {
-  date: string
-  result: string
-  whitePlayer: string
-  blackPlayer: string
-  pgn: string
-  url: string
-}
+import {
+  transformChessComGame,
+  transformLichessGame,
+} from '../helpers/transformGame'
+import { DEFAULT_PLATFORM } from '../helpers/platform'
+import type {
+  ChessComGame,
+  LichessGame,
+  TransformedGame,
+} from '../helpers/transformGame'
+import type { RawGame } from '../services/apiPlayer'
+import type { Platform } from '../helpers/platform'
 
 type TransformResult = {
   standardgamesData: Array<TransformedGame>
-  chess960Games: Array<Chess960Game>
-  blitzGames: Array<TransformedGame>
-  rapidGames: Array<TransformedGame>
-  bulletGames: Array<TransformedGame>
-  dailyGames: Array<TransformedGame>
+  // Keyed by time_class ('blitz', 'rapid', ...).
+  byTimeClass: Partial<Record<string, Array<TransformedGame>>>
 }
 
 const CHUNK_SIZE = 200
@@ -55,24 +23,29 @@ const EMIT_THROTTLE_MS = 150
 
 const EMPTY_RESULT: TransformResult = {
   standardgamesData: [],
-  chess960Games: [],
-  blitzGames: [],
-  rapidGames: [],
-  bulletGames: [],
-  dailyGames: [],
+  byTimeClass: {},
 }
 
 const transformCache = new Map<string, TransformResult>()
 
-function makeCacheKey(username: string, games: Array<Game>): string {
-  const first = games[0]?.url ?? ''
-  const last = games[games.length - 1]?.url ?? ''
-  return `${username}:${games.length}:${first}:${last}`
+function gameId(game: RawGame): string {
+  return 'url' in game ? game.url : game.id
+}
+
+function makeCacheKey(
+  platform: Platform,
+  username: string,
+  games: Array<RawGame>,
+): string {
+  const first = games[0] ? gameId(games[0]) : ''
+  const last = games.length ? gameId(games[games.length - 1]) : ''
+  return `${platform}:${username}:${games.length}:${first}:${last}`
 }
 
 export function useProgressiveTransform(
-  games: Array<Game> | null | undefined,
+  games: Array<RawGame> | null | undefined,
   username: string,
+  platform: Platform = DEFAULT_PLATFORM,
 ) {
   const [transformedData, setTransformedData] =
     useState<TransformResult>(EMPTY_RESULT)
@@ -86,7 +59,7 @@ export function useProgressiveTransform(
       return
     }
 
-    const cacheKey = makeCacheKey(username, games)
+    const cacheKey = makeCacheKey(platform, username, games)
     const cached = transformCache.get(cacheKey)
     if (cached) {
       setTransformedData(cached)
@@ -99,45 +72,37 @@ export function useProgressiveTransform(
 
     const lowerUsername = username.toLowerCase()
 
-    const { chess960, standard } = games.reduce(
-      (acc, game) => {
-        if (game.rules === 'chess960') acc.chess960.push(game)
-        else if (!game.rules || game.rules === 'chess') acc.standard.push(game)
-        return acc
-      },
-      { chess960: [] as Array<Game>, standard: [] as Array<Game> },
-    )
+    // Variant games are dropped up front: chess.com returns undefined PGNs
+    // for bughouse/crazyhouse etc., which breaks header parsing.
+    const standard =
+      platform === 'chess.com'
+        ? (games as Array<ChessComGame>).filter(
+            (game) => !game.rules || game.rules === 'chess',
+          )
+        : games
+
+    const transformOne =
+      platform === 'chess.com'
+        ? (game: RawGame) =>
+            transformChessComGame(game as ChessComGame, lowerUsername)
+        : (game: RawGame) =>
+            transformLichessGame(game as LichessGame, lowerUsername)
 
     const result: TransformResult = {
       standardgamesData: [],
-      chess960Games: [],
-      blitzGames: [],
-      rapidGames: [],
-      bulletGames: [],
-      dailyGames: [],
+      byTimeClass: {},
     }
-
-    result.chess960Games = chess960.map((game) => ({
-      date: formatDate(game.end_time).formattedDateTime,
-      result: game.result,
-      whitePlayer: game.white.username,
-      blackPlayer: game.black.username,
-      pgn: game.pgn,
-      url: game.url,
-    }))
 
     let index = 0
     const total = standard.length
     let lastEmit = 0
 
     function emit(finalProgress: number) {
+      // Fresh outer objects so React sees a change; the arrays inside are
+      // shared with the in-progress result and keep growing.
       setTransformedData({
         standardgamesData: result.standardgamesData,
-        chess960Games: result.chess960Games,
-        blitzGames: result.blitzGames,
-        rapidGames: result.rapidGames,
-        bulletGames: result.bulletGames,
-        dailyGames: result.dailyGames,
+        byTimeClass: { ...result.byTimeClass },
       })
       setProgress(finalProgress)
       lastEmit = Date.now()
@@ -149,49 +114,12 @@ export function useProgressiveTransform(
       const end = Math.min(index + CHUNK_SIZE, total)
 
       for (let i = index; i < end; i++) {
-        const game = standard[i]
         try {
-          const formattedDate = formatDate(game.end_time).formattedDateTime
-          const { headers, moveCount, isValid } = parsePgnLite(game.pgn)
-
-          // Skip malformed entries the way the old try/catch around
-          // loadPgn used to - no legality check, but catches the
-          // realistic failure mode of an empty/garbage movetext.
-          if (!isValid || !headers.White || !headers.Black) continue
-
-          const isWhite = headers.White.toLowerCase() === lowerUsername
-
-          let gameResult: 'win' | 'loss' | 'draw'
-          if (headers.Result === '1-0') {
-            gameResult = isWhite ? 'win' : 'loss'
-          } else if (headers.Result === '0-1') {
-            gameResult = isWhite ? 'loss' : 'win'
-          } else {
-            gameResult = 'draw'
-          }
-
-          const transformed: TransformedGame = {
-            date_time: formattedDate,
-            gameEndDate: headers.EndDate,
-            Result: headers.Result,
-            resultForPlayer: gameResult,
-            whitePlayer: headers.White,
-            blackPlayer: headers.Black,
-            BlackElo: headers.BlackElo,
-            WhiteElo: headers.WhiteElo,
-            TimeControl: headers.TimeControl,
-            Termination: headers.Termination,
-            moveCount,
-            PlayerELO: isWhite ? headers.WhiteElo : headers.BlackElo,
-            url: game.url,
-            time_class: game.time_class,
-          }
+          const transformed = transformOne(standard[i])
+          if (!transformed) continue
 
           result.standardgamesData.push(transformed)
-          if (game.time_class === 'blitz') result.blitzGames.push(transformed)
-          if (game.time_class === 'rapid') result.rapidGames.push(transformed)
-          if (game.time_class === 'bullet') result.bulletGames.push(transformed)
-          if (game.time_class === 'daily') result.dailyGames.push(transformed)
+          ;(result.byTimeClass[transformed.time_class] ||= []).push(transformed)
         } catch (error) {
           console.error(error)
           continue
@@ -199,7 +127,7 @@ export function useProgressiveTransform(
       }
 
       index = end
-      const pct = Math.round((index / total) * 100)
+      const pct = total > 0 ? Math.round((index / total) * 100) : 100
       const isDone = index >= total
       const dueForEmit = Date.now() - lastEmit >= EMIT_THROTTLE_MS
 
@@ -219,7 +147,7 @@ export function useProgressiveTransform(
     return () => {
       processingRef.current = false
     }
-  }, [games, username])
+  }, [games, username, platform])
 
   return { transformedData, progress }
 }

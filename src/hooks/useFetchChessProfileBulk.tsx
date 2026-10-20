@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { getUserFromPlayerID } from '../services/apiUser'
+import { getChessProfilesForFavs } from '../services/apiUser'
+import type { FavKey } from '../services/apiUser'
 
-function useFetchChessProfileBulk(player_id_favs: Array<string>) {
+function useFetchChessProfileBulk(favs: Array<FavKey>) {
   const { data, isPending, error } = useQuery({
-    queryKey: ['chess_profile', player_id_favs],
-    queryFn: () => getUserFromPlayerID(player_id_favs),
+    queryKey: ['chess_profile', favs],
+    queryFn: () => getChessProfilesForFavs(favs),
   })
 
   return { data, isPending, error }

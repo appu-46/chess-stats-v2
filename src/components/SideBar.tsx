@@ -1,205 +1,362 @@
-import { useState } from 'react'
-import { useNavigate, useParams, useRouterState } from '@tanstack/react-router'
-import { CgProfile } from 'react-icons/cg'
-import { MdFavorite, MdGames } from 'react-icons/md'
-import { FaChartArea, FaEdit } from 'react-icons/fa'
-
+import { useEffect, useState } from 'react'
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useRouterState,
+} from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  TbLayoutSidebarLeftCollapseFilled,
+  TbLayoutSidebarLeftExpandFilled,
+} from 'react-icons/tb'
+import { RiLoginBoxFill, RiLogoutBoxRFill } from 'react-icons/ri'
+// The original sidebar icons.
 import { TiHome } from 'react-icons/ti'
-import { GiHamburgerMenu } from 'react-icons/gi'
+import { CgProfile } from 'react-icons/cg'
 import { IoStatsChart } from 'react-icons/io5'
-import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core'
+import { FaChartArea, FaEdit, FaUserCircle } from 'react-icons/fa'
+import { MdFavorite, MdGames } from 'react-icons/md'
+import { Tooltip, UnstyledButton } from '@mantine/core'
 import classes from '../css/NavbarMinimal.module.css'
-import DarkModeToggle from '../ui/DarkModeToggle'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useGetUser from '../hooks/useGetUser'
+import usePlatform from '../hooks/usePlatform'
+import { oauthSignIn } from '../services/OAuth'
+import {
+  PLATFORM_LABELS,
+  parsePlatform,
+  platformSearch,
+} from '../helpers/platform'
+import type { ReactNode } from 'react'
+import type { IconType } from 'react-icons'
 
-interface NavbarLinkProps {
-  icon: typeof TiHome
-  label: string
-  active?: boolean
-  onClick?: () => void
-  collapsed?: boolean
-  disabled?: boolean
+const COLLAPSED_KEY = 'sidebar-collapsed'
+const ICON_SIZE = 20
+
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) !== 'false'
+  } catch {
+    return true
+  }
 }
 
-function NavbarLink({
+// One row of the sidebar. Rendered as a real link when it has somewhere to
+// go (so cmd/middle-click open a new tab and the current page is announced),
+// or as a dimmed, explained placeholder when it doesn't yet.
+function NavItem({
   icon: Icon,
   label,
-  active,
-  onClick,
   collapsed,
-  disabled,
-}: NavbarLinkProps) {
+  active,
+  disabledReason,
+  link,
+  onClick,
+  desktopOnly,
+}: {
+  icon: IconType
+  label: string
+  collapsed: boolean
+  active?: boolean
+  // Set when the item can't be used right now; shown as its tooltip.
+  disabledReason?: string
+  link?: (content: ReactNode) => ReactNode
+  onClick?: () => void
+  // Left out of the phone tab bar, which only has room for the main pages.
+  desktopOnly?: boolean
+}) {
+  const content = (
+    <>
+      <Icon size={ICON_SIZE} className={classes.icon} />
+      <span className={classes.label}>{label}</span>
+    </>
+  )
+
+  let item: ReactNode
+  if (disabledReason) {
+    item = (
+      <span className={classes.link} data-disabled aria-disabled="true">
+        {content}
+      </span>
+    )
+  } else if (link) {
+    item = link(content)
+  } else {
+    item = (
+      <UnstyledButton className={classes.link} onClick={onClick}>
+        {content}
+      </UnstyledButton>
+    )
+  }
+
   return (
     <Tooltip
-      label={label}
+      label={disabledReason ?? label}
       position="right"
-      transitionProps={{ duration: 0 }}
-      disabled={!collapsed}
+      openDelay={150}
+      // Labels are visible when expanded; only explain disabled items then.
+      disabled={!collapsed && !disabledReason}
+      events={{ hover: true, focus: true, touch: false }}
     >
-      <UnstyledButton
-        onClick={onClick}
-        className={classes.link}
+      <div
+        className={classes.item}
         data-active={active || undefined}
-        data-disabled={disabled || undefined}
+        data-desktop-only={desktopOnly || undefined}
       >
-        <Icon size={20} stroke="1.5" />
-        {!collapsed && <span style={{ marginLeft: '12px' }}>{label}</span>}
-      </UnstyledButton>
+        {item}
+      </div>
     </Tooltip>
   )
 }
 
-const mockdata = [
-  { icon: TiHome, label: 'Home' },
-  { icon: CgProfile, label: 'Profile' },
-  { icon: IoStatsChart, label: 'Stats' },
-  { icon: FaChartArea, label: 'Dashboard' },
-  { icon: MdGames, label: 'Games' },
-  { icon: MdFavorite, label: 'Favourites' },
-]
-
-const pages = ['/', 'profile', 'stats', 'dashboard', 'games', 'favourites']
-
 function SideBar() {
-  const routerState = useRouterState()
-  const currentPath = routerState.location.pathname
-  const currentParentPath = routerState.location.pathname
-    .split('/')
-    .filter(Boolean)[0]
-  const [active, setActive] = useState(pages.indexOf(currentParentPath))
-  const [collapsed, setCollapsed] = useState(true)
-  const isOnHomePage = currentPath === '/'
-  const params = isOnHomePage ? null : useParams({ strict: false })
-  // const {data : }
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+  // The section is read from the URL on every render, so the highlight
+  // follows any navigation (links between pages, back/forward), not just
+  // clicks on the sidebar.
+  const section = pathname.split('/').filter(Boolean)[0] ?? ''
+
+  // Called unconditionally: strict:false works on every route, including
+  // the home page, where it simply has no username.
+  const params = useParams({ strict: false })
+  const routePlatform = usePlatform()
+
   const { data: googleUser } = useGoogleUser()
   const { data: dbUser } = useGetUser(googleUser?.sub)
-  const username = params?.username || dbUser?.chessUserId
+  const sub: string | undefined = googleUser?.sub
 
-  const { sub } = googleUser ?? {}
+  const viewedUsername = params.username
+  const ownUsername: string | undefined = dbUser?.chessUserId ?? undefined
+  const ownPlatform = parsePlatform(dbUser?.chessPlatform)
 
-  function toggleCollapsed() {
-    const next = !collapsed
-    setCollapsed(next)
-    document.documentElement.style.setProperty(
-      '--sidebar-width',
-      next ? '80px' : '20vh',
-    )
-  }
+  // Player pages go to whoever is being viewed; with no player in the URL
+  // (home, favourites) they fall back to the signed-in user's own account.
+  const username = viewedUsername ?? ownUsername
+  const platform = viewedUsername ? routePlatform : ownPlatform
+  const search = platformSearch(platform)
 
-  function handleClick(index: number) {
-    if (isOnHomePage || !username) return
-    setActive(index)
-    toggleCollapsed
+  const isViewingOther =
+    !!viewedUsername &&
+    !!ownUsername &&
+    (viewedUsername.toLowerCase() !== ownUsername.toLowerCase() ||
+      routePlatform !== ownPlatform)
 
-    const routes = [
-      { to: '/' as const },
-      { to: '/profile/$username' as const, params: { username } },
-      { to: '/stats/$username' as const, params: { username } },
-      { to: '/dashboard/$username' as const, params: { username } },
-      { to: '/games/$username' as const, params: { username } },
-      { to: '/favourites/$sub' as const, params: { sub } },
-    ]
+  const [collapsed, setCollapsed] = useState(readCollapsed)
 
-    const route = routes[index]
-    if (index === 0) {
-      navigate({ to: route.to })
-    } else {
-      navigate(route as any)
+  useEffect(() => {
+    document.body.classList.toggle('sidebar-expanded', !collapsed)
+    try {
+      localStorage.setItem(COLLAPSED_KEY, String(collapsed))
+    } catch {
+      // Private mode etc.: the choice just isn't remembered.
     }
+  }, [collapsed])
+
+  function signOut() {
+    sessionStorage.removeItem('access_token')
+    queryClient.removeQueries({ queryKey: ['googleUser'] })
+    queryClient.removeQueries({ queryKey: ['user'] })
+    navigate({ to: '/', search: { changeUsername: false } })
   }
 
-  const links = mockdata.map((link, index) => (
-    <NavbarLink
-      {...link}
-      key={link.label}
-      active={index === active}
-      disabled={isOnHomePage}
-      onClick={() => handleClick(index)}
-      collapsed={collapsed}
-    />
-  ))
+  const noPlayer = 'Search for a player first'
+  const playerPages = [
+    {
+      section: 'profile',
+      label: 'Profile',
+      icon: CgProfile,
+      to: '/profile/$username',
+    },
+    {
+      section: 'stats',
+      label: 'Stats',
+      icon: IoStatsChart,
+      to: '/stats/$username',
+    },
+    {
+      section: 'dashboard',
+      label: 'Dashboard',
+      icon: FaChartArea,
+      to: '/dashboard/$username',
+    },
+    {
+      section: 'games',
+      label: 'Games',
+      icon: MdGames,
+      to: '/games/$username',
+    },
+  ] as const
+
+  const avatar: string | undefined = googleUser?.picture
+  const displayName: string = googleUser?.given_name ?? ''
 
   return (
-    <>
-      <nav
-        className={`${classes.navbar} ${collapsed ? classes.collapsed : classes.expanded}`}
+    <nav
+      className={classes.navbar}
+      data-collapsed={collapsed || undefined}
+      aria-label="Main"
+    >
+      <UnstyledButton
+        className={classes.collapseButton}
+        onClick={() => setCollapsed((value) => !value)}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-expanded={!collapsed}
       >
-        <Center>
-          <UnstyledButton
-            onClick={() => toggleCollapsed()}
-            className={classes.hamburger}
-          >
-            <GiHamburgerMenu />
-          </UnstyledButton>
-        </Center>
-        <div className={classes.navbarMain}>
-          <Stack justify="center" gap={0}>
-            {links}
-          </Stack>
-          <DarkModeToggle />
-        </div>
-        {googleUser && (
+        {collapsed ? (
+          <TbLayoutSidebarLeftExpandFilled size={ICON_SIZE} />
+        ) : (
+          <TbLayoutSidebarLeftCollapseFilled size={ICON_SIZE} />
+        )}
+      </UnstyledButton>
+
+      <div className={classes.links}>
+        <NavItem
+          icon={TiHome}
+          label="Home"
+          collapsed={collapsed}
+          active={section === ''}
+          link={(content) => (
+            <Link
+              to="/"
+              search={{ changeUsername: false }}
+              className={classes.link}
+            >
+              {content}
+            </Link>
+          )}
+        />
+
+        {username && !collapsed && (
           <div
-            className={classes.userSection}
-            style={{
-              borderTop:
-                '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
-              paddingTop: 'var(--mantine-spacing-sm)',
-              width: '100%',
-            }}
+            className={classes.context}
+            title={`${username} · ${PLATFORM_LABELS[platform]}`}
           >
-            {!collapsed && (
-              <>
-                <div
-                  style={{
-                    padding: 'var(--mantine-spacing-sm)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    marginBottom: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: '50%',
-                      background: 'var(--brand-fill)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      color: 'white',
-                    }}
-                  >
-                    {googleUser.given_name[0]}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 600 }}>
-                      {googleUser.given_name}
-                    </div>
-                    <div style={{ fontSize: '11px', opacity: 0.6 }}>
-                      ♟ {dbUser?.chessUserId ?? '—'}
-                    </div>
-                  </div>
-                </div>
-              </>
+            <span className={classes.contextLabel}>
+              {isViewingOther || !ownUsername ? 'Viewing' : 'Your account'}
+            </span>
+            <span className={classes.contextName}>{username}</span>
+          </div>
+        )}
+
+        {playerPages.map((page) => (
+          <NavItem
+            key={page.section}
+            icon={page.icon}
+            label={page.label}
+            collapsed={collapsed}
+            active={section === page.section}
+            disabledReason={username ? undefined : noPlayer}
+            link={(content) => (
+              <Link
+                to={page.to}
+                params={{ username: username! }}
+                search={search}
+                className={classes.link}
+              >
+                {content}
+              </Link>
             )}
-            <NavbarLink
+          />
+        ))}
+
+        {isViewingOther && (
+          <NavItem
+            icon={FaUserCircle}
+            label="My profile"
+            collapsed={collapsed}
+            desktopOnly
+            link={(content) => (
+              <Link
+                to="/profile/$username"
+                params={{ username: ownUsername }}
+                search={platformSearch(ownPlatform)}
+                className={classes.link}
+              >
+                {content}
+              </Link>
+            )}
+          />
+        )}
+
+        <NavItem
+          icon={MdFavorite}
+          label="Favourites"
+          collapsed={collapsed}
+          active={section === 'favourites'}
+          disabledReason={sub ? undefined : 'Sign in to track players'}
+          link={(content) => (
+            <Link
+              to="/favourites/$sub"
+              params={{ sub: sub! }}
+              className={classes.link}
+            >
+              {content}
+            </Link>
+          )}
+        />
+      </div>
+
+      <div className={classes.bottom}>
+        {googleUser ? (
+          <div className={classes.account}>
+            <div className={classes.accountCard}>
+              {avatar ? (
+                <img
+                  className={classes.avatar}
+                  src={avatar}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span className={classes.avatar}>{displayName[0]}</span>
+              )}
+              <div className={classes.accountText}>
+                <span className={classes.accountName}>{displayName}</span>
+                <span className={classes.accountHandle}>
+                  {ownUsername
+                    ? `${ownUsername} · ${PLATFORM_LABELS[ownPlatform]}`
+                    : 'No username saved'}
+                </span>
+              </div>
+            </div>
+            <NavItem
               icon={FaEdit}
               label="Edit username"
-              onClick={() =>
-                navigate({ to: '/', search: { changeUsername: true } })
-              }
               collapsed={collapsed}
+              link={(content) => (
+                <Link
+                  to="/"
+                  search={{ changeUsername: true }}
+                  className={classes.link}
+                >
+                  {content}
+                </Link>
+              )}
+            />
+            <NavItem
+              icon={RiLogoutBoxRFill}
+              label="Sign out"
+              collapsed={collapsed}
+              onClick={signOut}
+            />
+          </div>
+        ) : (
+          <div className={classes.account}>
+            <NavItem
+              icon={RiLoginBoxFill}
+              label="Sign in"
+              collapsed={collapsed}
+              onClick={oauthSignIn}
             />
           </div>
         )}
-      </nav>
-    </>
+      </div>
+    </nav>
   )
 }
 

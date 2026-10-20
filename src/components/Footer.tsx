@@ -5,13 +5,12 @@ import { FaSquareXTwitter } from 'react-icons/fa6'
 const StyledFooter = styled.footer`
   margin-top: 2rem;
   padding: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
   text-align: center;
+  opacity: 0.7;
 
   [data-mantine-color-scheme='light'] & {
-    background: rgba(255, 255, 255, 0.3);
-    border-top: 1.5px solid rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
   }
 
   @media (max-width: 768px) {
@@ -24,23 +23,24 @@ const FooterContent = styled.div`
   max-width: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.4rem;
   align-items: center;
 `
 
 const FooterText = styled.span`
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   margin: 0;
+  opacity: 0.7;
 `
 
 const SocialLinks = styled.div`
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.1rem;
 `
 
 const SocialLink = styled.a`
-  font-size: 1.25rem;
+  font-size: 1rem;
   transition:
     color 0.2s ease,
     transform 0.2s ease;
@@ -84,7 +84,9 @@ function Footer() {
           >
             <FaSquareXTwitter />
           </SocialLink>
-          <SocialLink> Abhishek Prajapati </SocialLink>
+          <FooterText as="span" style={{ fontSize: '0.85rem' }}>
+            Abhishek Prajapati
+          </FooterText>
         </SocialLinks>
         <FooterText>
           © {new Date().getFullYear()} Chess Stats. All rights reserved.
