@@ -20,8 +20,8 @@ import type { Result } from './GameResult'
 import type { Platform } from '../helpers/platform'
 
 const SHOWN = 8
-// A couple spare, in case a game can't be parsed. The favourites cards ask
-// for the same count, so the two share one cached request.
+// A couple spare, in case a game can't be parsed. The share card asks for
+// the same count, so the two share one cached request.
 export const RECENT_GAMES_FETCHED = SHOWN + 2
 
 // Shared by the header and the rows so their columns always line up: Time

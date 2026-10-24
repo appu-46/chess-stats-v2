@@ -16,7 +16,7 @@ import ErrorMessage from '../ui/ErrorMessage'
 import Spinner from '../ui/Spinner'
 import useUpsertFav from '../hooks/useUpsertFav'
 import PlayerSearchBar from '../ui/PlayerSearchBar'
-import PlayerSnapshot from '../ui/PlayerSnapshot'
+import MainRating from '../ui/MainRating'
 import {
   DEFAULT_PLATFORM,
   PLATFORM_LABELS,
@@ -507,8 +507,7 @@ function Favorites() {
           <Title>Your favourite players</Title>
         </TitleRow>
         <Subtitle>
-          Players you've saved, with their current ratings and last five
-          games. Open one to see their profile, stats and games.
+          Players you've saved. Open one to see their profile, stats and games.
         </Subtitle>
       </Header>
 
@@ -619,13 +618,12 @@ function Favorites() {
                         {fav.name && <Muted>@{fav.username}</Muted>}
                         <PlatformBadge platform={favPlatform} />
                       </HandleLine>
+                      <MainRating
+                        username={fav.username}
+                        platform={favPlatform}
+                      />
                     </PlayerText>
                   </PlayerTop>
-
-                  <PlayerSnapshot
-                    username={fav.username}
-                    platform={favPlatform}
-                  />
 
                   <PlayerFooter>
                     {fav.country ? (

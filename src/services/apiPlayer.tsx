@@ -64,19 +64,26 @@ export async function fetchPlayerStats(
   return stats
 }
 
-// Just the current rating per time class, for summaries like the
-// favourites cards. One request on either platform: lichess's user record
-// already holds every rating, unlike the W/L/D that fetchPlayerStats needs.
+// Each time class's current rating and games played, for summaries like
+// the favourites cards. One request on either platform: lichess's user
+// record already holds every rating, unlike the W/L/D that
+// fetchPlayerStats needs.
+export type CurrentRatings = Partial<
+  Record<string, { rating: number; games: number }>
+>
+
 export async function fetchCurrentRatings(
   platform: Platform,
   username: string,
-): Promise<Partial<Record<string, number>>> {
-  const ratings: Partial<Record<string, number>> = {}
+): Promise<CurrentRatings> {
+  const ratings: CurrentRatings = {}
 
   if (platform === 'chess.com') {
     const stats = normalizeChessComStats(await apiStats(username))
     for (const [timeClass, stat] of Object.entries(stats)) {
-      if (stat?.current != null) ratings[timeClass] = stat.current
+      if (stat?.current == null) continue
+      const { win, loss, draw } = stat.record
+      ratings[timeClass] = { rating: stat.current, games: win + loss + draw }
     }
     return ratings
   }
@@ -84,7 +91,9 @@ export async function fetchCurrentRatings(
   const { perfs } = await apiFetchLiUser(username)
   for (const { timeClass } of getTimeControls('lichess')) {
     const perf = perfs?.[timeClass]
-    if (perf?.games) ratings[timeClass] = perf.rating
+    if (perf?.games) {
+      ratings[timeClass] = { rating: perf.rating, games: perf.games }
+    }
   }
   return ratings
 }
