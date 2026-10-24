@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import { useNavigate, useParams } from '@tanstack/react-router'
 
 import { useLayoutEffect, useRef, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useController, useForm } from 'react-hook-form'
 import { FaGlobe, FaRegHeart, FaTrash } from 'react-icons/fa'
 import { SiChessdotcom, SiLichess } from 'react-icons/si'
 import { MdFavorite } from 'react-icons/md'
@@ -10,14 +10,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useDeleteFav } from '../hooks/useDeleteFav'
 import useFetchChessProfileBulk from '../hooks/useFetchChessProfileBulk'
 import useUpsertChessUser from '../hooks/useUpsertChessUser'
-import Button from '../ui/Button'
 import useGetFavsofUser from '../hooks/useGetFavsofUser'
 import { fetchPlayerProfile } from '../services/apiPlayer'
 import ErrorMessage from '../ui/ErrorMessage'
 import Spinner from '../ui/Spinner'
 import useUpsertFav from '../hooks/useUpsertFav'
-import PlatformToggle from '../ui/PlatformToggle'
-import UsernameAutocomplete from '../ui/UsernameAutocomplete'
+import PlayerSearchBar from '../ui/PlayerSearchBar'
 import {
   DEFAULT_PLATFORM,
   PLATFORM_LABELS,
@@ -126,34 +124,12 @@ const ListHeading = styled.div`
 
   ${SectionHeading} {
     margin: 0;
+    /* It's an h2, and the phone styles force every h2 to 1.25rem. */
+    font-size: 0.75rem !important;
   }
 `
 
 // ── Add player ──────────────────────────────────────────────────────
-
-const AddForm = styled.form`
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
-`
-
-const AddButton = styled(Button)`
-  height: 3rem;
-  padding: 0 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
-  }
-`
 
 const Errors = styled.div`
   margin-top: 0.75rem;
@@ -472,6 +448,11 @@ function Favorites() {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<Inputs>({ defaultValues: { username: '' } })
+  const { field: usernameField } = useController({
+    name: 'username',
+    control,
+    rules: { required: true, validate: (v) => !!v.trim() },
+  })
 
   async function onSubmit(data: { username: string }) {
     const username = data.username.trim()
@@ -530,29 +511,19 @@ function Favorites() {
 
       <Panel>
         <SectionHeading>Add a player</SectionHeading>
-        <AddForm onSubmit={handleSubmit(onSubmit)}>
-          <PlatformToggle value={platform} onChange={setPlatform} />
-          <Controller
-            name="username"
-            control={control}
-            rules={{ required: true, validate: (v) => !!v.trim() }}
-            render={({ field }) => (
-              <UsernameAutocomplete
-                platform={platform}
-                // Not "username": browsers treat that as a login field and
-                // autofill the signed-in account's email into it.
-                name="tracked-player"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                placeholder={`${PLATFORM_LABELS[platform]} username`}
-              />
-            )}
-          />
-          <AddButton disabled={isSubmitting}>
-            {isSubmitting ? 'Adding…' : 'Add player'}
-          </AddButton>
-        </AddForm>
+        <PlayerSearchBar
+          platform={platform}
+          onPlatformChange={setPlatform}
+          // Not "username": browsers treat that as a login field and
+          // autofill the signed-in account's email into it.
+          name="tracked-player"
+          value={usernameField.value}
+          onChange={usernameField.onChange}
+          onBlur={usernameField.onBlur}
+          submitLabel={isSubmitting ? 'Adding…' : 'Add player'}
+          submitting={isSubmitting}
+          onSubmit={handleSubmit(onSubmit)}
+        />
         {(errors.username || submitError) && (
           <Errors>
             {errors.username && (

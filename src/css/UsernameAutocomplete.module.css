@@ -20,3 +20,10 @@
 .option[data-combobox-selected] {
   background: light-dark(rgba(52, 163, 126, 0.12), rgba(52, 163, 126, 0.2));
 }
+
+/* GM, IM...: the gold reads on the dark list, but is too faint on the
+   light one, so light mode takes a deeper amber. */
+.title {
+  font-weight: 800;
+  color: light-dark(#9a5b0b, #e0a64b);
+}

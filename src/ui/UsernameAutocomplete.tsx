@@ -64,9 +64,7 @@ function UsernameAutocomplete({
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
             {user?.title && (
-              <span style={{ fontWeight: 800, color: '#e0a64b' }}>
-                {user.title}
-              </span>
+              <span className={classes.title}>{user.title}</span>
             )}
             {option.value}
             {user?.online && (

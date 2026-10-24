@@ -1,15 +1,13 @@
-import { defineConfig } from 'vite'
+import { configDefaults, defineConfig } from 'vitest/config'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-
-// import { resolve } from 'node:path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [viteReact(), tailwindcss()],
-  // resolve: {
-  //   alias: {
-  //     '@': resolve(__dirname, './src'),
-  //   },
-  // },
+  test: {
+    // .kilo holds editor worktrees: copies of src whose tests would
+    // otherwise run a second time.
+    exclude: [...configDefaults.exclude, '.kilo/**'],
+  },
 })
