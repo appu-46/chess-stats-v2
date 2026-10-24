@@ -14,7 +14,7 @@ describe('shareLink', () => {
       SHARE_TARGET_LABELS,
     ) as Array<ShareTarget>) {
       const link = shareLink(target, post)
-      expect(link).toMatch(/^(https:\/\/|mailto:)/)
+      expect(link).toMatch(/^https:\/\//)
       expect(decodeURIComponent(link.replace(/\+/g, ' '))).toContain(post.url)
     }
   })
@@ -28,9 +28,5 @@ describe('shareLink', () => {
   it('puts text and link together where there is one field', () => {
     const link = new URL(shareLink('whatsapp', post))
     expect(link.searchParams.get('text')).toBe(`${post.text} ${post.url}`)
-  })
-
-  it('encodes email spaces as %20', () => {
-    expect(shareLink('email', post)).toContain('subject=Hikaru%20%C2%B7')
   })
 })

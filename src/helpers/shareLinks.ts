@@ -9,14 +9,12 @@ export type ShareTarget =
   | 'telegram'
   | 'facebook'
   | 'linkedin'
-  | 'bluesky'
-  | 'email'
 
 export interface SharePost {
   // A one-line summary, e.g. "Hikaru Nakamura on Chess.com: Blitz 3482".
   text: string
   url: string
-  // Used where the site wants a separate title (Reddit, email subject).
+  // Used where the site wants a separate title (Reddit).
   title: string
 }
 
@@ -27,8 +25,6 @@ export const SHARE_TARGET_LABELS: Record<ShareTarget, string> = {
   telegram: 'Telegram',
   facebook: 'Facebook',
   linkedin: 'LinkedIn',
-  bluesky: 'Bluesky',
-  email: 'Email',
 }
 
 export function shareLink(target: ShareTarget, post: SharePost): string {
@@ -49,10 +45,5 @@ export function shareLink(target: ShareTarget, post: SharePost): string {
       return `https://www.facebook.com/sharer/sharer.php?${q({ u: url })}`
     case 'linkedin':
       return `https://www.linkedin.com/sharing/share-offsite/?${q({ url })}`
-    case 'bluesky':
-      return `https://bsky.app/intent/compose?${q({ text: `${text} ${url}` })}`
-    case 'email':
-      // mailto wants %20 for spaces, not URLSearchParams' "+".
-      return `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n${url}`)}`
   }
 }

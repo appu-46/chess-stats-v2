@@ -5,16 +5,8 @@
 import styled from 'styled-components'
 import { useEffect, useState } from 'react'
 import { Modal, Tooltip } from '@mantine/core'
+import { TbCheck, TbCopy, TbDownload, TbLink, TbShare } from 'react-icons/tb'
 import {
-  TbCheck,
-  TbCopy,
-  TbDownload,
-  TbLink,
-  TbMail,
-  TbShare,
-} from 'react-icons/tb'
-import {
-  SiBluesky,
   SiFacebook,
   SiInstagram,
   SiLinkedin,
@@ -197,8 +189,6 @@ const TARGETS: Array<{ id: ShareTarget; icon: IconType; color: string }> = [
   { id: 'telegram', icon: SiTelegram, color: '#26a5e4' },
   { id: 'facebook', icon: SiFacebook, color: '#1877f2' },
   { id: 'linkedin', icon: SiLinkedin, color: '#0a66c2' },
-  { id: 'bluesky', icon: SiBluesky, color: '#1185fe' },
-  { id: 'email', icon: TbMail, color: 'currentColor' },
 ]
 
 const INSTAGRAM_COLOR = '#e4405f'
