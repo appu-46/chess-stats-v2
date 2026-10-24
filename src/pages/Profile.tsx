@@ -24,7 +24,7 @@ import useStats from '../hooks/useStats'
 import { upsertChessUser } from '../services/apiUser'
 import usePlatform from '../hooks/usePlatform'
 import { getTimeControls } from '../helpers/timeControls'
-import { platformSearch } from '../helpers/platform'
+import { PLATFORM_LABELS, platformSearch } from '../helpers/platform'
 import RecentGames from '../ui/RecentGames'
 import { PageEyebrow } from '../ui/PageHeader'
 import ProfileActions from '../ui/ProfileActions'
@@ -392,6 +392,12 @@ const GapPill = styled.span<{ $atPeak: boolean }>`
   }
 `
 
+const PeakNote = styled.p`
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.6;
+`
+
 // ── Details panel ───────────────────────────────────────────────────
 
 const DetailList = styled.dl`
@@ -526,8 +532,9 @@ function Profile() {
     upsertMutation.mutate(profile)
   }, [profile?.platform, profile?.playerId])
 
-  const error = errorStats ?? errorProfile
-  if (error) return <PageError error={error} />
+  // Without the profile there's no page; without the stats (chess.com's
+  // /stats fails for some accounts) only the peak ratings are missing.
+  if (errorProfile) return <PageError error={errorProfile} />
 
   if (isFetchingProfile || isFetchingStats) return <Spinner />
 
@@ -680,6 +687,12 @@ function Profile() {
 
         <section>
           <SectionHeading>Peak ratings</SectionHeading>
+          {errorStats && (
+            <PeakNote>
+              {PLATFORM_LABELS[platform]} didn't return this player's
+              ratings right now.
+            </PeakNote>
+          )}
           <PeakGrid $count={peakCount}>
             {timeControls.map(({ timeClass, label, color, icon: Icon }) => {
               const stat = stats?.[timeClass]
