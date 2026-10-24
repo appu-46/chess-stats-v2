@@ -28,6 +28,7 @@ import { platformSearch } from '../helpers/platform'
 import RecentGames from '../ui/RecentGames'
 import { PageEyebrow } from '../ui/PageHeader'
 import ProfileActions from '../ui/ProfileActions'
+import PageError from '../ui/PageError'
 import type { ReactNode } from 'react'
 // ── Layout ──────────────────────────────────────────────────────────
 // Two columns of equal height: identity + peak ratings on the left, a
@@ -508,10 +509,11 @@ function formatPlayTime(seconds: number) {
 function Profile() {
   const { username } = useParams({ from: '/profile/$username' })
   const platform = usePlatform()
-  const { data: profile, isPending: isFetchingProfile } = useProfile(
-    username,
-    platform,
-  )
+  const {
+    data: profile,
+    isPending: isFetchingProfile,
+    error: errorProfile,
+  } = useProfile(username, platform)
   const upsertMutation = useMutation({ mutationFn: upsertChessUser })
   const {
     data: stats,
@@ -524,7 +526,8 @@ function Profile() {
     upsertMutation.mutate(profile)
   }, [profile?.platform, profile?.playerId])
 
-  if (errorStats) return <p>{`${errorStats.message}`}</p>
+  const error = errorStats ?? errorProfile
+  if (error) return <PageError error={error} />
 
   if (isFetchingProfile || isFetchingStats) return <Spinner />
 

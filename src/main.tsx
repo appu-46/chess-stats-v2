@@ -6,6 +6,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  lazyRouteComponent,
   redirect,
   stringifySearchWith,
   useLocation,
@@ -17,19 +18,15 @@ import { MantineProvider, createTheme } from '@mantine/core'
 import './styles.css'
 import App from './App.tsx'
 import PageNotFound from './ui/PageNotFound.tsx'
-import Stats from './pages/Stats.tsx'
-import Profile from './pages/Profile.tsx'
 import { CompactHeader } from './components/Header.tsx'
 import { TabProvider } from './contexts/TabContext.tsx'
 import Footer from './components/Footer.tsx'
-import DashBoard from './pages/DashBoard.tsx'
-import Games from './pages/Games.tsx'
 import SideBar from './components/SideBar.tsx'
 import { StyledAppLayout } from './ui/AppLayout.tsx'
 import { GlobalStyle } from './styles/GlobalStyle.ts'
 import { supabase } from './services/supabase.ts'
-import Favorites from './pages/Favorites.tsx'
 import MobileNotice from './ui/MobileNotice.tsx'
+import { RouteError } from './ui/PageError.tsx'
 import { validatePlatformSearch } from './helpers/platform.ts'
 import type { MantineColorsTuple } from '@mantine/core'
 
@@ -37,6 +34,10 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60,
+      // A missing player won't appear on a retry, so say so straight away;
+      // other failures (a flaky network, a 5xx) get one more try.
+      retry: (failureCount, error) =>
+        !/not found/i.test(error.message) && failureCount < 1,
     },
   },
 })
@@ -138,6 +139,9 @@ function searchPadded(value: unknown): string | undefined {
   return text?.padStart(2, '0')
 }
 
+// The home page ships in the main bundle; every other page (and the chart
+// code only they use) is its own chunk, fetched when first visited, or on
+// hovering a link to it (defaultPreload: 'intent').
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
@@ -152,21 +156,21 @@ const indexRoute = createRoute({
 const statRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/stats/$username',
-  component: Stats,
+  component: lazyRouteComponent(() => import('./pages/Stats.tsx')),
   validateSearch: validatePlatformSearch,
 })
 
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile/$username',
-  component: Profile,
+  component: lazyRouteComponent(() => import('./pages/Profile.tsx')),
   validateSearch: validatePlatformSearch,
 })
 
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard/$username',
-  component: DashBoard,
+  component: lazyRouteComponent(() => import('./pages/DashBoard.tsx')),
   validateSearch: (search: Record<string, unknown>) => {
     return {
       range: searchString(search.range) || '30D',
@@ -180,7 +184,7 @@ const dashboardRoute = createRoute({
 const gamesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/games/$username',
-  component: Games,
+  component: lazyRouteComponent(() => import('./pages/Games.tsx')),
   validateSearch: (search: Record<string, unknown>) => {
     return {
       year: searchString(search.year),
@@ -196,7 +200,7 @@ const gamesRoute = createRoute({
 const favouritesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/favourites/$sub',
-  component: Favorites,
+  component: lazyRouteComponent(() => import('./pages/Favorites.tsx')),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession()
     if (!data.session)
@@ -247,6 +251,9 @@ const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
+  // Anything that throws while rendering a page lands here instead of
+  // blanking the app.
+  defaultErrorComponent: RouteError,
 })
 
 declare module '@tanstack/react-router' {

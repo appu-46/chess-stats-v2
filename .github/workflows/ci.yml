@@ -1,0 +1,27 @@
+# Typecheck, lint, test and build every push to main and every pull
+# request, so a broken build is caught here rather than on Netlify.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx eslint .
+      - run: npm test
+      # Vite bakes the Supabase keys in at build time, but a build without
+      # them still succeeds, and that is all this step checks.
+      - run: npx vite build

@@ -32,6 +32,7 @@ import {
   SideDot,
 } from '../ui/GameResult'
 import { formatTimeControl, shortTermination } from '../helpers/gameFormat'
+import PageError from '../ui/PageError'
 import type { Result } from '../ui/GameResult'
 import type { PlayerProfile } from '../helpers/normalizePlayer'
 
@@ -652,14 +653,7 @@ function Games() {
 
   if (isFetchingProfile) return <Spinner />
 
-  if (errorProfile) {
-    return (
-      <ErrorContainer>
-        <h1>Error</h1>
-        <p>Could not load game data. Please try again.</p>
-      </ErrorContainer>
-    )
-  }
+  if (errorProfile) return <PageError error={errorProfile} />
 
   function onSubmit(month: string) {
     const [year, inputmonth] = month.split('-')
@@ -831,14 +825,7 @@ function DayGames({
     platform,
   )
 
-  if (error) {
-    return (
-      <ErrorContainer>
-        <h1>Error</h1>
-        <p>{error.message}</p>
-      </ErrorContainer>
-    )
-  }
+  if (error) return <PageError error={error} />
   if (isPending || progress < 100) return <Spinner />
 
   const dayGames = transformedData.standardgamesData.filter(

@@ -12,6 +12,7 @@ import StatsBlock from '../ui/StatsBlock'
 import usePlatform from '../hooks/usePlatform'
 import { getTimeControls } from '../helpers/timeControls'
 import PageHeader from '../ui/PageHeader'
+import PageError from '../ui/PageError'
 
 // As wide as the card grid and centred, so the header starts at the
 // cards' left edge whether they sit two or four across.
@@ -182,7 +183,7 @@ function Stats() {
     platform,
   )
 
-  if (errorStats) return <p>{`${errorStats.message}`}</p>
+  if (errorStats) return <PageError error={errorStats} />
   if (isFetchingStats || isFetchingProfile) return <Spinner size="large" />
 
   const timeControls = getTimeControls(platform)

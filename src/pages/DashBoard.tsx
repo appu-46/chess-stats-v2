@@ -31,6 +31,7 @@ import usePlatform from '../hooks/usePlatform'
 import { getTimeControls } from '../helpers/timeControls'
 import { LICHESS_MAX_GAMES } from '../services/apiLichess'
 import PageHeader from '../ui/PageHeader'
+import PageError from '../ui/PageError'
 import type { TransformedGame } from '../helpers/transformGame'
 import type { RawGame } from '../services/apiPlayer'
 import type { Platform } from '../helpers/platform'
@@ -409,7 +410,7 @@ function MonthlyDashboard({
   } = useGames(username, year, month, platform)
 
   if (isFetchingGames || isFetchingProfile) return <DashboardSkeleton />
-  if (error) return <p>{error.message}</p>
+  if (error) return <PageError error={error} />
 
   return (
     <DashboardInner
@@ -452,7 +453,7 @@ function RecentDashboard({
         }
       />
     )
-  if (error) return <p>{error.message}</p>
+  if (error) return <PageError error={error} />
 
   return (
     <DashboardInner

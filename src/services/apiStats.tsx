@@ -1,21 +1,24 @@
 export const API_URL = `https://api.chess.com/pub/player/`
 
-export async function apiStats(username: string) {
-  const response = await fetch(`${API_URL}${username}/stats`)
+// Every per-player request: a 404 means the username doesn't exist (the
+// pages show "Player not found" for it), a 429 is chess.com's rate limit.
+async function chessComFetch(path: string, what: string) {
+  const response = await fetch(`${API_URL}${path}`)
 
-  if (!response.ok) throw new Error(`Failed to fetch the Stats!`)
+  if (response.status === 404) throw new Error('Player not found on Chess.com!')
+  if (response.status === 429)
+    throw new Error('Chess.com rate limit reached, try again in a minute.')
+  if (!response.ok) throw new Error(`Failed to fetch the ${what}!`)
 
-  const data = response.json()
-  return data
+  return response.json()
 }
 
-export async function apiProfile(username: string) {
-  const response = await fetch(`${API_URL}${username}`)
+export function apiStats(username: string) {
+  return chessComFetch(`${username}/stats`, 'Stats')
+}
 
-  if (!response.ok) throw new Error(`Failed to fetch the Profile!`)
-
-  const data = await response.json()
-  return data
+export function apiProfile(username: string) {
+  return chessComFetch(username, 'Profile')
 }
 
 export async function apiGames(username: string, year: string, month: string) {
@@ -31,16 +34,8 @@ export async function apiGames(username: string, year: string, month: string) {
   return data
 }
 
-export async function apiArchive(username: string) {
-  const response = await fetch(`${API_URL}${username}/games/archives`)
-
-  if (!response.ok) {
-    throw (new Error(`Failed to fetch the Archives`), console.error(response))
-  }
-
-  const data = response.json()
-
-  return data
+export function apiArchive(username: string) {
+  return chessComFetch(`${username}/games/archives`, 'Archives')
 }
 
 export async function apiRecentGames(

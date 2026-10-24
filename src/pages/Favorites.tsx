@@ -25,6 +25,7 @@ import {
 import PlatformBadge from '../ui/PlatformBadge'
 import { PageEyebrow } from '../ui/PageHeader'
 import { formatLastActive } from '../helpers/DateFormat'
+import PageError from '../ui/PageError'
 import type { ReactNode } from 'react'
 import type { Platform } from '../helpers/platform'
 
@@ -479,8 +480,8 @@ function Favorites() {
   }
 
   if (isFetchingFavs || isFetchingProfile) return <Spinner />
-  if (favsError) return <span>{favsError.message}</span>
-  if (profileError) return <span>{profileError.message}</span>
+  if (favsError || profileError)
+    return <PageError error={favsError ?? profileError} />
 
   function handleDelete(
     e: React.MouseEvent,
