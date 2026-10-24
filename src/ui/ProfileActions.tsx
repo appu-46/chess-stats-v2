@@ -5,6 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Tooltip } from '@mantine/core'
 import { FaHeart, FaRegHeart } from 'react-icons/fa'
 import { FiExternalLink } from 'react-icons/fi'
+import { TbArrowsLeftRight } from 'react-icons/tb'
+import { Link } from '@tanstack/react-router'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useGetFavsofUser from '../hooks/useGetFavsofUser'
 import { deleteFav, upsertChessUser, upsertFav } from '../services/apiUser'
@@ -92,6 +94,21 @@ const OpenLink = styled.a`
   ${pill}
 `
 
+// A styled wrapper rather than styled(Link), which would lose the
+// router's typing of `search`.
+const CompareSlot = styled.span`
+  a {
+    ${pill}
+  }
+
+  /* Icon only on phones, so all three buttons keep to one line. */
+  @media (max-width: 768px) {
+    a > span {
+      display: none;
+    }
+  }
+`
+
 function ProfileActions({ profile }: { profile: PlayerProfile }) {
   const queryClient = useQueryClient()
   const { data: googleUser } = useGoogleUser()
@@ -146,6 +163,19 @@ function ProfileActions({ profile }: { profile: PlayerProfile }) {
           </FavButton>
         </span>
       </Tooltip>
+      <CompareSlot>
+        <Link
+          to="/compare"
+          search={{
+            a: profile.username,
+            ap: profile.platform === 'lichess' ? 'lichess' : undefined,
+          }}
+          aria-label={`Compare ${profile.username} with another player`}
+        >
+          <TbArrowsLeftRight size={14} aria-hidden />
+          <span>Compare</span>
+        </Link>
+      </CompareSlot>
       <OpenLink href={profile.url} target="_blank" rel="noopener noreferrer">
         <span>Open on {PLATFORM_LABELS[profile.platform]}</span>
         <FiExternalLink size={13} aria-hidden />

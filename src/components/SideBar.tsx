@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import {
+  TbArrowsLeftRight,
   TbLayoutSidebarLeftCollapseFilled,
   TbLayoutSidebarLeftExpandFilled,
 } from 'react-icons/tb'
@@ -274,6 +275,33 @@ function SideBar() {
             )}
           />
         ))}
+
+        {/* Starts with whoever is being viewed in the first slot. Phones
+            reach it from the profile's Compare button instead: the tab
+            bar has no room for it. */}
+        <NavItem
+          icon={TbArrowsLeftRight}
+          label="Compare"
+          collapsed={collapsed}
+          active={section === 'compare'}
+          desktopOnly
+          link={(content) => (
+            <Link
+              to="/compare"
+              search={
+                viewedUsername
+                  ? {
+                      a: viewedUsername,
+                      ap: routePlatform === 'lichess' ? 'lichess' : undefined,
+                    }
+                  : {}
+              }
+              className={classes.link}
+            >
+              {content}
+            </Link>
+          )}
+        />
 
         {isViewingOther && (
           <NavItem

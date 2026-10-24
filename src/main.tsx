@@ -28,6 +28,7 @@ import { supabase } from './services/supabase.ts'
 import MobileNotice from './ui/MobileNotice.tsx'
 import { RouteError } from './ui/PageError.tsx'
 import { validatePlatformSearch } from './helpers/platform.ts'
+import { validateCompareSearch } from './helpers/compareSearch.ts'
 import type { MantineColorsTuple } from '@mantine/core'
 
 const queryClient = new QueryClient({
@@ -81,6 +82,7 @@ const SECTION_TITLES: Record<string, string> = {
   dashboard: 'Dashboard',
   games: 'Games',
   favourites: 'Favorites',
+  compare: 'Compare',
 }
 
 function usePageTitle(pathname: string) {
@@ -197,6 +199,13 @@ const gamesRoute = createRoute({
   },
 })
 
+const compareRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/compare',
+  component: lazyRouteComponent(() => import('./pages/Compare.tsx')),
+  validateSearch: validateCompareSearch,
+})
+
 const favouritesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/favourites/$sub',
@@ -236,6 +245,7 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   dashboardRoute,
   gamesRoute,
+  compareRoute,
   favouritesRoute,
 ])
 

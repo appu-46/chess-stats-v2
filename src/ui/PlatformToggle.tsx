@@ -5,7 +5,7 @@ import type { Platform } from '../helpers/platform'
 // Styled with the site's brand tokens (see styles/GlobalStyle) instead of
 // Mantine's default greys: a mint-outlined track, and the selected option
 // in the same green fill as the primary buttons.
-const styles = {
+export const brandToggleStyles = {
   root: {
     background: 'transparent',
     border: '1.5px solid var(--brand-border)',
@@ -24,7 +24,7 @@ const styles = {
 // Inside a search bar that already draws the outline: no border of its
 // own, just a faint tinted track.
 const embeddedStyles = {
-  ...styles,
+  ...brandToggleStyles,
   root: {
     background:
       'light-dark(rgba(52, 163, 126, 0.08), rgba(110, 231, 183, 0.06))',
@@ -56,7 +56,7 @@ function PlatformToggle({
       // The active label sits on the green fill; inactive ones inherit the
       // page's text colour so they work in both themes.
       color="transparent"
-      styles={embedded ? embeddedStyles : styles}
+      styles={embedded ? embeddedStyles : brandToggleStyles}
       classNames={{ label: 'platform-toggle-label' }}
     />
   )

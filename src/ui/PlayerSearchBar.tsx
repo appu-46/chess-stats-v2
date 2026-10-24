@@ -103,6 +103,7 @@ function PlayerSearchBar({
   submitLabel,
   submitting = false,
   onSubmit,
+  placeholder,
 }: {
   platform: Platform
   onPlatformChange: (platform: Platform) => void
@@ -113,6 +114,8 @@ function PlayerSearchBar({
   submitLabel: string
   submitting?: boolean
   onSubmit: FormEventHandler<HTMLFormElement>
+  // For narrow spots, where "Chess.com username" would be cut off.
+  placeholder?: string
 }) {
   // The switch sits right above the bar on phones, so the placeholder can
   // drop the platform name (it doesn't fit there anyway).
@@ -134,7 +137,8 @@ function PlayerSearchBar({
             fullWidth
             bare
             placeholder={
-              isPhone ? 'Username' : `${PLATFORM_LABELS[platform]} username`
+              placeholder ??
+              (isPhone ? 'Username' : `${PLATFORM_LABELS[platform]} username`)
             }
           />
         </InputSlot>
