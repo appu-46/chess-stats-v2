@@ -682,15 +682,21 @@ function Profile() {
             </SubLine>
           </IdentityText>
 
-          {profile && <ProfileActions profile={profile} />}
+          {profile && (
+            <ProfileActions
+              profile={profile}
+              stats={stats}
+              username={username}
+            />
+          )}
         </Identity>
 
         <section>
           <SectionHeading>Peak ratings</SectionHeading>
           {errorStats && (
             <PeakNote>
-              {PLATFORM_LABELS[platform]} didn't return this player's
-              ratings right now.
+              {PLATFORM_LABELS[platform]} didn't return this player's ratings
+              right now.
             </PeakNote>
           )}
           <PeakGrid $count={peakCount}>

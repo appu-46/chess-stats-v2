@@ -11,7 +11,8 @@ import useGoogleUser from '../hooks/useGoogleUser'
 import useGetFavsofUser from '../hooks/useGetFavsofUser'
 import { deleteFav, upsertChessUser, upsertFav } from '../services/apiUser'
 import { PLATFORM_LABELS, parsePlatform } from '../helpers/platform'
-import type { PlayerProfile } from '../helpers/normalizePlayer'
+import ShareStatCard from './ShareStatCard'
+import type { PlayerProfile, PlayerStats } from '../helpers/normalizePlayer'
 
 const FAV_COLOR = '#f43f5e'
 
@@ -94,6 +95,17 @@ const OpenLink = styled.a`
   ${pill}
 `
 
+// Label hidden on phones, like Compare's.
+const ShareButton = styled(ShareStatCard)`
+  ${pill}
+
+  @media (max-width: 768px) {
+    & > span {
+      display: none;
+    }
+  }
+`
+
 // A styled wrapper rather than styled(Link), which would lose the
 // router's typing of `search`.
 const CompareSlot = styled.span`
@@ -101,7 +113,7 @@ const CompareSlot = styled.span`
     ${pill}
   }
 
-  /* Icon only on phones, so all three buttons keep to one line. */
+  /* Icon only on phones, so all the buttons keep to one line. */
   @media (max-width: 768px) {
     a > span {
       display: none;
@@ -109,7 +121,16 @@ const CompareSlot = styled.span`
   }
 `
 
-function ProfileActions({ profile }: { profile: PlayerProfile }) {
+function ProfileActions({
+  profile,
+  stats,
+  username,
+}: {
+  profile: PlayerProfile
+  stats: PlayerStats | undefined
+  // As in the URL.
+  username: string
+}) {
   const queryClient = useQueryClient()
   const { data: googleUser } = useGoogleUser()
   const sub = googleUser?.sub ?? ''
@@ -163,6 +184,7 @@ function ProfileActions({ profile }: { profile: PlayerProfile }) {
           </FavButton>
         </span>
       </Tooltip>
+      <ShareButton profile={profile} stats={stats} username={username} />
       <CompareSlot>
         <Link
           to="/compare"
