@@ -1,5 +1,6 @@
 // Buttons beside the player's name on the profile: save them as a
-// favourite (signed-in users only), and open their page on the platform.
+// favourite (signed-in users only), share a stat card, compare them with
+// someone, and open their page on the platform.
 import styled from 'styled-components'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Tooltip } from '@mantine/core'
@@ -16,15 +17,43 @@ import type { PlayerProfile, PlayerStats } from '../helpers/normalizePlayer'
 
 const FAV_COLOR = '#f43f5e'
 
+// A 2×2 grid of equal-width buttons, narrow enough to sit beside the
+// name rather than wrapping onto a row of its own. Phones keep one
+// centred row, with Share and Compare as icons only.
 const Actions = styled.div`
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
   margin-left: auto;
 
+  /* Each button (or the wrapper around it) fills its cell, a touch
+     tighter than usual so the grid leaves the name room beside it. */
+  & > *,
+  & > * > a,
+  & > * > button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  & > * > a,
+  & > * > button,
+  & > a,
+  & > button {
+    padding: 0 0.75rem;
+    font-size: 0.82rem;
+  }
+
   @media (max-width: 768px) {
+    display: flex;
+    flex-wrap: wrap;
     margin-left: 0;
     justify-content: center;
+
+    & > *,
+    & > * > a,
+    & > * > button {
+      width: auto;
+    }
   }
 `
 
@@ -109,6 +138,8 @@ const ShareButton = styled(ShareStatCard)`
 // A styled wrapper rather than styled(Link), which would lose the
 // router's typing of `search`.
 const CompareSlot = styled.span`
+  display: flex;
+
   a {
     ${pill}
   }
@@ -170,7 +201,7 @@ function ProfileActions({
       >
         {/* A disabled button fires no hover events, so the tooltip hangs
             off this wrapper instead. */}
-        <span>
+        <span style={{ display: 'flex' }}>
           <FavButton
             type="button"
             $active={isFav}

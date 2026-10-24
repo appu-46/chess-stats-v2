@@ -190,8 +190,14 @@ const IdentityText = styled.div`
   flex-direction: column;
   gap: 0.5rem;
   min-width: 0;
+  /* Can narrow (its handle/country line wraps) so the 2×2 action grid
+     fits beside it on wide screens; below that the grid wraps under. */
+  flex: 1 1 16rem;
 
+  /* Phones stack the header in a column, where that basis would be a
+     16rem height. */
   @media (max-width: 768px) {
+    flex: none;
     align-items: center;
   }
 `
@@ -211,7 +217,7 @@ const NameLine = styled.a`
 
 const DisplayName = styled.h1`
   margin: 0;
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -245,15 +251,6 @@ const SubLine = styled.div`
 
 const Muted = styled.span`
   opacity: 0.6;
-`
-
-const Dot = styled.span`
-  opacity: 0.35;
-
-  /* The sub-line wraps on phones; a separator would dangle at a line end. */
-  @media (max-width: 768px) {
-    display: none;
-  }
 `
 
 const Country = styled.span`
@@ -665,7 +662,6 @@ function Profile() {
               <PlatformBadge platform={platform} />
               {country && (
                 <>
-                  <Dot>•</Dot>
                   <Country>
                     {country.code === 'XX' ? (
                       <FaGlobe size={16} />
