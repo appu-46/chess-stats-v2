@@ -893,7 +893,14 @@ function Compare() {
   const range = RANGES.find(({ value }) => value === search.range) ?? RANGES[0]
 
   function update(next: CompareSearch) {
-    navigate({ to: '/compare', search: { ...search, ...next }, replace: true })
+    // Same page, new settings: keep the scroll position (navigation
+    // scrolls to the top by default).
+    navigate({
+      to: '/compare',
+      search: { ...search, ...next },
+      replace: true,
+      resetScroll: false,
+    })
   }
 
   const slots = { a, b }
