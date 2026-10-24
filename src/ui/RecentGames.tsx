@@ -4,10 +4,7 @@
 import styled, { css } from 'styled-components'
 import { FiExternalLink } from 'react-icons/fi'
 import useLatestGames from '../hooks/useLatestGames'
-import {
-  transformChessComGame,
-  transformLichessGame,
-} from '../helpers/transformGame'
+import { newestGames } from '../helpers/newestGames'
 import { formatTimeControl } from '../helpers/gameFormat'
 import { formatDate, formatLastActive } from '../helpers/DateFormat'
 import { PLATFORM_LABELS } from '../helpers/platform'
@@ -20,17 +17,12 @@ import {
 } from './GameResult'
 import { Pulse } from './DashboardSkeleton'
 import type { Result } from './GameResult'
-import type {
-  ChessComGame,
-  LichessGame,
-  TransformedGame,
-} from '../helpers/transformGame'
-import type { RawGame } from '../services/apiPlayer'
 import type { Platform } from '../helpers/platform'
 
 const SHOWN = 8
-// A couple spare, in case a game can't be parsed.
-const FETCHED = SHOWN + 2
+// A couple spare, in case a game can't be parsed. The favourites cards ask
+// for the same count, so the two share one cached request.
+export const RECENT_GAMES_FETCHED = SHOWN + 2
 
 // Shared by the header and the rows so their columns always line up: Time
 // drops out at mid widths, and phones keep only result + opponent.
@@ -161,28 +153,6 @@ const OpenIcon = styled(FiExternalLink)`
   }
 `
 
-// Newest first. Only a handful of games, so this runs inline rather than
-// through useProgressiveTransform's chunked loop.
-function toRecent(
-  games: Array<RawGame>,
-  lowerUsername: string,
-  platform: Platform,
-): Array<TransformedGame> {
-  const transformed: Array<TransformedGame> = []
-  for (const game of games) {
-    try {
-      const result =
-        platform === 'lichess'
-          ? transformLichessGame(game as LichessGame, lowerUsername)
-          : transformChessComGame(game as ChessComGame, lowerUsername)
-      if (result) transformed.push(result)
-    } catch (error) {
-      console.error(error)
-    }
-  }
-  return transformed.slice(-SHOWN).reverse()
-}
-
 const Message = styled.p`
   margin: 0;
   padding: 1.25rem 0.5rem;
@@ -198,7 +168,7 @@ function RecentGames({
 }) {
   const { games, isPending, error } = useLatestGames(
     username,
-    FETCHED,
+    RECENT_GAMES_FETCHED,
     platform,
   )
   if (error) return <Message>Couldn't load recent games.</Message>
@@ -214,7 +184,7 @@ function RecentGames({
   }
 
   const lowerUsername = username.toLowerCase()
-  const recent = toRecent(games ?? [], lowerUsername, platform)
+  const recent = newestGames(games ?? [], lowerUsername, platform, SHOWN)
   if (recent.length === 0) return <Message>No games played yet.</Message>
 
   return (

@@ -64,6 +64,31 @@ export async function fetchPlayerStats(
   return stats
 }
 
+// Just the current rating per time class, for summaries like the
+// favourites cards. One request on either platform: lichess's user record
+// already holds every rating, unlike the W/L/D that fetchPlayerStats needs.
+export async function fetchCurrentRatings(
+  platform: Platform,
+  username: string,
+): Promise<Partial<Record<string, number>>> {
+  const ratings: Partial<Record<string, number>> = {}
+
+  if (platform === 'chess.com') {
+    const stats = normalizeChessComStats(await apiStats(username))
+    for (const [timeClass, stat] of Object.entries(stats)) {
+      if (stat?.current != null) ratings[timeClass] = stat.current
+    }
+    return ratings
+  }
+
+  const { perfs } = await apiFetchLiUser(username)
+  for (const { timeClass } of getTimeControls('lichess')) {
+    const perf = perfs?.[timeClass]
+    if (perf?.games) ratings[timeClass] = perf.rating
+  }
+  return ratings
+}
+
 // `months`/`days` of 0 mean "no limit", mirroring apiRecentGames.
 export async function fetchRecentGames(
   platform: Platform,
