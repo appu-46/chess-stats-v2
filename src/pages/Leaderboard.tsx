@@ -3,10 +3,10 @@
 // the menu) and by title. Everything is in the URL, so a view can be
 // shared.
 import styled from 'styled-components'
-import { useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { SegmentedControl, Select } from '@mantine/core'
-import { TbTrophy } from 'react-icons/tb'
+import { TbTrophy, TbX } from 'react-icons/tb'
 import useLeaderboard from '../hooks/useLeaderboard'
 import { leaderboardControls } from '../services/apiLeaderboard'
 import { summarizeLeaderboard } from '../helpers/leaderboard'
@@ -246,9 +246,26 @@ const CountryButton = styled.button<{ $share: number }>`
     background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.05));
   }
 
+  /* The filtered country: the same solid green as the selected
+     platform and time control, without its share bar. */
   &[aria-pressed='true'] {
-    background: light-dark(rgba(52, 163, 126, 0.16), rgba(52, 163, 126, 0.22));
-    font-weight: 600;
+    background: var(--brand-fill);
+    box-shadow: 0 2px 10px var(--brand-glow);
+    font-weight: 700;
+
+    &::before {
+      display: none;
+    }
+
+    &,
+    & span {
+      color: var(--on-brand);
+    }
+  }
+
+  &[aria-pressed='true']:hover,
+  &[aria-pressed='true']:focus-visible {
+    background: var(--brand-fill-hover);
   }
 
   isolation: isolate;
@@ -558,6 +575,22 @@ function Leaderboard() {
 
   const { data, isPending, error } = useLeaderboard(platform, control.timeClass)
 
+  // A country picked from the menu may sit far down the list: scroll the
+  // list (not the page) to show it.
+  const countryListRef = useRef<HTMLOListElement>(null)
+  useEffect(() => {
+    const list = countryListRef.current
+    const selected = list?.querySelector<HTMLElement>('[aria-pressed="true"]')
+    if (!list || !selected) return
+    const top = selected.offsetTop - list.offsetTop
+    if (
+      top < list.scrollTop ||
+      top + selected.offsetHeight > list.scrollTop + list.clientHeight
+    ) {
+      list.scrollTo({ top: top - list.clientHeight / 2, behavior: 'smooth' })
+    }
+  }, [search.country, data])
+
   function update(next: LeaderboardSearch) {
     navigate({
       to: '/leaderboard',
@@ -683,7 +716,7 @@ function Leaderboard() {
                 ))}
               </CountryList>
             ) : (
-              <CountryList>
+              <CountryList ref={countryListRef}>
                 {summary.countries.map(({ key, country, count }) => (
                   <li key={key}>
                     <CountryButton
@@ -701,6 +734,7 @@ function Leaderboard() {
                       />
                       <CountryName>{countryLabel(key, country)}</CountryName>
                       <Count>{count}</Count>
+                      {search.country === key && <TbX size={14} aria-hidden />}
                     </CountryButton>
                   </li>
                 ))}
