@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { summarizeLeaderboard } from './leaderboard'
-import { NO_COUNTRY } from './leaderboardSearch'
+import { NO_COUNTRY, NO_TITLE } from './leaderboardSearch'
 import type { LeaderboardEntry } from '../services/apiLeaderboard'
 
 function entry(
@@ -30,13 +30,14 @@ const entries = [
 ]
 
 describe('summarizeLeaderboard', () => {
-  it('orders titles by rank, unofficial ones last', () => {
+  it('orders titles by rank, unofficial ones then untitled last', () => {
     const { titles } = summarizeLeaderboard(entries, {})
     expect(titles).toEqual([
       { title: 'GM', count: 3 },
       { title: 'IM', count: 1 },
       { title: 'FM', count: 1 },
       { title: 'LM', count: 1 },
+      { title: NO_TITLE, count: 1 },
     ])
   })
 
@@ -57,7 +58,7 @@ describe('summarizeLeaderboard', () => {
       'Norway',
       'United States',
     ])
-    expect(summary.titles).toHaveLength(4)
+    expect(summary.titles).toHaveLength(5)
     expect(summary.players.map((p) => p.rank)).toEqual([1, 3, 6])
   })
 
@@ -70,5 +71,10 @@ describe('summarizeLeaderboard', () => {
         (p) => p.rank,
       ),
     ).toEqual([4, 5])
+    expect(
+      summarizeLeaderboard(entries, { title: NO_TITLE }).players.map(
+        (p) => p.rank,
+      ),
+    ).toEqual([4])
   })
 })

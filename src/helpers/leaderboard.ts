@@ -1,4 +1,4 @@
-import { NO_COUNTRY } from './leaderboardSearch'
+import { NO_COUNTRY, NO_TITLE } from './leaderboardSearch'
 import type { LeaderboardEntry } from '../services/apiLeaderboard'
 import type { Country } from './normalizePlayer'
 
@@ -14,7 +14,8 @@ export interface CountryCount {
 
 export interface LeaderboardSummary {
   // Among all 100, so the title filter's options don't vanish as the
-  // country filter narrows the list.
+  // country filter narrows the list. Untitled players come last, as
+  // NO_TITLE.
   titles: Array<{ title: string; count: number }>
   // Among players with the chosen title, most players first.
   countries: Array<CountryCount>
@@ -36,9 +37,12 @@ export function summarizeLeaderboard(
   { country, title }: { country?: string; title?: string },
 ): LeaderboardSummary {
   const titleCounts = new Map<string, number>()
+  let untitled = 0
   for (const entry of entries) {
     if (entry.title) {
       titleCounts.set(entry.title, (titleCounts.get(entry.title) ?? 0) + 1)
+    } else {
+      untitled++
     }
   }
   const titles = [...titleCounts]
@@ -48,9 +52,12 @@ export function summarizeLeaderboard(
         titleRank(a.title) - titleRank(b.title) ||
         a.title.localeCompare(b.title),
     )
+  if (untitled) titles.push({ title: NO_TITLE, count: untitled })
 
   const withTitle = title
-    ? entries.filter((entry) => entry.title === title)
+    ? entries.filter((entry) =>
+        title === NO_TITLE ? !entry.title : entry.title === title,
+      )
     : entries
 
   const countryCounts = new Map<string, CountryCount>()

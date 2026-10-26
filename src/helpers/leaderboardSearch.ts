@@ -1,6 +1,7 @@
 // /leaderboard?tc=rapid&country=India&title=GM (plus platform=lichess, as
 // on the player pages). The country is its display name, and "none" picks
-// the players who haven't set one.
+// the players who haven't set one; likewise title=none for untitled
+// players.
 export type LeaderboardSearch = {
   platform?: 'lichess'
   tc?: string
@@ -9,6 +10,7 @@ export type LeaderboardSearch = {
 }
 
 export const NO_COUNTRY = 'none'
+export const NO_TITLE = 'none'
 
 function text(value: unknown): string | undefined {
   if (value === undefined || value === null || value === '') return undefined

@@ -10,7 +10,7 @@ import { TbTrophy } from 'react-icons/tb'
 import useLeaderboard from '../hooks/useLeaderboard'
 import { leaderboardControls } from '../services/apiLeaderboard'
 import { summarizeLeaderboard } from '../helpers/leaderboard'
-import { NO_COUNTRY } from '../helpers/leaderboardSearch'
+import { NO_COUNTRY, NO_TITLE } from '../helpers/leaderboardSearch'
 import { flagSrc } from '../helpers/countries'
 import {
   PLATFORM_LABELS,
@@ -561,7 +561,7 @@ function Leaderboard() {
             onChange={(title) => update({ title: title ?? undefined })}
             data={(summary?.titles ?? []).map(({ title, count }) => ({
               value: title,
-              label: `${title} (${count})`,
+              label: `${title === NO_TITLE ? 'No title' : title} (${count})`,
             }))}
             radius="xl"
             w={{ base: '100%', sm: 160 }}
