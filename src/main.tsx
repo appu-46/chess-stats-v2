@@ -87,19 +87,47 @@ const SECTION_TITLES: Record<string, string> = {
   leaderboard: 'Leaderboard',
 }
 
+const DEFAULT_DESCRIPTION =
+  'Ratings over time, openings, streaks and game history for any Chess.com or Lichess player, plus head-to-head comparisons and the top 100 by country. Free, no sign-up.'
+
+// Search results show this; index.html holds the default.
+function sectionDescription(section: string, username: string) {
+  const who = username || 'any player'
+  switch (section) {
+    case 'profile':
+      return `${who}'s ratings, peak ratings and recent games on Chess.com or Lichess. Free, no sign-up.`
+    case 'stats':
+      return `${who}'s win, loss and draw record in every time control.`
+    case 'dashboard':
+      return `${who}'s rating over time, openings, streaks and results by colour.`
+    case 'games':
+      return `${who}'s games by month and day, with openings and results.`
+    case 'compare':
+      return 'Compare two Chess.com or Lichess players: ratings, records and rating history side by side.'
+    case 'leaderboard':
+      return 'The top 100 players on Chess.com and Lichess in every time control, by country and title.'
+    default:
+      return DEFAULT_DESCRIPTION
+  }
+}
+
 function usePageTitle(pathname: string) {
   useEffect(() => {
-    const [, section, param] = pathname.split('/')
+    const [, section = '', param] = pathname.split('/')
     const label = section ? SECTION_TITLES[section] : undefined
-
-    if (!label) {
-      document.title = 'Chess Stats'
-      return
-    }
 
     // /favourites/$sub carries a route id, not a username — skip it.
     const username =
       param && section !== 'favourites' ? decodeURIComponent(param) : ''
+
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute('content', sectionDescription(section, username))
+
+    if (!label) {
+      document.title = 'Chess Stats: free stats for Chess.com and Lichess'
+      return
+    }
 
     document.title = username
       ? `${username} · ${label} · Chess Stats`
