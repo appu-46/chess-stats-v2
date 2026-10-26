@@ -565,6 +565,9 @@ function Profile() {
   } = useProfile(username, platform)
   const upsertMutation = useMutation({ mutationFn: upsertChessUser })
   const [avatarOpen, setAvatarOpen] = useState(false)
+  // Where the avatar sits relative to the screen's centre, so the popup
+  // can grow out of it and shrink back into it.
+  const [avatarOffset, setAvatarOffset] = useState({ x: 0, y: 0 })
   const {
     data: stats,
     isPending: isFetchingStats,
@@ -692,7 +695,14 @@ function Profile() {
           <AvatarFrame
             type="button"
             disabled={!playerAvatar}
-            onClick={() => setAvatarOpen(true)}
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect()
+              setAvatarOffset({
+                x: rect.left + rect.width / 2 - window.innerWidth / 2,
+                y: rect.top + rect.height / 2 - window.innerHeight / 2,
+              })
+              setAvatarOpen(true)
+            }}
             aria-label={
               playerAvatar
                 ? `View ${playerName || handle}'s photo larger`
@@ -716,6 +726,21 @@ function Profile() {
               size="auto"
               withCloseButton={false}
               styles={brandModalStyles}
+              classNames={{
+                content: 'avatar-zoom',
+                overlay: 'avatar-zoom-overlay',
+              }}
+              transitionProps={{
+                duration: 320,
+                transition: {
+                  in: { opacity: 1, transform: 'translate(0, 0) scale(1)' },
+                  out: {
+                    opacity: 0,
+                    transform: `translate(${avatarOffset.x}px, ${avatarOffset.y}px) scale(0.3)`,
+                  },
+                  transitionProperty: 'transform, opacity',
+                },
+              }}
               aria-label={`${playerName || handle}'s photo`}
             >
               <LargeAvatar src={playerAvatar} alt={playerName || handle} />

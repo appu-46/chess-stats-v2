@@ -113,3 +113,16 @@ a {
     color 0.25s ease,
     opacity 0.25s ease !important;
 }
+
+/* The profile photo's popup grows out of the avatar (see pages/Profile).
+   Mantine animates it by changing transform and opacity, which that same
+   global transition rule would otherwise make instant. Two classes each
+   to outrank it, as above. */
+.mantine-Modal-content.avatar-zoom {
+  transition:
+    transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.22s ease !important;
+}
+.mantine-Modal-overlay.avatar-zoom-overlay {
+  transition: opacity 0.25s ease !important;
+}
