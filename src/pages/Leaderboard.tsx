@@ -21,6 +21,7 @@ import { PageEyebrow } from '../ui/PageHeader'
 import PlatformToggle, { brandToggleStyles } from '../ui/PlatformToggle'
 import PageError from '../ui/PageError'
 import { Pulse } from '../ui/DashboardSkeleton'
+import dropdownClasses from '../css/UsernameAutocomplete.module.css'
 import type { LeaderboardSearch } from '../helpers/leaderboardSearch'
 import type { Country } from '../helpers/normalizePlayer'
 import type { Platform } from '../helpers/platform'
@@ -30,6 +31,21 @@ const toggleStyles = {
   ...brandToggleStyles,
   root: { ...brandToggleStyles.root, padding: 3 },
   label: { fontWeight: 600, padding: '0.2rem 0.8rem' },
+}
+
+// The filters match the platform switch beside them (a mint outline, no
+// fill) instead of Mantine's grey, and their lists the username
+// suggestions' green dropdown.
+const selectStyles = {
+  input: {
+    background: 'transparent',
+    border: '1.5px solid var(--brand-border)',
+    color: 'inherit',
+  },
+}
+const selectClassNames = {
+  dropdown: dropdownClasses.dropdown,
+  option: dropdownClasses.option,
 }
 
 // ── Layout ──────────────────────────────────────────────────────────
@@ -533,7 +549,9 @@ function Leaderboard() {
             }))}
             radius="xl"
             w={{ base: '100%', sm: 220 }}
-            comboboxProps={{ radius: 'md' }}
+            comboboxProps={{ radius: 'md', shadow: 'md' }}
+            styles={selectStyles}
+            classNames={selectClassNames}
           />
           <Select
             aria-label="Title"
@@ -547,7 +565,9 @@ function Leaderboard() {
             }))}
             radius="xl"
             w={{ base: '100%', sm: 160 }}
-            comboboxProps={{ radius: 'md' }}
+            comboboxProps={{ radius: 'md', shadow: 'md' }}
+            styles={selectStyles}
+            classNames={selectClassNames}
           />
         </Filters>
       </Controls>
