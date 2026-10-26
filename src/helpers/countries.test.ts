@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countryFromChessComCode, countryFromName, flagSrc } from './countries'
+import { countryFromChessComCode, countryFromName } from './countries'
 import { lichessFlagToCountry } from './normalizePlayer'
 
 describe('countries', () => {
@@ -14,6 +14,16 @@ describe('countries', () => {
     })
   })
 
+  it('picks the current code where an old one shares the name', () => {
+    // SU (Soviet Union) is also "Russia", FX "France", UK "United
+    // Kingdom" and YU "Serbia", and none of those have flags.
+    expect(countryFromName('Russia')?.code).toBe('RU')
+    expect(countryFromName('France')?.code).toBe('FR')
+    expect(countryFromName('United Kingdom')?.code).toBe('GB')
+    expect(countryFromName('Serbia')?.code).toBe('RS')
+    expect(countryFromName('Germany')?.code).toBe('DE')
+  })
+
   it("matches chess.com's own codes with lichess's subdivisions", () => {
     expect(countryFromName('England')).toEqual({ code: 'GB', name: 'England' })
     expect(countryFromChessComCode('XE')).toEqual(
@@ -24,8 +34,6 @@ describe('countries', () => {
   it('keeps an unknown name, without a flag', () => {
     const country = countryFromName('Atlantis')
     expect(country).toEqual({ code: 'XX', name: 'Atlantis' })
-    expect(flagSrc(country!)).toBeNull()
     expect(countryFromName(undefined)).toBeNull()
-    expect(flagSrc({ code: 'IN', name: 'India' })).toContain('/IN/')
   })
 })

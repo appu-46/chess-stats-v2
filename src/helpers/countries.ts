@@ -54,6 +54,14 @@ export function countryFromChessComCode(code: string): Country {
   return CHESS_COM_CODES[code] ?? { code, name: regionName(code) }
 }
 
+function isCurrentRegion(code: string) {
+  try {
+    return Intl.getCanonicalLocales(`und-${code}`)[0] === `und-${code}`
+  } catch {
+    return false
+  }
+}
+
 let codesByName: Map<string, string> | undefined
 
 function chessComCodeForName(name: string): string | undefined {
@@ -63,6 +71,9 @@ function chessComCodeForName(name: string): string | undefined {
     for (const a of letters) {
       for (const b of letters) {
         const code = a + b
+        // Retired codes share their successor's name (SU is "Russia",
+        // FX "France", UK "United Kingdom"), and have no flag: skip them.
+        if (!isCurrentRegion(code)) continue
         const known = regionName(code)
         if (known !== code) codesByName.set(known.toLowerCase(), code)
       }
@@ -85,9 +96,3 @@ export function countryFromName(name: string | undefined): Country | null {
   return code ? countryFromChessComCode(code) : { code: 'XX', name }
 }
 
-// flagsapi.com only knows real ISO codes.
-export function flagSrc(country: Country): string | null {
-  return /^[A-Z]{2}$/.test(country.code) && country.code !== 'XX'
-    ? `https://flagsapi.com/${country.code}/flat/32.png`
-    : null
-}

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from '@tanstack/react-router'
 
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useController, useForm } from 'react-hook-form'
-import { FaGlobe, FaRegHeart, FaTrash } from 'react-icons/fa'
+import { FaRegHeart, FaTrash } from 'react-icons/fa'
 import { SiChessdotcom, SiLichess } from 'react-icons/si'
 import { MdFavorite } from 'react-icons/md'
 import { useQueryClient } from '@tanstack/react-query'
@@ -27,6 +27,7 @@ import PlatformBadge from '../ui/PlatformBadge'
 import { PageEyebrow } from '../ui/PageHeader'
 import { formatLastActive } from '../helpers/DateFormat'
 import PageError from '../ui/PageError'
+import CountryFlag from '../ui/CountryFlag'
 import type { ReactNode } from 'react'
 import type { Platform } from '../helpers/platform'
 
@@ -628,14 +629,7 @@ function Favorites() {
                   <PlayerFooter>
                     {fav.country ? (
                       <Country>
-                        {fav.country.code === 'XX' ? (
-                          <FaGlobe size={14} />
-                        ) : (
-                          <img
-                            src={`https://flagsapi.com/${fav.country.code}/flat/32.png`}
-                            alt=""
-                          />
-                        )}
+                        <CountryFlag country={fav.country} size={18} />
                         <Muted style={{ opacity: 1 }}>{fav.country.name}</Muted>
                       </Country>
                     ) : (

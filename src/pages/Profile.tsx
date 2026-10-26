@@ -1,11 +1,5 @@
 import styled from 'styled-components'
-import {
-  FaGamepad,
-  FaGlobe,
-  FaHourglassHalf,
-  FaTrophy,
-  FaTwitch,
-} from 'react-icons/fa'
+import { FaGamepad, FaHourglassHalf, FaTrophy, FaTwitch } from 'react-icons/fa'
 import { BsClockHistory } from 'react-icons/bs'
 import { SiChessdotcom, SiLichess } from 'react-icons/si'
 import { RiVipDiamondFill } from 'react-icons/ri'
@@ -29,6 +23,7 @@ import RecentGames from '../ui/RecentGames'
 import { PageEyebrow } from '../ui/PageHeader'
 import ProfileActions from '../ui/ProfileActions'
 import PageError from '../ui/PageError'
+import CountryFlag from '../ui/CountryFlag'
 import type { ReactNode } from 'react'
 // ── Layout ──────────────────────────────────────────────────────────
 // Two columns of equal height: identity + peak ratings on the left, a
@@ -663,14 +658,7 @@ function Profile() {
               {country && (
                 <>
                   <Country>
-                    {country.code === 'XX' ? (
-                      <FaGlobe size={16} />
-                    ) : (
-                      <img
-                        src={`https://flagsapi.com/${country.code}/flat/32.png`}
-                        alt=""
-                      />
-                    )}
+                    <CountryFlag country={country} size={20} />
                     {country.name}
                   </Country>
                 </>

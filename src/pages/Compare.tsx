@@ -6,7 +6,6 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { SegmentedControl } from '@mantine/core'
 import { TbArrowsLeftRight, TbX } from 'react-icons/tb'
-import { FaGlobe } from 'react-icons/fa'
 import { SiChessdotcom, SiLichess } from 'react-icons/si'
 import useProfile from '../hooks/useProfile'
 import useStats from '../hooks/useStats'
@@ -36,6 +35,7 @@ import { brandToggleStyles } from '../ui/PlatformToggle'
 import CompareRatingChart from '../ui/CompareRatingChart'
 import { Pulse } from '../ui/DashboardSkeleton'
 import { describeError } from '../ui/PageError'
+import CountryFlag from '../ui/CountryFlag'
 import type { CompareSearch, ComparedPlayer } from '../helpers/compareSearch'
 import type { CompareMetric, Side } from '../helpers/compareStats'
 import type { TransformedGame } from '../helpers/transformGame'
@@ -628,14 +628,7 @@ function PickedSlot({
                     gap: '0.35rem',
                   }}
                 >
-                  {profile.country.code === 'XX' ? (
-                    <FaGlobe size={13} />
-                  ) : (
-                    <img
-                      src={`https://flagsapi.com/${profile.country.code}/flat/32.png`}
-                      alt=""
-                    />
-                  )}
+                  <CountryFlag country={profile.country} size={16} />
                   {profile.country.name}
                 </Muted>
               )}

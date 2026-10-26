@@ -3,15 +3,14 @@
 // the menu) and by title. Everything is in the URL, so a view can be
 // shared.
 import styled from 'styled-components'
+import { useId } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { SegmentedControl, Select } from '@mantine/core'
-import { FaGlobe } from 'react-icons/fa'
 import { TbTrophy } from 'react-icons/tb'
 import useLeaderboard from '../hooks/useLeaderboard'
 import { leaderboardControls } from '../services/apiLeaderboard'
 import { summarizeLeaderboard } from '../helpers/leaderboard'
 import { NO_COUNTRY, NO_TITLE } from '../helpers/leaderboardSearch'
-import { flagSrc } from '../helpers/countries'
 import {
   PLATFORM_LABELS,
   parsePlatform,
@@ -21,6 +20,7 @@ import { PageEyebrow } from '../ui/PageHeader'
 import PlatformToggle, { brandToggleStyles } from '../ui/PlatformToggle'
 import PageError from '../ui/PageError'
 import { Pulse } from '../ui/DashboardSkeleton'
+import CountryFlag from '../ui/CountryFlag'
 import dropdownClasses from '../css/UsernameAutocomplete.module.css'
 import type { LeaderboardSearch } from '../helpers/leaderboardSearch'
 import type { Country } from '../helpers/normalizePlayer'
@@ -267,33 +267,6 @@ const Count = styled.span`
   font-variant-numeric: tabular-nums;
 `
 
-const FlagImg = styled.img`
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-`
-
-const FlagPlaceholder = styled.span`
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  opacity: 0.6;
-`
-
-function Flag({ country }: { country: Country | null }) {
-  const src = country ? flagSrc(country) : null
-  if (src) return <FlagImg src={src} alt="" loading="lazy" />
-  return (
-    <FlagPlaceholder>
-      <FaGlobe size={13} aria-hidden />
-    </FlagPlaceholder>
-  )
-}
-
 // ── Players ─────────────────────────────────────────────────────────
 
 const columns = `
@@ -337,27 +310,49 @@ const PlayerList = styled.ol`
 
 // A styled wrapper rather than styled(Link), which would lose the
 // router's typing of `params` and `search`.
-// Gold, silver and bronze for the top three: a badge in place of the
+// Gold, silver and bronze for the top three: a medal in place of the
 // number, and a faint wash of the same colour across the row.
 const MEDALS: Partial<
-  Record<number, { label: string; fill: string; ink: string; tint: string }>
+  Record<
+    number,
+    {
+      label: string
+      // Medallion gradient, light to dark, and the number's colour.
+      light: string
+      mid: string
+      dark: string
+      ink: string
+      // The two halves of the ribbon.
+      ribbon: [string, string]
+      tint: string
+    }
+  >
 > = {
   1: {
     label: 'Gold',
-    fill: 'linear-gradient(135deg, #fde68a, #f5b301 55%, #c98a00)',
+    light: '#fff3b0',
+    mid: '#f5b301',
+    dark: '#a86f00',
     ink: '#4a3200',
+    ribbon: ['#d63b3b', '#2f6fd6'],
     tint: '#f5b301',
   },
   2: {
     label: 'Silver',
-    fill: 'linear-gradient(135deg, #f3f4f6, #c2c8d0 55%, #8e97a3)',
+    light: '#ffffff',
+    mid: '#c2c8d0',
+    dark: '#7c8591',
     ink: '#2b3036',
+    ribbon: ['#2f6fd6', '#d63b3b'],
     tint: '#aeb6c1',
   },
   3: {
     label: 'Bronze',
-    fill: 'linear-gradient(135deg, #f3c9a0, #cd7f32 55%, #9a5a1f)',
+    light: '#ffd9b3',
+    mid: '#cd7f32',
+    dark: '#86501c',
     ink: '#3d1f05',
+    ribbon: ['#2f9e57', '#d63b3b'],
     tint: '#cd7f32',
   },
 }
@@ -388,24 +383,10 @@ const Rank = styled.span`
   opacity: 0.6;
 `
 
-const MedalBadge = styled.span<{ $fill: string; $ink: string }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 50%;
-  background: ${({ $fill }) => $fill};
-  box-shadow:
-    inset 0 -2px 0 rgba(0, 0, 0, 0.18),
-    0 2px 6px rgba(0, 0, 0, 0.25);
-  font-size: 0.9rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-
-  && {
-    color: ${({ $ink }) => $ink};
-  }
+const MedalSvg = styled.svg`
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
 `
 
 const PlayerCell = styled.span`
@@ -505,18 +486,59 @@ const Empty = styled.p`
   opacity: 0.6;
 `
 
-function medalBadge(rank: number) {
+// A medal on a crossed ribbon, with the rank on the medallion.
+function Medal({ rank }: { rank: number }) {
+  const id = useId()
   const medal = MEDALS[rank]
   if (!medal) return <Rank>{rank}</Rank>
+  // useId's colons would break the url(#...) reference.
+  const gradient = `medal-${id.replace(/[^\w-]/g, '')}`
   return (
-    <MedalBadge
-      $fill={medal.fill}
-      $ink={medal.ink}
-      title={`${medal.label}: rank ${rank}`}
-      aria-label={`Rank ${rank}`}
+    <MedalSvg
+      width="28"
+      height="36"
+      viewBox="0 0 28 36"
+      role="img"
+      aria-label={`Rank ${rank}, ${medal.label.toLowerCase()}`}
     >
-      {rank}
-    </MedalBadge>
+      <title>{`${medal.label}: rank ${rank}`}</title>
+      <defs>
+        <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={medal.light} />
+          <stop offset="0.55" stopColor={medal.mid} />
+          <stop offset="1" stopColor={medal.dark} />
+        </linearGradient>
+      </defs>
+      <polygon points="4,0 11,0 17,15 10,15" fill={medal.ribbon[0]} />
+      <polygon points="17,0 24,0 18,15 11,15" fill={medal.ribbon[1]} />
+      <circle
+        cx="14"
+        cy="24"
+        r="11"
+        fill={`url(#${gradient})`}
+        stroke={medal.dark}
+        strokeWidth="1"
+      />
+      <circle
+        cx="14"
+        cy="24"
+        r="8"
+        fill="none"
+        stroke={medal.light}
+        strokeOpacity="0.7"
+        strokeWidth="1"
+      />
+      <text
+        x="14"
+        y="28"
+        textAnchor="middle"
+        fontSize="11"
+        fontWeight="800"
+        fill={medal.ink}
+      >
+        {rank}
+      </text>
+    </MedalSvg>
   )
 }
 
@@ -674,7 +696,9 @@ function Leaderboard() {
                         })
                       }
                     >
-                      <Flag country={key === NO_COUNTRY ? null : country} />
+                      <CountryFlag
+                        country={key === NO_COUNTRY ? null : country}
+                      />
                       <CountryName>{countryLabel(key, country)}</CountryName>
                       <Count>{count}</Count>
                     </CountryButton>
@@ -746,7 +770,7 @@ function Leaderboard() {
                       params={{ username: entry.username }}
                       search={platformSearch(platform)}
                     >
-                      {medalBadge(entry.rank)}
+                      <Medal rank={entry.rank} />
                       <PlayerCell>
                         {entry.avatar ? (
                           <Avatar src={entry.avatar} alt="" loading="lazy" />
@@ -766,7 +790,7 @@ function Leaderboard() {
                         </NameBlock>
                       </PlayerCell>
                       <CountryCell data-column="country">
-                        <Flag country={entry.country} />
+                        <CountryFlag country={entry.country} />
                         <span>{entry.country?.name ?? '—'}</span>
                       </CountryCell>
                       <RatingCell>{entry.rating}</RatingCell>
