@@ -8,3 +8,8 @@ count.txt
 .nitro
 .tanstack
 *.tsbuildinfo
+
+# Local tool folders: Claude Code settings and scratch files, Kilo Code
+# worktrees. Never part of the app.
+.claude/
+.kilo/

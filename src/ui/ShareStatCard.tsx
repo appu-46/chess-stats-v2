@@ -28,6 +28,7 @@ import {
 } from '../helpers/drawStatCard'
 import { RECENT_GAMES_FETCHED } from './RecentGames'
 import { Pulse } from './DashboardSkeleton'
+import { brandModalStyles } from './modalStyles'
 import type { PlayerProfile, PlayerStats } from '../helpers/normalizePlayer'
 import type { StatCardData } from '../helpers/drawStatCard'
 import type { SharePost, ShareTarget } from '../helpers/shareLinks'
@@ -356,6 +357,7 @@ function StatCardModal({
       size="xl"
       radius="lg"
       centered
+      styles={brandModalStyles}
     >
       {failed ? (
         <Failure>Couldn't draw the card. Try again in a moment.</Failure>

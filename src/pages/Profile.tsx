@@ -9,7 +9,8 @@ import { HiUserGroup } from 'react-icons/hi'
 import { CgProfile } from 'react-icons/cg'
 import { Link, useParams } from '@tanstack/react-router'
 import { useMutation } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { Modal } from '@mantine/core'
 import useProfile from '../hooks/useProfile'
 import PlatformBadge from '../ui/PlatformBadge'
 import Spinner from '../ui/Spinner'
@@ -24,6 +25,7 @@ import { PageEyebrow } from '../ui/PageHeader'
 import ProfileActions from '../ui/ProfileActions'
 import PageError from '../ui/PageError'
 import CountryFlag from '../ui/CountryFlag'
+import { brandModalStyles } from '../ui/modalStyles'
 import type { ReactNode } from 'react'
 // ── Layout ──────────────────────────────────────────────────────────
 // Two columns of equal height: identity + peak ratings on the left, a
@@ -134,21 +136,70 @@ const Identity = styled.div`
   }
 `
 
-const AvatarLink = styled.a`
+// The photo opens a larger view; without one (lichess has no avatars)
+// it's just the ring around the platform icon.
+const AvatarFrame = styled.button`
   flex-shrink: 0;
   border-radius: 50%;
   /* Thin ring with a gap, so the photo reads as a clean circle against
      the card instead of blending into it. */
   padding: 4px;
   border: 1.5px solid rgba(187, 247, 208, 0.35);
+  background: none;
+  color: inherit;
   transition: border-color 0.2s ease;
 
-  &:hover {
+  &:enabled {
+    cursor: zoom-in;
+  }
+
+  &:enabled:hover,
+  &:focus-visible {
     border-color: rgba(187, 247, 208, 0.7);
   }
 
   [data-mantine-color-scheme='light'] & {
     border-color: rgba(20, 83, 45, 0.35);
+  }
+`
+
+// chess.com only stores avatars at 200x200, so the large view stops a
+// little past that rather than blowing it up into a blur.
+const LargeAvatar = styled.img`
+  display: block;
+  width: min(16rem, 70vw);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 20px;
+  object-fit: cover;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+`
+
+const AvatarCaption = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  text-align: center;
+
+  strong {
+    font-size: 1.1rem;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: light-dark(var(--brand), var(--brand-soft));
+    text-decoration: none;
+  }
+
+  a:hover,
+  a:focus-visible {
+    text-decoration: underline;
   }
 `
 
@@ -513,6 +564,7 @@ function Profile() {
     error: errorProfile,
   } = useProfile(username, platform)
   const upsertMutation = useMutation({ mutationFn: upsertChessUser })
+  const [avatarOpen, setAvatarOpen] = useState(false)
   const {
     data: stats,
     isPending: isFetchingStats,
@@ -637,7 +689,16 @@ function Profile() {
 
       <ProfileCard>
         <Identity>
-          <AvatarLink href={url} target="_blank" rel="noopener noreferrer">
+          <AvatarFrame
+            type="button"
+            disabled={!playerAvatar}
+            onClick={() => setAvatarOpen(true)}
+            aria-label={
+              playerAvatar
+                ? `View ${playerName || handle}'s photo larger`
+                : undefined
+            }
+          >
             {playerAvatar ? (
               <Avatar src={playerAvatar} alt={playerName || handle} />
             ) : (
@@ -645,7 +706,28 @@ function Profile() {
                 <PlatformIcon size={40} />
               </AvatarPlaceholder>
             )}
-          </AvatarLink>
+          </AvatarFrame>
+          {playerAvatar && (
+            <Modal
+              opened={avatarOpen}
+              onClose={() => setAvatarOpen(false)}
+              centered
+              radius="lg"
+              size="auto"
+              withCloseButton={false}
+              styles={brandModalStyles}
+              aria-label={`${playerName || handle}'s photo`}
+            >
+              <LargeAvatar src={playerAvatar} alt={playerName || handle} />
+              <AvatarCaption>
+                <strong>{playerName || handle}</strong>
+                <a href={url} target="_blank" rel="noopener noreferrer">
+                  Open on {PLATFORM_LABELS[platform]}
+                  <FiExternalLink size={12} aria-hidden />
+                </a>
+              </AvatarCaption>
+            </Modal>
+          )}
 
           <IdentityText>
             <NameLine href={url} target="_blank" rel="noopener noreferrer">
