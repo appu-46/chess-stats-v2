@@ -1,10 +1,11 @@
 // Link previews for player, compare and leaderboard pages. Link-preview
 // bots (WhatsApp, X, Discord...) don't run JavaScript, so without this
 // every shared link previews as the home page. The edge function
-// (link-preview.ts) fetches what a page is about and puts it into
+// (edge-functions/link-preview.ts) fetches what a page is about and puts it into
 // index.html's title and preview tags with these helpers. Plain
 // TypeScript with no imports, so it runs in Netlify's Deno runtime and is
-// unit-tested in Vitest alike.
+// unit-tested in Vitest alike. It lives outside edge-functions/ because
+// Netlify deploys every file in that folder as a function of its own.
 
 export interface Preview {
   title: string

@@ -1,5 +1,5 @@
 // Netlify Edge Function (Deno): gives link-preview bots a page-specific
-// title and description. See preview.ts. People's browsers get the page
+// title and description. See ../lib/preview.ts. People's browsers get the page
 // untouched, and any failure falls back to the page as it is.
 import {
   comparePreview,
@@ -7,8 +7,8 @@ import {
   isPreviewBot,
   leaderboardPreview,
   playerPreview,
-} from './preview.ts'
-import type { PlayerSummary, Preview } from './preview.ts'
+} from '../lib/preview.ts'
+import type { PlayerSummary, Preview } from '../lib/preview.ts'
 
 type Context = { next: () => Promise<Response> }
 
