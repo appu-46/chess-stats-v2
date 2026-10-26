@@ -1,5 +1,6 @@
-# Typecheck, lint, test and build every push to main and every pull
-# request, so a broken build is caught here rather than on Netlify.
+# Typecheck, lint, test and run Netlify's build on every push to main and
+# every pull request, so a broken build is caught here rather than on
+# Netlify.
 name: CI
 
 on:
@@ -22,6 +23,9 @@ jobs:
       - run: npx tsc --noEmit
       - run: npx eslint .
       - run: npm test
-      # Vite bakes the Supabase keys in at build time, but a build without
-      # them still succeeds, and that is all this step checks.
-      - run: npx vite build
+      # Netlify's own build, offline: runs `npm run build` (vite build and
+      # tsc) the way Netlify does, then packages the edge functions, which
+      # plain `vite build` never touches. A broken edge-functions folder
+      # passed every other step here and still failed on Netlify. Vite
+      # bakes the Supabase keys in at build time, but builds without them.
+      - run: npx -y netlify-cli@27.12.0 build --offline
