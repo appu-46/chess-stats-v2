@@ -337,27 +337,74 @@ const PlayerList = styled.ol`
 
 // A styled wrapper rather than styled(Link), which would lose the
 // router's typing of `params` and `search`.
-const PlayerRow = styled.li`
+// Gold, silver and bronze for the top three: a badge in place of the
+// number, and a faint wash of the same colour across the row.
+const MEDALS: Partial<
+  Record<number, { label: string; fill: string; ink: string; tint: string }>
+> = {
+  1: {
+    label: 'Gold',
+    fill: 'linear-gradient(135deg, #fde68a, #f5b301 55%, #c98a00)',
+    ink: '#4a3200',
+    tint: '#f5b301',
+  },
+  2: {
+    label: 'Silver',
+    fill: 'linear-gradient(135deg, #f3f4f6, #c2c8d0 55%, #8e97a3)',
+    ink: '#2b3036',
+    tint: '#aeb6c1',
+  },
+  3: {
+    label: 'Bronze',
+    fill: 'linear-gradient(135deg, #f3c9a0, #cd7f32 55%, #9a5a1f)',
+    ink: '#3d1f05',
+    tint: '#cd7f32',
+  },
+}
+
+const PlayerRow = styled.li<{ $tint?: string }>`
   a {
     ${columns}
     border-radius: 10px;
     color: inherit;
     text-decoration: none;
+    background: ${({ $tint }) =>
+      $tint ? `color-mix(in srgb, ${$tint} 9%, transparent)` : 'none'};
+    box-shadow: ${({ $tint }) => ($tint ? `inset 3px 0 0 ${$tint}` : 'none')};
   }
 
   a:hover,
   a:focus-visible {
-    background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.05));
+    background: ${({ $tint }) =>
+      $tint
+        ? `color-mix(in srgb, ${$tint} 15%, transparent)`
+        : 'light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.05))'};
   }
 `
 
-const Rank = styled.span<{ $podium: boolean }>`
+const Rank = styled.span`
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  opacity: ${({ $podium }) => ($podium ? 1 : 0.6)};
+  opacity: 0.6;
+`
+
+const MedalBadge = styled.span<{ $fill: string; $ink: string }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: ${({ $fill }) => $fill};
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 
   && {
-    color: ${({ $podium }) => ($podium ? '#e0a64b' : 'inherit')};
+    color: ${({ $ink }) => $ink};
   }
 `
 
@@ -457,6 +504,21 @@ const Empty = styled.p`
   padding: 1.5rem 0.75rem;
   opacity: 0.6;
 `
+
+function medalBadge(rank: number) {
+  const medal = MEDALS[rank]
+  if (!medal) return <Rank>{rank}</Rank>
+  return (
+    <MedalBadge
+      $fill={medal.fill}
+      $ink={medal.ink}
+      title={`${medal.label}: rank ${rank}`}
+      aria-label={`Rank ${rank}`}
+    >
+      {rank}
+    </MedalBadge>
+  )
+}
 
 function countryLabel(key: string, country: Country | null) {
   return key === NO_COUNTRY ? 'No country set' : (country?.name ?? key)
@@ -675,13 +737,16 @@ function Leaderboard() {
             ) : (
               <PlayerList>
                 {summary.players.map((entry) => (
-                  <PlayerRow key={entry.username}>
+                  <PlayerRow
+                    key={entry.username}
+                    $tint={MEDALS[entry.rank]?.tint}
+                  >
                     <Link
                       to="/profile/$username"
                       params={{ username: entry.username }}
                       search={platformSearch(platform)}
                     >
-                      <Rank $podium={entry.rank <= 3}>{entry.rank}</Rank>
+                      {medalBadge(entry.rank)}
                       <PlayerCell>
                         {entry.avatar ? (
                           <Avatar src={entry.avatar} alt="" loading="lazy" />
