@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useController, useForm } from 'react-hook-form'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { TbTrophy } from 'react-icons/tb'
 import { FcGoogle } from 'react-icons/fc'
 import {
   IconChartLine,
@@ -151,6 +152,27 @@ const Chip = styled.button`
 
   small {
     opacity: 0.6;
+  }
+`
+
+// A styled wrapper rather than styled(Link), which would lose the
+// router's typing of `search`.
+const BrowseLink = styled.span`
+  margin-top: -0.4rem;
+  font-size: 0.85rem;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: light-dark(var(--brand), var(--brand-soft));
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  a:hover,
+  a:focus-visible {
+    text-decoration: underline;
   }
 `
 
@@ -419,19 +441,27 @@ function Login() {
           {errors.username && <ErrorMessage message="Enter a username." />}
 
           {!isChanging && (
-            <QuickStart>
-              <QuickLabel>Try:</QuickLabel>
-              {EXAMPLES.map(({ username, platform: examplePlatform }) => (
-                <Chip
-                  key={username}
-                  type="button"
-                  onClick={() => openPlayer(username, examplePlatform)}
-                >
-                  {username}
-                  {examplePlatform === 'lichess' && <small> · Lichess</small>}
-                </Chip>
-              ))}
-            </QuickStart>
+            <>
+              <QuickStart>
+                <QuickLabel>Try:</QuickLabel>
+                {EXAMPLES.map(({ username, platform: examplePlatform }) => (
+                  <Chip
+                    key={username}
+                    type="button"
+                    onClick={() => openPlayer(username, examplePlatform)}
+                  >
+                    {username}
+                    {examplePlatform === 'lichess' && <small> · Lichess</small>}
+                  </Chip>
+                ))}
+              </QuickStart>
+              <BrowseLink>
+                <Link to="/leaderboard" search={{}}>
+                  <TbTrophy size={15} aria-hidden />
+                  Or browse the top 100 players
+                </Link>
+              </BrowseLink>
+            </>
           )}
         </SearchPanel>
       </SearchRing>

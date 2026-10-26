@@ -1,3 +1,13 @@
+# Ranks 51-100 of chess.com's leaderboards come from the endpoint its own
+# website uses, which can't be called cross-origin; this proxies it from
+# our domain (see services/apiLeaderboard.ts). It must come before the SPA
+# catch-all below, as the first matching rule wins.
+[[redirects]]
+  from = "/api/chesscom-leaderboard/*"
+  to = "https://www.chess.com/callback/leaderboard/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

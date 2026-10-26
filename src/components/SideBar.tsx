@@ -10,6 +10,7 @@ import {
   TbArrowsLeftRight,
   TbLayoutSidebarLeftCollapseFilled,
   TbLayoutSidebarLeftExpandFilled,
+  TbTrophy,
 } from 'react-icons/tb'
 import { RiLoginBoxFill, RiLogoutBoxRFill } from 'react-icons/ri'
 // The original sidebar icons.
@@ -298,6 +299,21 @@ function SideBar() {
               }
               className={classes.link}
             >
+              {content}
+            </Link>
+          )}
+        />
+
+        {/* Phones reach it from the home page instead: the tab bar has no
+            room for it. */}
+        <NavItem
+          icon={TbTrophy}
+          label="Leaderboard"
+          collapsed={collapsed}
+          active={section === 'leaderboard'}
+          desktopOnly
+          link={(content) => (
+            <Link to="/leaderboard" search={{}} className={classes.link}>
               {content}
             </Link>
           )}

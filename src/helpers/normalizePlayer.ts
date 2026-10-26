@@ -1,3 +1,4 @@
+import { regionName } from './countries'
 import type { Platform } from './platform'
 
 // ── Normalized shapes ───────────────────────────────────────────────
@@ -171,23 +172,6 @@ const LICHESS_SUBDIVISIONS: Partial<Record<string, Country>> = {
   'ES-CT': { code: 'ES', name: 'Catalonia' },
   'ES-EU': { code: 'ES', name: 'Basque Country' },
   'ES-GA': { code: 'ES', name: 'Galicia' },
-}
-
-let regionNames: Intl.DisplayNames | null | undefined
-
-function regionName(code: string): string {
-  if (regionNames === undefined) {
-    try {
-      regionNames = new Intl.DisplayNames(['en'], { type: 'region' })
-    } catch {
-      regionNames = null
-    }
-  }
-  try {
-    return regionNames?.of(code) ?? code
-  } catch {
-    return code
-  }
 }
 
 export function lichessFlagToCountry(flag: string | undefined): Country | null {

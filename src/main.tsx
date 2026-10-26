@@ -29,6 +29,7 @@ import MobileNotice from './ui/MobileNotice.tsx'
 import { RouteError } from './ui/PageError.tsx'
 import { validatePlatformSearch } from './helpers/platform.ts'
 import { validateCompareSearch } from './helpers/compareSearch.ts'
+import { validateLeaderboardSearch } from './helpers/leaderboardSearch.ts'
 import type { MantineColorsTuple } from '@mantine/core'
 
 const queryClient = new QueryClient({
@@ -83,6 +84,7 @@ const SECTION_TITLES: Record<string, string> = {
   games: 'Games',
   favourites: 'Favorites',
   compare: 'Compare',
+  leaderboard: 'Leaderboard',
 }
 
 function usePageTitle(pathname: string) {
@@ -206,6 +208,13 @@ const compareRoute = createRoute({
   validateSearch: validateCompareSearch,
 })
 
+const leaderboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/leaderboard',
+  component: lazyRouteComponent(() => import('./pages/Leaderboard.tsx')),
+  validateSearch: validateLeaderboardSearch,
+})
+
 const favouritesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/favourites/$sub',
@@ -246,6 +255,7 @@ const routeTree = rootRoute.addChildren([
   dashboardRoute,
   gamesRoute,
   compareRoute,
+  leaderboardRoute,
   favouritesRoute,
 ])
 
