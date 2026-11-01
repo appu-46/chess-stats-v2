@@ -34,6 +34,19 @@
       content="Chess Stats: free stats for Chess.com and Lichess"
     />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Visitor counts (chess-statsv2.goatcounter.com). Pages are counted by
+         path only, so filters like ?tc=rapid don't split them. count.js
+         counts the first load and skips localhost; src/main.tsx counts
+         navigations inside the app. -->
+    <script>
+      window.goatcounter = { path: () => location.pathname }
+    </script>
+    <script
+      data-goatcounter="https://chess-statsv2.goatcounter.com/count"
+      async
+      src="//gc.zgo.at/count.js"
+    ></script>
   </head>
   <body>
     <div id="app"></div>

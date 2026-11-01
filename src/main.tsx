@@ -310,6 +310,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+declare global {
+  interface Window {
+    goatcounter?: { count?: (vars: { path: string }) => void }
+  }
+}
+
+// GoatCounter's script only sees the first page load, so count each move to
+// a new page here. The first load has no fromLocation and is already counted.
+router.subscribe('onResolved', ({ fromLocation, toLocation, pathChanged }) => {
+  if (fromLocation && pathChanged)
+    window.goatcounter?.count?.({ path: toLocation.pathname })
+})
+
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
