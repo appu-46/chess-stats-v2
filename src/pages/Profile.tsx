@@ -23,6 +23,7 @@ import { PLATFORM_LABELS, platformSearch } from '../helpers/platform'
 import RecentGames from '../ui/RecentGames'
 import { PageEyebrow } from '../ui/PageHeader'
 import ProfileActions from '../ui/ProfileActions'
+import SwitchPlayer from '../ui/SwitchPlayer'
 import PageError from '../ui/PageError'
 import CountryFlag from '../ui/CountryFlag'
 import { brandModalStyles } from '../ui/modalStyles'
@@ -245,6 +246,19 @@ const IdentityText = styled.div`
   @media (max-width: 768px) {
     flex: none;
     align-items: center;
+  }
+`
+
+// The name (a link to the player's page on the platform) and the switch
+// button beside it, which can't sit inside the link.
+const NameRow = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.75rem;
+
+  @media (max-width: 768px) {
+    justify-content: center;
   }
 `
 
@@ -755,10 +769,13 @@ function Profile() {
           )}
 
           <IdentityText>
-            <NameLine href={url} target="_blank" rel="noopener noreferrer">
-              {title && <ChessTitle>{title}</ChessTitle>}
-              <DisplayName>{playerName || handle}</DisplayName>
-            </NameLine>
+            <NameRow>
+              <NameLine href={url} target="_blank" rel="noopener noreferrer">
+                {title && <ChessTitle>{title}</ChessTitle>}
+                <DisplayName>{playerName || handle}</DisplayName>
+              </NameLine>
+              <SwitchPlayer platform={platform} />
+            </NameRow>
             <SubLine>
               {playerName && <Muted>@{handle}</Muted>}
               <PlatformBadge platform={platform} />

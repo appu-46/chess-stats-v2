@@ -3,11 +3,12 @@
 // the menu) and by title. Everything is in the URL, so a view can be
 // shared.
 import styled from 'styled-components'
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { SegmentedControl, Select } from '@mantine/core'
 import { TbTrophy, TbX } from 'react-icons/tb'
 import useLeaderboard from '../hooks/useLeaderboard'
+import useBottomFade from '../hooks/useBottomFade'
 import { leaderboardControls } from '../services/apiLeaderboard'
 import { summarizeLeaderboard } from '../helpers/leaderboard'
 import { NO_COUNTRY, NO_TITLE } from '../helpers/leaderboardSearch'
@@ -342,28 +343,12 @@ const PlayerListBox = styled.ol<{ $fadeBottom: boolean }>`
 `
 
 function PlayerList({ children }: { children: ReactNode }) {
-  const listRef = useRef<HTMLOListElement>(null)
-  const [fadeBottom, setFadeBottom] = useState(false)
-
-  function updateFade() {
-    const list = listRef.current
-    if (!list) return
-    setFadeBottom(list.scrollTop + list.clientHeight < list.scrollHeight - 1)
-  }
-
-  // Re-checked when the rows change (a filter) or the list resizes (the
-  // window, or the phone layout where the list doesn't scroll at all).
-  useLayoutEffect(() => {
-    const list = listRef.current
-    if (!list) return
-    updateFade()
-    const observer = new ResizeObserver(updateFade)
-    observer.observe(list)
-    return () => observer.disconnect()
-  }, [children])
+  const { ref, fadeBottom, onScroll } = useBottomFade<HTMLOListElement>([
+    children,
+  ])
 
   return (
-    <PlayerListBox ref={listRef} $fadeBottom={fadeBottom} onScroll={updateFade}>
+    <PlayerListBox ref={ref} $fadeBottom={fadeBottom} onScroll={onScroll}>
       {children}
     </PlayerListBox>
   )

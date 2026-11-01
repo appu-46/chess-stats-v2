@@ -4,6 +4,7 @@
 // page's own controls or summary.
 import styled from 'styled-components'
 import PlatformBadge from './PlatformBadge'
+import SwitchPlayer from './SwitchPlayer'
 import type { ReactNode } from 'react'
 import type { IconType } from 'react-icons'
 import type { PlayerProfile } from '../helpers/normalizePlayer'
@@ -198,6 +199,7 @@ function PageHeader({
             <NameLine>
               {profile?.title && <ChessTitle>{profile.title}</ChessTitle>}
               <Name>{name}</Name>
+              <SwitchPlayer platform={platform} />
             </NameLine>
             <Meta>
               {/* Without a real name the handle is already the title. */}
