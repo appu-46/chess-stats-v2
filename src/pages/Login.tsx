@@ -16,6 +16,7 @@ import { signInWithGoogle } from '../services/OAuth'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useUpdateChessUsername from '../hooks/useUpdateChessUsername'
 import useGetUser from '../hooks/useGetUser'
+import useFamousPlayers from '../hooks/useFamousPlayers'
 import Header, { StyledHeader } from '../components/Header'
 import PlayerSearchBar from '../ui/PlayerSearchBar'
 import {
@@ -331,11 +332,9 @@ const FEATURES: Array<{
   },
 ]
 
-const EXAMPLES: Array<{ username: string; platform: Platform }> = [
-  { username: 'Hikaru', platform: 'chess.com' },
-  { username: 'MagnusCarlsen', platform: 'chess.com' },
-  { username: 'DrNykterstein', platform: 'lichess' },
-]
+// How many of the famous players the "Try:" line shows, so it stays a
+// line or two on a phone.
+const TRY_COUNT = 5
 
 type Inputs = { username: string }
 
@@ -356,6 +355,7 @@ function Login() {
   const { data: dbUser } = useGetUser(googleUser?.sub)
   const { mutateAsync } = useUpdateChessUsername()
   const { changeUsername } = useSearch({ from: '/' })
+  const famous = useFamousPlayers()
 
   const firstName: string | undefined = googleUser?.given_name
   const savedPlatform = parsePlatform(dbUser?.chessPlatform)
@@ -444,14 +444,14 @@ function Login() {
             <>
               <QuickStart>
                 <QuickLabel>Try:</QuickLabel>
-                {EXAMPLES.map(({ username, platform: examplePlatform }) => (
+                {famous.slice(0, TRY_COUNT).map((player) => (
                   <Chip
-                    key={username}
+                    key={`${player.platform}:${player.username}`}
                     type="button"
-                    onClick={() => openPlayer(username, examplePlatform)}
+                    onClick={() => openPlayer(player.username, player.platform)}
                   >
-                    {username}
-                    {examplePlatform === 'lichess' && <small> · Lichess</small>}
+                    {player.name}
+                    {player.platform === 'lichess' && <small> · Lichess</small>}
                   </Chip>
                 ))}
               </QuickStart>

@@ -12,6 +12,7 @@ import useStats from '../hooks/useStats'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useGetFavsofUser from '../hooks/useGetFavsofUser'
 import useFetchChessProfileBulk from '../hooks/useFetchChessProfileBulk'
+import useFamousPlayers from '../hooks/useFamousPlayers'
 import useGamesRecentdays from '../hooks/useGamesRecentdays'
 import { useProgressiveTransform } from '../hooks/useProgressiveTransform'
 import {
@@ -46,12 +47,6 @@ import type { Platform } from '../helpers/platform'
 // their line on the chart. Teal and violet stay apart in both themes and
 // for the common colour-vision deficiencies.
 const SIDE_COLORS: Record<Side, string> = { a: '#14b8a6', b: '#8b5cf6' }
-
-const EXAMPLES: Array<ComparedPlayer> = [
-  { username: 'Hikaru', platform: 'chess.com' },
-  { username: 'MagnusCarlsen', platform: 'chess.com' },
-  { username: 'DrNykterstein', platform: 'lichess' },
-]
 
 // The platform switch's green look, a size down.
 const toggleStyles = {
@@ -502,12 +497,22 @@ function EmptySlot({
       platform: parsePlatform(fav.platform),
     })) ?? []
   const { data: favProfiles } = useFetchChessProfileBulk(favKeys)
+  const famous = useFamousPlayers()
 
-  const favPlayers: Array<ComparedPlayer> = (favProfiles ?? []).map((fav) => ({
+  // Chips: the favourites by username, or else the famous players by name.
+  const favPlayers: Array<ComparedPlayer & { label: string }> = (
+    favProfiles ?? []
+  ).map((fav) => ({
     username: fav.username,
     platform: parsePlatform(fav.platform),
+    label: fav.username,
   }))
-  const suggestions = (favPlayers.length ? favPlayers : EXAMPLES)
+  const famousPlayers = famous.map((player) => ({
+    username: player.username,
+    platform: player.platform,
+    label: player.name,
+  }))
+  const suggestions = (favPlayers.length ? favPlayers : famousPlayers)
     .filter((player) => !other || !samePlayer(player, other))
     .slice(0, 8)
 
@@ -537,9 +542,11 @@ function EmptySlot({
             <Chip
               key={`${player.platform}:${player.username}`}
               type="button"
-              onClick={() => onPick(player)}
+              onClick={() =>
+                onPick({ username: player.username, platform: player.platform })
+              }
             >
-              {player.username}
+              {player.label}
               {player.platform === 'lichess' && <small> · Lichess</small>}
             </Chip>
           ))}
