@@ -9,7 +9,10 @@ import { TbAlertTriangle, TbRefresh, TbUserQuestion } from 'react-icons/tb'
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import type { IconType } from 'react-icons'
 
-const Card = styled.div`
+// Shared with PageNotFound, so every "this didn't work" screen looks the
+// same: the site's panel, with the icon in a soft brand-tinted circle
+// rather than warning colours from outside the palette.
+export const MessageCard = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,15 +32,15 @@ const Card = styled.div`
   }
 `
 
-const IconCircle = styled.span<{ $tone: string }>`
+export const MessageIcon = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
   width: 3rem;
   height: 3rem;
   border-radius: 50%;
-  color: ${({ $tone }) => $tone};
-  background: color-mix(in srgb, ${({ $tone }) => $tone} 14%, transparent);
+  color: light-dark(#1f7a5a, var(--brand-soft));
+  background: light-dark(rgba(52, 163, 126, 0.12), rgba(110, 231, 183, 0.1));
 `
 
 const Title = styled.h2`
@@ -108,6 +111,7 @@ const SecondaryAction = styled.span`
   a:hover,
   a:focus-visible {
     background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.06));
+    border-color: var(--brand-border);
   }
 `
 
@@ -143,10 +147,7 @@ export function describeError(error: unknown): ErrorDescription {
     }
   }
   // fetch() rejects with a TypeError when the request never got an answer.
-  if (
-    error instanceof TypeError &&
-    /fetch|network|load failed/i.test(text)
-  ) {
+  if (error instanceof TypeError && /fetch|network|load failed/i.test(text)) {
     return {
       icon: TbAlertTriangle,
       title: "Couldn't connect",
@@ -174,8 +175,13 @@ function PageError({
   onRetry?: () => void
 }) {
   const queryClient = useQueryClient()
-  const { icon: Icon, title, message, details, retryable } =
-    describeError(error)
+  const {
+    icon: Icon,
+    title,
+    message,
+    details,
+    retryable,
+  } = describeError(error)
 
   function retry() {
     if (onRetry) return onRetry()
@@ -185,10 +191,10 @@ function PageError({
   }
 
   return (
-    <Card role="alert">
-      <IconCircle $tone={retryable ? '#f59e0b' : '#38bdf8'}>
+    <MessageCard role="alert">
+      <MessageIcon>
         <Icon size={24} aria-hidden />
-      </IconCircle>
+      </MessageIcon>
       <Title>{title}</Title>
       <Message>{message}</Message>
       {details && <Details>{details}</Details>}
@@ -205,7 +211,7 @@ function PageError({
           </Link>
         </SecondaryAction>
       </Actions>
-    </Card>
+    </MessageCard>
   )
 }
 
