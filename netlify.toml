@@ -12,3 +12,12 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# `netlify-cli dev` (the local server with functions, on :8888) runs the
+# usual dev script and proxies to it. Without this it waits on Vite's
+# default port 5173, but the dev script serves on 3000.
+[dev]
+  framework = "#custom"
+  command = "npm run dev"
+  targetPort = 3000
+  port = 8888

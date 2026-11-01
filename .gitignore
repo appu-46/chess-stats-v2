@@ -13,3 +13,6 @@ count.txt
 # worktrees. Never part of the app.
 .claude/
 .kilo/
+
+# Netlify CLI build output
+.netlify

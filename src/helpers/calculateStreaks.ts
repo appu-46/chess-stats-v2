@@ -1,5 +1,7 @@
 import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
+// With the extension: the player-summary function runs this in Node,
+// where an ESM import of a package's subpath file needs the full name.
+import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 
 dayjs.extend(customParseFormat)
 

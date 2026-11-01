@@ -21,6 +21,7 @@ import usePlatform from '../hooks/usePlatform'
 import { getTimeControls } from '../helpers/timeControls'
 import { PLATFORM_LABELS, platformSearch } from '../helpers/platform'
 import RecentGames from '../ui/RecentGames'
+import PlayerSummary from '../ui/PlayerSummary'
 import { PageEyebrow } from '../ui/PageHeader'
 import ProfileActions from '../ui/ProfileActions'
 import SwitchPlayer from '../ui/SwitchPlayer'
@@ -798,6 +799,8 @@ function Profile() {
             />
           )}
         </Identity>
+
+        <PlayerSummary username={username} platform={platform} />
 
         <section>
           <SectionHeading>Peak ratings</SectionHeading>
