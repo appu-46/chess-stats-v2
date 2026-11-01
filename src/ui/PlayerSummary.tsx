@@ -1,6 +1,11 @@
 // A few sentences about the player above their peak ratings, written by an
 // LLM from facts about their recent games. Loads on its own and hides
 // itself when there's nothing to say or it can't be fetched.
+//
+// Not shown anywhere at the moment (taken off the profile on 2026-11-01),
+// so the browser never calls /api/player-summary. To bring it back, render
+// <PlayerSummary username={username} platform={platform} /> on Profile
+// between the identity block and the peak ratings.
 import styled from 'styled-components'
 import usePlayerSummary from '../hooks/usePlayerSummary'
 import { Pulse } from './DashboardSkeleton'
