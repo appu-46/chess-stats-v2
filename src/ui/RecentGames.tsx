@@ -16,6 +16,7 @@ import {
   SideDot,
 } from './GameResult'
 import { Pulse } from './DashboardSkeleton'
+import { listHeaderStyles } from './listHeaderStyles'
 import type { Result } from './GameResult'
 import type { Platform } from '../helpers/platform'
 
@@ -56,13 +57,7 @@ const columns = css`
 
 const HeaderRow = styled.div`
   ${columns}
-  padding-top: 0;
-  padding-bottom: 0.3rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.55;
+  ${listHeaderStyles}
 
   /* Phone rows fold opening, time and age into one line: no columns to
      label. */

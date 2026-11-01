@@ -22,6 +22,7 @@ import useArchiveMonths from '../hooks/useArchiveMonths'
 import useGames from '../hooks/useGames'
 import { useProgressiveTransform } from '../hooks/useProgressiveTransform'
 import Spinner from '../ui/Spinner'
+import { listHeaderStyles } from '../ui/listHeaderStyles'
 import { parseDayKey } from '../helpers/DateFormat'
 import PageHeader from '../ui/PageHeader'
 import {
@@ -219,17 +220,13 @@ const TableHeader = styled.div`
   display: grid;
   grid-template-columns: ${COLUMNS};
   gap: 1rem;
-  padding: 0.25rem 1rem 0.6rem;
+  padding: 0.55rem 1rem;
+  ${listHeaderStyles}
 
   @media (max-width: 1100px) {
     grid-template-columns: ${COLUMNS_MID};
     gap: 0.75rem;
   }
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.62;
 
   @media (max-width: 768px) {
     display: none;

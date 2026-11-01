@@ -3,7 +3,7 @@
 // the menu) and by title. Everything is in the URL, so a view can be
 // shared.
 import styled from 'styled-components'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { SegmentedControl, Select } from '@mantine/core'
 import { TbTrophy, TbX } from 'react-icons/tb'
@@ -21,10 +21,12 @@ import PlatformToggle, { brandToggleStyles } from '../ui/PlatformToggle'
 import PageError from '../ui/PageError'
 import { Pulse } from '../ui/DashboardSkeleton'
 import CountryFlag from '../ui/CountryFlag'
+import { listHeaderStyles } from '../ui/listHeaderStyles'
 import dropdownClasses from '../css/UsernameAutocomplete.module.css'
 import type { LeaderboardSearch } from '../helpers/leaderboardSearch'
 import type { Country } from '../helpers/normalizePlayer'
 import type { Platform } from '../helpers/platform'
+import type { ReactNode } from 'react'
 
 // The platform switch's green look, a size down (as on Compare).
 const toggleStyles = {
@@ -304,26 +306,68 @@ const columns = `
 
 const HeaderRow = styled.div`
   ${columns}
-  padding-top: 0;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.55;
+  ${listHeaderStyles}
 
   & > :last-child {
     text-align: right;
   }
 `
 
-const PlayerList = styled.ol`
+// Scrolls inside the panel like the games list, so the filters stay in
+// view; on phones the page scrolls instead. The bottom edge fades while
+// there's more to scroll to, as on the favourites page.
+const PlayerListBox = styled.ol<{ $fadeBottom: boolean }>`
   margin: 0;
   padding: 0;
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  max-height: 68vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+
+  ${({ $fadeBottom }) =>
+    $fadeBottom
+      ? `-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent);
+         mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent);`
+      : ''}
+
+  @media (max-width: 768px) {
+    max-height: none;
+    overflow: visible;
+  }
 `
+
+function PlayerList({ children }: { children: ReactNode }) {
+  const listRef = useRef<HTMLOListElement>(null)
+  const [fadeBottom, setFadeBottom] = useState(false)
+
+  function updateFade() {
+    const list = listRef.current
+    if (!list) return
+    setFadeBottom(list.scrollTop + list.clientHeight < list.scrollHeight - 1)
+  }
+
+  // Re-checked when the rows change (a filter) or the list resizes (the
+  // window, or the phone layout where the list doesn't scroll at all).
+  useLayoutEffect(() => {
+    const list = listRef.current
+    if (!list) return
+    updateFade()
+    const observer = new ResizeObserver(updateFade)
+    observer.observe(list)
+    return () => observer.disconnect()
+  }, [children])
+
+  return (
+    <PlayerListBox ref={listRef} $fadeBottom={fadeBottom} onScroll={updateFade}>
+      {children}
+    </PlayerListBox>
+  )
+}
 
 // A styled wrapper rather than styled(Link), which would lose the
 // router's typing of `params` and `search`.
