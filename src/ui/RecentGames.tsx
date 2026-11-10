@@ -2,12 +2,12 @@
 // each opening the game on its site. Loads on its own, so the rest of the
 // profile doesn't wait for it.
 import styled, { css } from 'styled-components'
-import { FiExternalLink } from 'react-icons/fi'
+import { TbPlayerPlay } from 'react-icons/tb'
+import { useState } from 'react'
 import useLatestGames from '../hooks/useLatestGames'
 import { newestGames } from '../helpers/newestGames'
 import { formatTimeControl } from '../helpers/gameFormat'
 import { formatDate, formatLastActive } from '../helpers/DateFormat'
-import { PLATFORM_LABELS } from '../helpers/platform'
 import {
   RESULT_COLORS,
   RESULT_LABELS,
@@ -17,8 +17,10 @@ import {
 } from './GameResult'
 import { Pulse } from './DashboardSkeleton'
 import { listHeaderStyles } from './listHeaderStyles'
+import GameViewerModal, { opensViewer } from './GameViewerModal'
 import type { Result } from './GameResult'
 import type { Platform } from '../helpers/platform'
+import type { TransformedGame } from '../helpers/transformGame'
 
 const SHOWN = 8
 // A couple spare, in case a game can't be parsed. The share card asks for
@@ -138,7 +140,7 @@ const MobileMeta = styled(MutedEllipsis)`
   }
 `
 
-const OpenIcon = styled(FiExternalLink)`
+const OpenIcon = styled(TbPlayerPlay)`
   opacity: 0.35;
   justify-self: end;
 
@@ -161,6 +163,7 @@ function RecentGames({
   username: string
   platform: Platform
 }) {
+  const [viewedGame, setViewedGame] = useState<TransformedGame | null>(null)
   const { games, isPending, error } = useLatestGames(
     username,
     RECENT_GAMES_FETCHED,
@@ -207,7 +210,12 @@ function RecentGames({
             target="_blank"
             rel="noopener noreferrer"
             $result={result}
-            aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${ended}. Opens on ${PLATFORM_LABELS[platform]}.`}
+            // A click replays the game here; the link is still there for
+            // opening it on the site in a new tab.
+            onClick={(event) => {
+              if (opensViewer(event)) setViewedGame(game)
+            }}
+            aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${ended}. Replay the game.`}
           >
             <ResultPill $result={result}>
               <span>
@@ -253,6 +261,13 @@ function RecentGames({
           </Row>
         )
       })}
+
+      <GameViewerModal
+        game={viewedGame}
+        username={username}
+        platform={platform}
+        onClose={() => setViewedGame(null)}
+      />
     </List>
   )
 }

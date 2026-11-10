@@ -33,6 +33,7 @@ function game(
     opening: null,
     openingFamily: null,
     eco: null,
+    moves: '',
     ...overrides,
   }
 }

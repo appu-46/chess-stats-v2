@@ -67,6 +67,9 @@ export type TransformedGame = {
   opening: string | null
   openingFamily: string | null
   eco: string | null
+  // What the game viewer replays: chess.com's full PGN, or lichess's
+  // space-separated moves. The same string the API sent, not a copy.
+  moves: string
 }
 
 function resultFor(isWhite: boolean, result: string): GameResult {
@@ -127,6 +130,7 @@ export function transformChessComGame(
     opening,
     openingFamily: family,
     eco: headers.ECO || null,
+    moves: game.pgn,
   }
 }
 
@@ -230,5 +234,6 @@ export function transformLichessGame(
     opening,
     openingFamily: openingFamily(opening),
     eco: game.opening?.eco ?? null,
+    moves: game.moves ?? '',
   }
 }

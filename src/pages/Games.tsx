@@ -14,7 +14,8 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6'
 import { FaChartPie, FaGamepad, FaShieldAlt } from 'react-icons/fa'
 import { MdGames } from 'react-icons/md'
 import { SiTarget } from 'react-icons/si'
-import { FiArrowLeft, FiExternalLink } from 'react-icons/fi'
+import { FiArrowLeft } from 'react-icons/fi'
+import { TbPlayerPlay } from 'react-icons/tb'
 import useProfile from '../hooks/useProfile'
 import usePlatform from '../hooks/usePlatform'
 import { platformSearch } from '../helpers/platform'
@@ -34,8 +35,10 @@ import {
 } from '../ui/GameResult'
 import { formatTimeControl, shortTermination } from '../helpers/gameFormat'
 import PageError from '../ui/PageError'
+import GameViewerModal, { opensViewer } from '../ui/GameViewerModal'
 import type { Result } from '../ui/GameResult'
 import type { PlayerProfile } from '../helpers/normalizePlayer'
+import type { TransformedGame } from '../helpers/transformGame'
 
 // ─── Game list styled components ──────────────────────────────────────────────
 
@@ -388,7 +391,7 @@ const MobileMeta = styled(Secondary)`
   }
 `
 
-const OpenIcon = styled(FiExternalLink)`
+const OpenIcon = styled(TbPlayerPlay)`
   opacity: 0.35;
   justify-self: end;
 
@@ -610,23 +613,7 @@ const MONTHS = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface StandardGame {
-  BlackElo: string
-  PlayerELO: string
-  Result: string
-  TimeControl: string
-  WhiteElo: string
-  blackPlayer: string
-  date_time: string
-  gameEndDate: string | null
-  moveCount: number
-  resultForPlayer: string
-  time_class: string
-  url: string
-  whitePlayer: string
-  Termination: string
-  opening?: string | null
-}
+type StandardGame = TransformedGame
 
 interface LocationState {
   games?: Array<StandardGame>
@@ -862,6 +849,7 @@ function GameList({
   platform: ReturnType<typeof usePlatform>
 }) {
   const [filter, setFilter] = useState<Filter>('all')
+  const [viewedGame, setViewedGame] = useState<TransformedGame | null>(null)
   const router = useRouter()
 
   const counts: Record<Result, number> = { win: 0, loss: 0, draw: 0 }
@@ -1018,7 +1006,12 @@ function GameList({
                 target="_blank"
                 rel="noopener noreferrer"
                 $result={result}
-                aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${reason.toLowerCase()}, ${game.moveCount} moves. Opens on ${platform === 'lichess' ? 'Lichess' : 'Chess.com'}.`}
+                // A click replays the game here; the link is still there
+                // for opening it on the site in a new tab.
+                onClick={(event) => {
+                  if (opensViewer(event)) setViewedGame(game)
+                }}
+                aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${reason.toLowerCase()}, ${game.moveCount} moves. Replay the game.`}
               >
                 <RowResultPill $result={result}>
                   <span>
@@ -1090,6 +1083,13 @@ function GameList({
           })}
         </GamesList>
       </Panel>
+
+      <GameViewerModal
+        game={viewedGame}
+        username={username}
+        platform={platform}
+        onClose={() => setViewedGame(null)}
+      />
     </PageContainer>
   )
 }
