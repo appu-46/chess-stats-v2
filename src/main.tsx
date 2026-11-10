@@ -19,7 +19,6 @@ import './styles.css'
 import App from './App.tsx'
 import PageNotFound from './ui/PageNotFound.tsx'
 import { CompactHeader } from './components/Header.tsx'
-import { TabProvider } from './contexts/TabContext.tsx'
 import Footer from './components/Footer.tsx'
 import SideBar from './components/SideBar.tsx'
 import { StyledAppLayout } from './ui/AppLayout.tsx'
@@ -55,27 +54,6 @@ supabase.auth.onAuthStateChange((event) => {
     }, 0)
   }
 })
-
-// const rootRoute = createRootRoute({
-//   component: () => {
-//     const { pathname } = useLocation()
-//     return (
-//       <>
-//         <StyledAppLayout>
-//           {pathname !== '/' && <CompactHeader />}
-
-//           <SideBar />
-//           <main style={{ padding: '2.5rem 0 0 1rem' }}>
-//             <Outlet />
-//           </main>
-//           <Footer />
-//           <TanStackRouterDevtools />
-//         </StyledAppLayout>
-//       </>
-//     )
-//   },
-//   notFoundComponent: PageNotFound,
-// })
 
 const SECTION_TITLES: Record<string, string> = {
   stats: 'Stats',
@@ -254,8 +232,6 @@ const favouritesRoute = createRoute({
   },
 })
 
-// const theme = useMantineTheme()
-
 // Soft sage-mint scale (0 lightest → 9 darkest) used as the Mantine primary
 // color, so focus rings, tooltips and other accents blend with the theme.
 const mint: MantineColorsTuple = [
@@ -330,11 +306,9 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <GlobalStyle />
       <QueryClientProvider client={queryClient}>
-        <TabProvider>
-          <MantineProvider theme={theme} defaultColorScheme="dark">
-            <RouterProvider router={router} />
-          </MantineProvider>
-        </TabProvider>
+        <MantineProvider theme={theme} defaultColorScheme="dark">
+          <RouterProvider router={router} />
+        </MantineProvider>
       </QueryClientProvider>
     </StrictMode>,
   )

@@ -11,7 +11,6 @@ import {
 } from '@tabler/icons-react'
 import styled from 'styled-components'
 import ErrorMessage from '../ui/ErrorMessage'
-import { useTabContext } from '../contexts/TabContext'
 import { signInWithGoogle } from '../services/OAuth'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useUpdateChessUsername from '../hooks/useUpdateChessUsername'
@@ -350,7 +349,6 @@ function Login() {
     control,
     rules: { required: true, validate: (v) => !!v.trim() },
   })
-  const { activeTab } = useTabContext()
   const { data: googleUser } = useGoogleUser()
   const { data: dbUser } = useGetUser(googleUser?.sub)
   const { mutateAsync } = useUpdateChessUsername()
@@ -380,7 +378,7 @@ function Login() {
 
   function openPlayer(username: string, playerPlatform: Platform) {
     navigate({
-      to: activeTab === 0 ? '/profile/$username' : '/stats/$username',
+      to: '/profile/$username',
       params: { username },
       search: platformSearch(playerPlatform),
     })
