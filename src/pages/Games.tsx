@@ -15,7 +15,7 @@ import { FaChartPie, FaGamepad, FaShieldAlt } from 'react-icons/fa'
 import { MdGames } from 'react-icons/md'
 import { SiTarget } from 'react-icons/si'
 import { FiArrowLeft } from 'react-icons/fi'
-import { TbPlayerPlay } from 'react-icons/tb'
+import { TbArrowDown, TbArrowUp, TbPlayerPlay } from 'react-icons/tb'
 import useProfile from '../hooks/useProfile'
 import usePlatform from '../hooks/usePlatform'
 import { platformSearch } from '../helpers/platform'
@@ -42,9 +42,20 @@ import type { TransformedGame } from '../helpers/transformGame'
 
 // ─── Game list styled components ──────────────────────────────────────────────
 
+// The result with how the game ended under it ("Win" over "Resignation").
 const RowResultPill = styled(ResultPill)`
+  justify-self: stretch;
+
+  small {
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
   @media (max-width: 768px) {
     grid-area: result;
+    padding: 0.25rem 0.3rem;
   }
 `
 
@@ -214,10 +225,10 @@ const Panel = styled.div`
 `
 
 const COLUMNS =
-  '6rem minmax(0, 1.4fr) minmax(0, 1.6fr) 5.5rem 4rem 4.5rem 1.5rem'
+  '7rem minmax(0, 1.4fr) minmax(0, 1.6fr) 5.5rem 4rem 4.5rem 1.5rem'
 // Mid widths: narrower numeric columns so names and openings keep room.
 const COLUMNS_MID =
-  '6rem minmax(0, 1.5fr) minmax(0, 1.3fr) 3.75rem 3rem 3.5rem 1rem'
+  '6.5rem minmax(0, 1.5fr) minmax(0, 1.3fr) 3.75rem 3rem 3.5rem 1rem'
 
 const TableHeader = styled.div`
   display: grid;
@@ -312,7 +323,7 @@ const GameRow = styled.a<{ $result: Result }>`
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: 4.5rem minmax(0, 1fr) 1.25rem;
+    grid-template-columns: 5.5rem minmax(0, 1fr) 1.25rem;
     grid-template-areas:
       'result opponent open'
       'result meta open';
@@ -371,6 +382,69 @@ const PlayerLine = styled.span<{ $isPlayer: boolean }>`
   }
 `
 
+// Points won or lost in the game, after the player's rating.
+const RatingChange = styled.span<{ $change: number }>`
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  && {
+    opacity: 1;
+    color: ${({ $change }) =>
+      $change > 0
+        ? RESULT_COLORS.win
+        : $change < 0
+          ? RESULT_COLORS.loss
+          : 'inherit'};
+  }
+`
+
+// How far the opponent was rated above (amber) or below (grey) the
+// player, shown from RATING_GAP_SHOWN points.
+const RatingGap = styled.span<{ $higher: boolean; $upset: boolean }>`
+  flex-shrink: 0;
+
+  /* Phones: an upset's tag says enough, and the name needs the room. */
+  @media (max-width: 768px) {
+    ${({ $upset }) => $upset && 'display: none;'}
+  }
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+
+  && {
+    opacity: ${({ $higher }) => ($higher ? 1 : 0.55)};
+    color: ${({ $higher }) =>
+      $higher ? 'light-dark(#b45309, #f5b041)' : 'inherit'};
+  }
+`
+
+// A result that went against the ratings.
+const UpsetTag = styled.span<{ $result: Result }>`
+  flex-shrink: 0;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: color-mix(
+    in srgb,
+    ${({ $result }) => RESULT_COLORS[$result]} 18%,
+    transparent
+  );
+
+  && {
+    opacity: 1;
+    color: ${({ $result }) => RESULT_COLORS[$result]};
+  }
+`
+
 const DesktopCell = styled(Cell)`
   @media (max-width: 768px) {
     display: none;
@@ -381,12 +455,16 @@ const Numeric = styled(DesktopCell)`
   font-variant-numeric: tabular-nums;
 `
 
-// Phones fold reason, time control, moves and time into one line.
+// Phones fold time, time control and moves into one line, with the
+// opening on a line of its own under it.
 const MobileMeta = styled(Secondary)`
   display: none;
 
   @media (max-width: 768px) {
     display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.1rem;
     grid-area: meta;
   }
 `
@@ -837,6 +915,12 @@ function DayGames({
 
 type Filter = 'all' | Result
 
+// An opponent's rating gap is shown from this many points...
+const RATING_GAP_SHOWN = 50
+// ...and beating a player this far above, or losing to one this far
+// below, is marked as an upset.
+const UPSET_GAP = 100
+
 function GameList({
   games,
   username,
@@ -979,7 +1063,7 @@ function GameList({
         <TableHeader>
           <span>Result</span>
           <span>Players</span>
-          <span>How it ended</span>
+          <span>Opening</span>
           <span>Time</span>
           <span>Moves</span>
           <span>Ended</span>
@@ -999,6 +1083,17 @@ function GameList({
             const timeControl = formatTimeControl(game.TimeControl)
             const endedAt = game.date_time.split(' ')[1]?.slice(0, 5) ?? ''
 
+            // Opponent's rating minus the player's: positive means the
+            // opponent was the stronger one on paper.
+            const ownRating = Number(isWhite ? game.WhiteElo : game.BlackElo)
+            const theirRating = Number(isWhite ? game.BlackElo : game.WhiteElo)
+            const gap = ownRating && theirRating ? theirRating - ownRating : 0
+            const isUpset =
+              (result === 'win' && gap >= UPSET_GAP) ||
+              (result === 'loss' && gap <= -UPSET_GAP)
+            // Older links hold games saved before this was worked out.
+            const change = game.ratingChange ?? null
+
             return (
               <GameRow
                 key={game.url}
@@ -1011,14 +1106,14 @@ function GameList({
                 onClick={(event) => {
                   if (opensViewer(event)) setViewedGame(game)
                 }}
-                aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${reason.toLowerCase()}, ${game.moveCount} moves. Replay the game.`}
+                aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${reason.toLowerCase()}, ${game.moveCount} moves${isUpset ? ', an upset' : ''}. Replay the game.`}
               >
                 <RowResultPill $result={result}>
                   <span>
                     <ResultIcon result={result} />
                     {RESULT_LABELS[result]}
                   </span>
-                  <small>{game.Result}</small>
+                  <small title={game.Result}>{reason}</small>
                 </RowResultPill>
 
                 <OpponentCell>
@@ -1048,17 +1143,44 @@ function GameList({
                       />
                       <Ellipsis>{name}</Ellipsis>
                       <Rating>{rating}</Rating>
+                      {isPlayer && change !== null && (
+                        <RatingChange
+                          $change={change}
+                          title="Rating change in this game"
+                        >
+                          {change > 0
+                            ? `+${change}`
+                            : change < 0
+                              ? `−${-change}`
+                              : '±0'}
+                        </RatingChange>
+                      )}
+                      {!isPlayer && Math.abs(gap) >= RATING_GAP_SHOWN && (
+                        <RatingGap
+                          $higher={gap > 0}
+                          $upset={isUpset}
+                          title={`Rated ${Math.abs(gap)} ${gap > 0 ? 'above' : 'below'} ${isWhite ? game.whitePlayer : game.blackPlayer}`}
+                        >
+                          {gap > 0 ? (
+                            <TbArrowUp size={12} />
+                          ) : (
+                            <TbArrowDown size={12} />
+                          )}
+                          {Math.abs(gap)}
+                        </RatingGap>
+                      )}
+                      {!isPlayer && isUpset && (
+                        <UpsetTag $result={result}>Upset</UpsetTag>
+                      )}
                     </PlayerLine>
                   ))}
                 </OpponentCell>
 
                 <DesktopCell>
-                  <Ellipsis>{reason}</Ellipsis>
-                  {game.opening && (
-                    <Secondary>
-                      <Ellipsis title={game.opening}>{game.opening}</Ellipsis>
-                    </Secondary>
-                  )}
+                  <Ellipsis title={game.opening ?? undefined}>
+                    {game.opening ?? '—'}
+                  </Ellipsis>
+                  {game.eco && <Secondary>{game.eco}</Secondary>}
                 </DesktopCell>
 
                 <Numeric>
@@ -1072,9 +1194,10 @@ function GameList({
 
                 <MobileMeta>
                   <span>
-                    {endedAt} · {reason} · {timeControl} · {game.moveCount}
+                    {endedAt} · {timeControl} · {game.moveCount}
                     {'\u00a0'}moves
                   </span>
+                  {game.opening && <Ellipsis>{game.opening}</Ellipsis>}
                 </MobileMeta>
 
                 <OpenIcon size={15} aria-hidden />

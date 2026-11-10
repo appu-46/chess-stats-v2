@@ -1,4 +1,8 @@
-import { transformChessComGame, transformLichessGame } from './transformGame'
+import {
+  ratingChangeTracker,
+  transformChessComGame,
+  transformLichessGame,
+} from './transformGame'
 import type {
   ChessComGame,
   LichessGame,
@@ -17,13 +21,16 @@ export function newestGames(
   count: number,
 ): Array<TransformedGame> {
   const transformed: Array<TransformedGame> = []
+  const trackRatingChange = ratingChangeTracker()
   for (const game of games) {
     try {
       const result =
         platform === 'lichess'
           ? transformLichessGame(game as LichessGame, lowerUsername)
           : transformChessComGame(game as ChessComGame, lowerUsername)
-      if (result) transformed.push(result)
+      if (!result) continue
+      if (platform === 'chess.com') trackRatingChange(result)
+      transformed.push(result)
     } catch (error) {
       console.error(error)
     }

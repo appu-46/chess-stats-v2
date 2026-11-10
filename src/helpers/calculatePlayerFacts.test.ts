@@ -34,6 +34,7 @@ function game(
     openingFamily: null,
     eco: null,
     moves: '',
+    ratingChange: null,
     ...overrides,
   }
 }

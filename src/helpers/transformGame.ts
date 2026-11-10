@@ -70,6 +70,9 @@ export type TransformedGame = {
   // What the game viewer replays: chess.com's full PGN, or lichess's
   // space-separated moves. The same string the API sent, not a copy.
   moves: string
+  // Rating points the player gained or lost in this game; null when not
+  // known. Lichess reports it. chess.com doesn't: see ratingChangeTracker.
+  ratingChange: number | null
 }
 
 function resultFor(isWhite: boolean, result: string): GameResult {
@@ -131,6 +134,24 @@ export function transformChessComGame(
     openingFamily: family,
     eco: headers.ECO || null,
     moves: game.pgn,
+    ratingChange: null,
+  }
+}
+
+// chess.com only gives each player's rating after the game, so a game's
+// change is the difference from the player's previous game in the same
+// time control. Returns a function to call on each transformed chess.com
+// game, oldest first, which fills in its ratingChange. The first game of
+// each time control has nothing to compare with and stays null.
+export function ratingChangeTracker() {
+  const lastRating = new Map<string, number>()
+  return (game: TransformedGame) => {
+    if (!game.PlayerELO) return
+    const rating = Number(game.PlayerELO)
+    if (!Number.isFinite(rating)) return
+    const previous = lastRating.get(game.time_class)
+    if (previous !== undefined) game.ratingChange = rating - previous
+    lastRating.set(game.time_class, rating)
   }
 }
 
@@ -235,5 +256,6 @@ export function transformLichessGame(
     openingFamily: openingFamily(opening),
     eco: game.opening?.eco ?? null,
     moves: game.moves ?? '',
+    ratingChange: (isWhite ? white : black).ratingDiff ?? null,
   }
 }

@@ -2,10 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { categorizeTermination } from './calculateWinRateBreakdown'
 import {
   lichessTermination,
+  ratingChangeTracker,
   transformChessComGame,
   transformLichessGame,
 } from './transformGame'
-import type { ChessComGame, LichessGame } from './transformGame'
+import type {
+  ChessComGame,
+  LichessGame,
+  TransformedGame,
+} from './transformGame'
 
 const CHESS_COM_PGN = `[Event "Live Chess"]
 [Site "Chess.com"]
@@ -172,5 +177,40 @@ describe('lichessTermination', () => {
         category,
       )
     }
+  })
+})
+
+describe('ratingChangeTracker', () => {
+  const played = (time_class: string, PlayerELO: string) =>
+    ({ time_class, PlayerELO, ratingChange: null }) as TransformedGame
+
+  it('compares each game with the previous one in its time control', () => {
+    const track = ratingChangeTracker()
+    const games = [
+      played('blitz', '1500'),
+      played('rapid', '1700'),
+      played('blitz', '1508'),
+      played('blitz', '1501'),
+      played('rapid', '1700'),
+    ]
+    games.forEach(track)
+    expect(games.map((game) => game.ratingChange)).toEqual([
+      null,
+      null,
+      8,
+      -7,
+      0,
+    ])
+  })
+
+  it('skips games without a rating', () => {
+    const track = ratingChangeTracker()
+    const games = [
+      played('blitz', '1500'),
+      played('blitz', ''),
+      played('blitz', '1490'),
+    ]
+    games.forEach(track)
+    expect(games.map((game) => game.ratingChange)).toEqual([null, null, -10])
   })
 })

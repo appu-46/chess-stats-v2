@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
+  ratingChangeTracker,
   transformChessComGame,
   transformLichessGame,
 } from '../helpers/transformGame'
@@ -93,6 +94,10 @@ export function useProgressiveTransform(
       byTimeClass: {},
     }
 
+    // chess.com's rating changes come from comparing consecutive games.
+    const trackRatingChange =
+      platform === 'chess.com' ? ratingChangeTracker() : null
+
     let index = 0
     const total = standard.length
     let lastEmit = 0
@@ -117,6 +122,7 @@ export function useProgressiveTransform(
         try {
           const transformed = transformOne(standard[i])
           if (!transformed) continue
+          trackRatingChange?.(transformed)
 
           result.standardgamesData.push(transformed)
           ;(result.byTimeClass[transformed.time_class] ||= []).push(transformed)
