@@ -17,6 +17,15 @@ export interface ReplayMove {
 export interface Replay {
   startFen: string
   moves: Array<ReplayMove>
+  // What the rules say about the final position, for games whose site
+  // only reports "drawn" without the reason.
+  finalPosition: {
+    checkmate: boolean
+    stalemate: boolean
+    insufficientMaterial: boolean
+    repetition: boolean
+    fiftyMoves: boolean
+  }
 }
 
 const CLOCK_RE = /\[%clk\s+([\d:.]+)\]/g
@@ -44,6 +53,13 @@ export function buildReplay(pgnOrMoves: string): Replay {
       color: move.color,
       clock: hasClocks ? clocks[index] : null,
     })),
+    finalPosition: {
+      checkmate: chess.isCheckmate(),
+      stalemate: chess.isStalemate(),
+      insufficientMaterial: chess.isInsufficientMaterial(),
+      repetition: chess.isThreefoldRepetition(),
+      fiftyMoves: chess.isDrawByFiftyMoves(),
+    },
   }
 }
 
@@ -70,4 +86,111 @@ export function clocksAt(
     else black = moves[i].clock
   }
   return { white, black }
+}
+
+// ── How the game ended ────────────────────────────────────────────────
+
+export type EndReason =
+  | 'checkmate'
+  | 'resignation'
+  | 'timeout'
+  | 'abandonment'
+  | 'stalemate'
+  | 'repetition'
+  | 'insufficientMaterial'
+  | 'fiftyMoves'
+  | 'agreement'
+  // Out of time, but the opponent couldn't have mated: a draw.
+  | 'timeoutVsInsufficient'
+  | 'other'
+
+export interface GameEnding {
+  // null for a draw.
+  winner: 'white' | 'black' | null
+  reason: EndReason
+}
+
+export const END_REASON_LABELS: Record<EndReason, string> = {
+  checkmate: 'Checkmate',
+  resignation: 'Resignation',
+  timeout: 'Out of time',
+  abandonment: 'Abandoned',
+  stalemate: 'Stalemate',
+  repetition: 'Threefold repetition',
+  insufficientMaterial: 'Insufficient material',
+  fiftyMoves: '50-move rule',
+  agreement: 'Draw agreed',
+  timeoutVsInsufficient: 'Timeout vs insufficient material',
+  other: 'Game over',
+}
+
+// Reads the result ("1-0") and the site's sentence about the ending
+// ("Hikaru won on time", "Game drawn by repetition"). Where the sentence
+// doesn't say why (lichess's draws are all "Game drawn"), the final
+// position does, when the rules settle it.
+export function gameEnding(
+  result: string,
+  termination: string,
+  finalPosition?: Replay['finalPosition'],
+): GameEnding {
+  const winner = result === '1-0' ? 'white' : result === '0-1' ? 'black' : null
+  const text = termination.toLowerCase()
+
+  if (winner) {
+    const reason: EndReason = text.includes('checkmate')
+      ? 'checkmate'
+      : text.includes('resign')
+        ? 'resignation'
+        : text.includes('abandon')
+          ? 'abandonment'
+          : text.includes('time')
+            ? 'timeout'
+            : finalPosition?.checkmate
+              ? 'checkmate'
+              : 'other'
+    return { winner, reason }
+  }
+
+  const reason: EndReason = text.includes('stalemate')
+    ? 'stalemate'
+    : text.includes('timeout') || text.includes('on time')
+      ? 'timeoutVsInsufficient'
+      : text.includes('repetition')
+        ? 'repetition'
+        : text.includes('insufficient')
+          ? 'insufficientMaterial'
+          : text.includes('50-move') || text.includes('fifty')
+            ? 'fiftyMoves'
+            : text.includes('agreement')
+              ? 'agreement'
+              : finalPosition?.stalemate
+                ? 'stalemate'
+                : finalPosition?.insufficientMaterial
+                  ? 'insufficientMaterial'
+                  : finalPosition?.repetition
+                    ? 'repetition'
+                    : finalPosition?.fiftyMoves
+                      ? 'fiftyMoves'
+                      : 'agreement'
+  return { winner: null, reason }
+}
+
+// Where each king stands in a position, e.g. { white: 'g1', black: 'e8' }.
+export function kingSquares(fen: string): { white: string; black: string } {
+  const squares = { white: '', black: '' }
+  const ranks = fen.split(' ')[0].split('/')
+  ranks.forEach((rank, rankIndex) => {
+    let file = 0
+    for (const char of rank) {
+      if (/\d/.test(char)) {
+        file += Number(char)
+        continue
+      }
+      const square = `${'abcdefgh'[file]}${8 - rankIndex}`
+      if (char === 'K') squares.white = square
+      if (char === 'k') squares.black = square
+      file++
+    }
+  })
+  return squares
 }

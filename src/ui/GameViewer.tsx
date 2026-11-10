@@ -5,6 +5,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { Chessboard } from 'react-chessboard'
 import {
+  TbClock,
+  TbCrown,
+  TbDoorExit,
+  TbFlag,
+  TbLock,
   TbPlayerPauseFilled,
   TbPlayerPlayFilled,
   TbPlayerSkipBackFilled,
@@ -12,12 +17,21 @@ import {
   TbPlayerTrackNextFilled,
   TbPlayerTrackPrevFilled,
   TbRepeat,
+  TbX,
 } from 'react-icons/tb'
 import { FiExternalLink } from 'react-icons/fi'
-import { buildReplay, clocksAt, formatClock } from '../helpers/gameReplay'
+import {
+  END_REASON_LABELS,
+  buildReplay,
+  clocksAt,
+  formatClock,
+  gameEnding,
+  kingSquares,
+} from '../helpers/gameReplay'
 import { PLATFORM_LABELS } from '../helpers/platform'
-import { SideDot } from './GameResult'
-import type { Replay } from '../helpers/gameReplay'
+import { RESULT_COLORS, SideDot } from './GameResult'
+import type { ReactNode } from 'react'
+import type { EndReason, Replay } from '../helpers/gameReplay'
 import type { TransformedGame } from '../helpers/transformGame'
 import type { Platform } from '../helpers/platform'
 
@@ -88,10 +102,57 @@ const Clock = styled.span<{ $active: boolean }>`
 `
 
 const BoardFrame = styled.div`
+  position: relative;
   border-radius: 8px;
   overflow: hidden;
   /* Stops the page scrolling or zooming when the board is touched. */
   touch-action: manipulation;
+`
+
+// On the last move, a round marker in the top-right corner of each king's
+// square: a crown for the winner, how they lost for the loser, and the
+// kind of draw on both. Placed by the square's column and row (0-7 from
+// the top-left as the board is shown).
+const KingBadge = styled.span<{
+  $column: number
+  $row: number
+  $color: string
+}>`
+  position: absolute;
+  left: ${({ $column }) => ($column + 1) * 12.5}%;
+  top: ${({ $row }) => $row * 12.5}%;
+  width: 6%;
+  aspect-ratio: 1;
+  transform: translate(-108%, 8%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
+  /* The ring keeps it apart from a square tinted the same colour. */
+  border: 1.5px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  font-size: clamp(0.5rem, 2.6vw, 0.72rem);
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: auto;
+  animation: king-badge-pop 0.25s ease-out;
+
+  && {
+    color: white;
+  }
+
+  svg {
+    width: 72%;
+    height: 72%;
+  }
+
+  @keyframes king-badge-pop {
+    from {
+      transform: translate(-108%, 8%) scale(0.3);
+      opacity: 0;
+    }
+  }
 `
 
 const Controls = styled.div`
@@ -225,6 +286,26 @@ const Problem = styled.div`
 
 const LAST_MOVE_STYLE = { background: 'rgba(255, 213, 79, 0.45)' }
 
+// The losing king's marker says how the game was lost; in a draw both
+// kings carry the kind of draw ("½" where there's no better picture).
+const END_ICONS: Record<EndReason, ReactNode> = {
+  checkmate: '#',
+  resignation: <TbFlag />,
+  timeout: <TbClock />,
+  abandonment: <TbDoorExit />,
+  stalemate: <TbLock />,
+  repetition: <TbRepeat />,
+  fiftyMoves: '50',
+  timeoutVsInsufficient: <TbClock />,
+  insufficientMaterial: '½',
+  agreement: '½',
+  other: <TbX />,
+}
+
+function squareTint(color: string) {
+  return { background: `color-mix(in srgb, ${color} 62%, transparent)` }
+}
+
 function GameViewer({
   game,
   username,
@@ -354,6 +435,40 @@ function GameViewer({
 
   const top = orientation === 'white' ? 'black' : 'white'
 
+  // The final position marks the kings: green for the winner, red for the
+  // loser, blue-grey for a draw, each with how it ended.
+  const ending = atEnd
+    ? gameEnding(game.Result, game.Termination, replay.finalPosition)
+    : null
+  const kings = ending && current ? kingSquares(current.fen) : null
+  const kingMarks =
+    ending && kings
+      ? (['white', 'black'] as const).map((side) => {
+          const isDraw = ending.winner === null
+          const won = ending.winner === side
+          const square = kings[side]
+          const file = 'abcdefgh'.indexOf(square[0])
+          const rank = Number(square[1])
+          return {
+            side,
+            square,
+            color: isDraw
+              ? RESULT_COLORS.draw
+              : won
+                ? RESULT_COLORS.win
+                : RESULT_COLORS.loss,
+            icon: won ? <TbCrown /> : END_ICONS[ending.reason],
+            label: isDraw
+              ? `Draw: ${END_REASON_LABELS[ending.reason]}`
+              : won
+                ? 'Winner'
+                : `Lost: ${END_REASON_LABELS[ending.reason]}`,
+            column: orientation === 'white' ? file : 7 - file,
+            row: orientation === 'white' ? 8 - rank : rank - 1,
+          }
+        })
+      : []
+
   return (
     <Layout>
       <BoardColumn>
@@ -373,10 +488,31 @@ function GameViewer({
                 ? {
                     [current.from]: LAST_MOVE_STYLE,
                     [current.to]: LAST_MOVE_STYLE,
+                    // After the last move's highlight, so a king that just
+                    // moved still shows its result colour.
+                    ...Object.fromEntries(
+                      kingMarks.map((mark) => [
+                        mark.square,
+                        squareTint(mark.color),
+                      ]),
+                    ),
                   }
                 : {},
             }}
           />
+          {kingMarks.map((mark) => (
+            <KingBadge
+              key={mark.side}
+              $column={mark.column}
+              $row={mark.row}
+              $color={mark.color}
+              title={mark.label}
+              role="img"
+              aria-label={`${mark.side === 'white' ? 'White' : 'Black'}: ${mark.label}`}
+            >
+              {mark.icon}
+            </KingBadge>
+          ))}
         </BoardFrame>
         {playerBar(orientation)}
 
