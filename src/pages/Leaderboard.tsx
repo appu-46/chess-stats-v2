@@ -297,7 +297,8 @@ const columns = `
   padding: 0.5rem 0.75rem;
 
   @media (max-width: 768px) {
-    grid-template-columns: 2.25rem minmax(0, 1fr) 4rem;
+    grid-template-columns: 2rem minmax(0, 1fr) 3.25rem;
+    gap: 0.5rem;
 
     & > [data-column='country'] {
       display: none;
@@ -480,6 +481,12 @@ const NameLine = styled.span`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* Phones: slightly smaller, so most full names fit beside the rating. */
+  @media (max-width: 768px) {
+    gap: 0.3rem;
+    font-size: 0.9rem;
   }
 `
 

@@ -24,7 +24,6 @@ import SideBar from './components/SideBar.tsx'
 import { StyledAppLayout } from './ui/AppLayout.tsx'
 import { GlobalStyle } from './styles/GlobalStyle.ts'
 import { supabase } from './services/supabase.ts'
-import MobileNotice from './ui/MobileNotice.tsx'
 import { RouteError } from './ui/PageError.tsx'
 import { validatePlatformSearch } from './helpers/platform.ts'
 import { validateCompareSearch } from './helpers/compareSearch.ts'
@@ -120,7 +119,6 @@ const rootRoute = createRootRoute({
 
     return (
       <>
-        <MobileNotice />
         <StyledAppLayout>
           <CompactHeader showBrand={pathname !== '/'} />
           <SideBar />

@@ -326,8 +326,8 @@ function AreaGraph({
         </ResponsiveContainer>
       </div>
       <Footnote>
-        Each point is the rating after the last game of that day. Click a point
-        to see that day's games.
+        Each point is the rating after the last game of that day. Click or tap a
+        point to see that day's games.
       </Footnote>
     </div>
   )

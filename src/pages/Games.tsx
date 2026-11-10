@@ -1078,12 +1078,10 @@ function GameList({
                 <Numeric>{endedAt}</Numeric>
 
                 <MobileMeta>
-                  {/* Time first: if the line is cut short, the move count
-                      goes, not the time. */}
-                  <Ellipsis>
-                    {endedAt} · {reason} · {timeControl} · {game.moveCount}{' '}
-                    moves
-                  </Ellipsis>
+                  <span>
+                    {endedAt} · {reason} · {timeControl} · {game.moveCount}
+                    {'\u00a0'}moves
+                  </span>
                 </MobileMeta>
 
                 <OpenIcon size={15} aria-hidden />

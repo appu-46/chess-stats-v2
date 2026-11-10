@@ -111,8 +111,14 @@ const Name = styled.h1`
   text-overflow: ellipsis;
   white-space: nowrap;
 
+  /* Phones: a long name wraps onto a second line rather than being cut. */
   @media (max-width: 768px) {
     font-size: 1.4rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 `
 

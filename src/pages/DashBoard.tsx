@@ -191,6 +191,10 @@ const GraphControls = styled.div`
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `
 
 const YearSelect = styled.select<{ $color: string }>`
@@ -234,16 +238,10 @@ const RangeRow = styled.div`
   border-radius: 2rem;
   gap: 0.75rem;
 
+  /* Phones: the five ranges share the row's width, so none is cut off. */
   @media (max-width: 768px) {
-    max-width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    /* Fade the right edge to hint the range options scroll horizontally. */
-    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
-    mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+    width: 100%;
+    gap: 0.15rem;
   }
 
   [data-mantine-color-scheme='light'] & {
@@ -258,8 +256,9 @@ const RangeBtn = styled.button<{ $active: boolean; $color: string }>`
   border-radius: 50px;
 
   @media (max-width: 768px) {
-    padding: 0.5rem 1.1rem;
-    flex-shrink: 0;
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0;
   }
   border: ${({ $active, $color }) =>
     $active ? `1.5px solid ${$color}` : '1.5px solid transparent'};

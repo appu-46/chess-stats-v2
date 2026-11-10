@@ -8,6 +8,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import {
   TbArrowsLeftRight,
+  TbDots,
   TbLayoutSidebarLeftCollapseFilled,
   TbLayoutSidebarLeftExpandFilled,
   TbTrophy,
@@ -19,7 +20,7 @@ import { CgProfile } from 'react-icons/cg'
 import { IoStatsChart } from 'react-icons/io5'
 import { FaChartArea, FaEdit, FaUserCircle } from 'react-icons/fa'
 import { MdFavorite, MdGames } from 'react-icons/md'
-import { Tooltip, UnstyledButton } from '@mantine/core'
+import { Drawer, Tooltip, UnstyledButton } from '@mantine/core'
 import classes from '../css/NavbarMinimal.module.css'
 import useGoogleUser from '../hooks/useGoogleUser'
 import useGetUser from '../hooks/useGetUser'
@@ -58,6 +59,7 @@ function NavItem({
   link,
   onClick,
   desktopOnly,
+  mobileOnly,
 }: {
   icon: IconType
   label: string
@@ -69,6 +71,8 @@ function NavItem({
   onClick?: () => void
   // Left out of the phone tab bar, which only has room for the main pages.
   desktopOnly?: boolean
+  // Only in the phone tab bar.
+  mobileOnly?: boolean
 }) {
   const content = (
     <>
@@ -107,6 +111,7 @@ function NavItem({
         className={classes.item}
         data-active={active || undefined}
         data-desktop-only={desktopOnly || undefined}
+        data-mobile-only={mobileOnly || undefined}
       >
         {item}
       </div>
@@ -151,6 +156,9 @@ function SideBar() {
       routePlatform !== ownPlatform)
 
   const [collapsed, setCollapsed] = useState(readCollapsed)
+  // The phone tab bar's "More" sheet: everything the bar has no room for.
+  const [moreOpen, setMoreOpen] = useState(false)
+  const closeMore = () => setMoreOpen(false)
   const logoSrc = useLogoSrc()
 
   useEffect(() => {
@@ -163,6 +171,7 @@ function SideBar() {
   }, [collapsed])
 
   async function signOut() {
+    closeMore()
     await endSession()
     queryClient.removeQueries({ queryKey: ['googleUser'] })
     queryClient.removeQueries({ queryKey: ['user'] })
@@ -200,6 +209,13 @@ function SideBar() {
 
   const avatar: string | undefined = googleUser?.picture
   const displayName: string = googleUser?.given_name ?? ''
+
+  const compareSearch = viewedUsername
+    ? {
+        a: viewedUsername,
+        ap: routePlatform === 'lichess' ? ('lichess' as const) : undefined,
+      }
+    : {}
 
   return (
     <nav
@@ -278,8 +294,8 @@ function SideBar() {
         ))}
 
         {/* Starts with whoever is being viewed in the first slot. Phones
-            reach it from the profile's Compare button instead: the tab
-            bar has no room for it. */}
+            reach it from the tab bar's More sheet: the bar itself has no
+            room for it. */}
         <NavItem
           icon={TbArrowsLeftRight}
           label="Compare"
@@ -287,25 +303,13 @@ function SideBar() {
           active={section === 'compare'}
           desktopOnly
           link={(content) => (
-            <Link
-              to="/compare"
-              search={
-                viewedUsername
-                  ? {
-                      a: viewedUsername,
-                      ap: routePlatform === 'lichess' ? 'lichess' : undefined,
-                    }
-                  : {}
-              }
-              className={classes.link}
-            >
+            <Link to="/compare" search={compareSearch} className={classes.link}>
               {content}
             </Link>
           )}
         />
 
-        {/* Phones reach it from the home page instead: the tab bar has no
-            room for it. */}
+        {/* On phones this is in the More sheet too. */}
         <NavItem
           icon={TbTrophy}
           label="Leaderboard"
@@ -344,6 +348,7 @@ function SideBar() {
           collapsed={collapsed}
           active={section === 'favourites'}
           disabledReason={sub ? undefined : 'Sign in to track players'}
+          desktopOnly
           link={(content) => (
             <Link
               to="/favourites/$sub"
@@ -354,7 +359,141 @@ function SideBar() {
             </Link>
           )}
         />
+
+        <NavItem
+          icon={TbDots}
+          label="More"
+          collapsed={collapsed}
+          active={
+            section === 'compare' ||
+            section === 'leaderboard' ||
+            section === 'favourites'
+          }
+          mobileOnly
+          onClick={() => setMoreOpen(true)}
+        />
       </div>
+
+      <Drawer
+        opened={moreOpen}
+        onClose={closeMore}
+        position="bottom"
+        size="auto"
+        title="More"
+        zIndex={300}
+        classNames={{
+          content: classes.sheet,
+          header: classes.sheetHeader,
+          title: classes.sheetTitle,
+          body: classes.sheetBody,
+        }}
+      >
+        {googleUser && (
+          <div className={classes.sheetAccount}>
+            {avatar ? (
+              <img
+                className={classes.avatar}
+                src={avatar}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className={classes.avatar}>{displayName[0]}</span>
+            )}
+            <div className={classes.sheetAccountText}>
+              <span className={classes.accountName}>{displayName}</span>
+              <span className={classes.accountHandle}>
+                {ownUsername
+                  ? `${ownUsername} · ${PLATFORM_LABELS[ownPlatform]}`
+                  : 'No username saved'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <Link
+          to="/compare"
+          search={compareSearch}
+          className={classes.sheetLink}
+          data-active={section === 'compare' || undefined}
+          onClick={closeMore}
+        >
+          <TbArrowsLeftRight size={ICON_SIZE} />
+          Compare players
+        </Link>
+        <Link
+          to="/leaderboard"
+          search={{}}
+          className={classes.sheetLink}
+          data-active={section === 'leaderboard' || undefined}
+          onClick={closeMore}
+        >
+          <TbTrophy size={ICON_SIZE} />
+          Leaderboard
+        </Link>
+        {sub ? (
+          <Link
+            to="/favourites/$sub"
+            params={{ sub }}
+            className={classes.sheetLink}
+            data-active={section === 'favourites' || undefined}
+            onClick={closeMore}
+          >
+            <MdFavorite size={ICON_SIZE} />
+            Favourites
+          </Link>
+        ) : (
+          <span
+            className={classes.sheetLink}
+            data-disabled
+            aria-disabled="true"
+          >
+            <MdFavorite size={ICON_SIZE} />
+            Favourites
+            <span className={classes.sheetNote}>Sign in to track players</span>
+          </span>
+        )}
+        {isViewingOther && (
+          <Link
+            to="/profile/$username"
+            params={{ username: ownUsername }}
+            search={platformSearch(ownPlatform)}
+            className={classes.sheetLink}
+            onClick={closeMore}
+          >
+            <FaUserCircle size={ICON_SIZE} />
+            My profile
+          </Link>
+        )}
+
+        <div className={classes.sheetDivider} />
+
+        {googleUser ? (
+          <>
+            <Link
+              to="/"
+              search={{ changeUsername: true }}
+              className={classes.sheetLink}
+              onClick={closeMore}
+            >
+              <FaEdit size={ICON_SIZE} />
+              Edit username
+            </Link>
+            <UnstyledButton className={classes.sheetLink} onClick={signOut}>
+              <RiLogoutBoxRFill size={ICON_SIZE} />
+              Sign out
+            </UnstyledButton>
+          </>
+        ) : (
+          <UnstyledButton
+            className={classes.sheetLink}
+            onClick={signInWithGoogle}
+          >
+            <RiLoginBoxFill size={ICON_SIZE} />
+            Sign in with Google
+          </UnstyledButton>
+        )}
+      </Drawer>
 
       <div className={classes.bottom}>
         {/* Side by side when expanded, stacked when collapsed. Each sits in

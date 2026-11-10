@@ -262,6 +262,98 @@
 }
 
 /* ── Mobile: a fixed bottom tab bar ────────────────────────────────── */
+/* ── Phone "More" sheet ─────────────────────────────────────────────── */
+
+/* The More tab only exists in the phone tab bar. */
+.item[data-mobile-only] {
+  display: none;
+}
+
+/* Doubled so it outranks Mantine's own content rule, which makes a bottom
+   drawer fill the screen: this one is only as tall as its rows. */
+.sheet.sheet {
+  height: auto;
+  max-height: 85dvh;
+  background: light-dark(#f6fcf9, #10261d);
+  border-top: 1px solid
+    light-dark(rgba(52, 163, 126, 0.3), rgba(110, 231, 183, 0.18));
+  border-radius: 18px 18px 0 0;
+}
+
+.sheetHeader {
+  background: transparent;
+  padding-bottom: 0.25rem;
+}
+
+.sheetTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+.sheetAccount {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.85rem 0.85rem;
+}
+
+.sheetAccountText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Full-width rows with a comfortable touch target. */
+.sheetLink {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 0.85rem;
+  border-radius: 12px;
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.sheetLink:active,
+.sheetLink:focus-visible {
+  background: light-dark(rgba(20, 83, 45, 0.08), rgba(187, 247, 208, 0.08));
+}
+
+.sheetLink[data-active] {
+  color: light-dark(var(--brand), var(--brand-soft));
+  background: light-dark(rgba(52, 163, 126, 0.14), rgba(52, 163, 126, 0.18));
+}
+
+.sheetLink[data-disabled] {
+  opacity: 0.45;
+}
+
+.sheetNote {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.sheetDivider {
+  height: 1px;
+  margin: 0.4rem 0.85rem;
+  background: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+}
+
 @media (max-width: 768px) {
   .navbar {
     position: fixed;
@@ -331,5 +423,9 @@
   .bottom,
   .item[data-desktop-only] {
     display: none;
+  }
+
+  .item[data-mobile-only] {
+    display: block;
   }
 }
