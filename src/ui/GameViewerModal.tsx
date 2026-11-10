@@ -3,6 +3,8 @@
 import { Suspense, lazy } from 'react'
 import { Modal } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
+import { useRouter } from '@tanstack/react-router'
+import { gameSearch } from '../helpers/gameLink'
 import { brandModalStyles } from './modalStyles'
 import Spinner from './Spinner'
 import type { MouseEvent } from 'react'
@@ -34,6 +36,18 @@ function GameViewerModal({
   onClose: () => void
 }) {
   const isPhone = useMediaQuery('(max-width: 768px)')
+  const router = useRouter()
+
+  // The address that reopens this game: its day on the Games page, with
+  // the game named. The same wherever the viewer was opened from.
+  const shareUrl = game
+    ? window.location.origin +
+      router.buildLocation({
+        to: '/games/$username',
+        params: { username },
+        search: gameSearch(game, platform),
+      }).href
+    : ''
 
   return (
     <Modal
@@ -58,6 +72,7 @@ function GameViewerModal({
             game={game}
             username={username}
             platform={platform}
+            shareUrl={shareUrl}
           />
         </Suspense>
       )}

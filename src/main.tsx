@@ -200,6 +200,11 @@ const gamesRoute = createRoute({
       // Set when opened from a day on the dashboard chart: the page then
       // lists that day's games (and can be reloaded or shared).
       day: searchPadded(search.day),
+      // The one game of that day open in the viewer, by its site's id.
+      // Left out when unset, so links to the page needn't mention it.
+      ...(searchString(search.game)
+        ? { game: searchString(search.game) }
+        : ({} as { game?: string })),
       ...validatePlatformSearch(search),
     }
   },

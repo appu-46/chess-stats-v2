@@ -3,6 +3,7 @@
 import styled from 'styled-components'
 import { FaHandshake, FaHeartBroken } from 'react-icons/fa'
 import { GiTrophy } from 'react-icons/gi'
+import { TbArrowUp } from 'react-icons/tb'
 
 export type Result = 'win' | 'loss' | 'draw'
 
@@ -65,4 +66,105 @@ export const SideDot = styled.span<{ $side: 'white' | 'black' }>`
   border-radius: 50%;
   background: ${({ $side }) => ($side === 'white' ? '#f4f4f4' : '#111')};
   box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.8);
+`
+
+// ── Ratings in a game row ─────────────────────────────────────────────
+
+// An opponent rated this far above the player gets a marker...
+const RATING_GAP_SHOWN = 50
+// ...and beating a player this far above, or losing to one this far
+// below, is an upset.
+const UPSET_GAP = 100
+
+// `gap` is the opponent's rating minus the player's: positive means the
+// opponent was the stronger one on paper. Only that direction is marked
+// (a strong player's opponents are nearly all rated below them, which
+// would put a marker on every row).
+export function ratingGap(
+  playerRating: string,
+  opponentRating: string,
+  result: Result,
+) {
+  const own = Number(playerRating)
+  const theirs = Number(opponentRating)
+  const gap = own && theirs ? theirs - own : 0
+  return {
+    gap,
+    showGap: gap >= RATING_GAP_SHOWN,
+    isUpset:
+      (result === 'win' && gap >= UPSET_GAP) ||
+      (result === 'loss' && gap <= -UPSET_GAP),
+  }
+}
+
+const RatingChange = styled.span<{ $change: number }>`
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  && {
+    opacity: 1;
+    color: ${({ $change }) =>
+      $change > 0
+        ? RESULT_COLORS.win
+        : $change < 0
+          ? RESULT_COLORS.loss
+          : 'inherit'};
+  }
+`
+
+// Points the player won or lost in the game.
+export function RatingChangeBadge({ change }: { change: number }) {
+  return (
+    <RatingChange $change={change} title="Rating change in this game">
+      {change > 0 ? `+${change}` : change < 0 ? `−${-change}` : '±0'}
+    </RatingChange>
+  )
+}
+
+const RatingGap = styled.span`
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+
+  && {
+    opacity: 1;
+    color: light-dark(#b45309, #f5b041);
+  }
+`
+
+// How far above the player the opponent was rated.
+export function RatingGapBadge({ gap }: { gap: number }) {
+  return (
+    <RatingGap title={`Opponent rated ${gap} higher`}>
+      <TbArrowUp size={12} />
+      {gap}
+    </RatingGap>
+  )
+}
+
+// A result that went against the ratings.
+export const UpsetTag = styled.span<{ $result: Result }>`
+  flex-shrink: 0;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: color-mix(
+    in srgb,
+    ${({ $result }) => RESULT_COLORS[$result]} 18%,
+    transparent
+  );
+
+  && {
+    opacity: 1;
+    color: ${({ $result }) => RESULT_COLORS[$result]};
+  }
 `

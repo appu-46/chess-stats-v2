@@ -1,19 +1,23 @@
 // The profile's "Recent games": the player's newest games as compact rows,
-// each opening the game on its site. Loads on its own, so the rest of the
+// each opening the game in the viewer. Loads on its own, so the rest of the
 // profile doesn't wait for it.
 import styled, { css } from 'styled-components'
 import { TbPlayerPlay } from 'react-icons/tb'
 import { useState } from 'react'
 import useLatestGames from '../hooks/useLatestGames'
 import { newestGames } from '../helpers/newestGames'
-import { formatTimeControl } from '../helpers/gameFormat'
+import { formatTimeControl, shortTermination } from '../helpers/gameFormat'
 import { formatDate, formatLastActive } from '../helpers/DateFormat'
 import {
   RESULT_COLORS,
   RESULT_LABELS,
+  RatingChangeBadge,
+  RatingGapBadge,
   ResultIcon,
   ResultPill,
   SideDot,
+  UpsetTag,
+  ratingGap,
 } from './GameResult'
 import { Pulse } from './DashboardSkeleton'
 import { listHeaderStyles } from './listHeaderStyles'
@@ -32,14 +36,16 @@ export const RECENT_GAMES_FETCHED = SHOWN + 2
 const columns = css`
   display: grid;
   grid-template-columns:
-    5.25rem minmax(0, 15rem) minmax(0, 1fr)
-    4.5rem 6.5rem 1rem;
+    6.5rem minmax(0, 16rem) minmax(0, 1fr)
+    5.75rem 4.5rem 6.5rem 1rem;
   align-items: center;
   gap: 1rem;
   padding: 0.55rem 0.85rem;
 
   @media (max-width: 1100px) {
-    grid-template-columns: 5.25rem minmax(0, 1fr) minmax(0, 1fr) 6rem 1rem;
+    grid-template-columns:
+      6.5rem minmax(0, 1fr) minmax(0, 1fr)
+      5.75rem 6rem 1rem;
 
     & > [data-column='time'] {
       display: none;
@@ -47,10 +53,11 @@ const columns = css`
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: 4.75rem minmax(0, 1fr) 1rem;
+    grid-template-columns: 5.5rem minmax(0, 1fr) 1rem;
     gap: 0.75rem;
 
     & > [data-column='opening'],
+    & > [data-column='rating'],
     & > [data-column='ended'] {
       display: none;
     }
@@ -94,6 +101,30 @@ const Row = styled.a<{ $result: Result }>`
       transparent
     );
   }
+`
+
+// The result with how the game ended under it ("Win" over "Resignation").
+const RowResultPill = styled(ResultPill)`
+  justify-self: stretch;
+
+  small {
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.25rem 0.3rem;
+  }
+`
+
+// The player's rating after the game, and the points it moved by.
+const RatingLine = styled.span`
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-variant-numeric: tabular-nums;
 `
 
 const Cell = styled.div`
@@ -191,6 +222,7 @@ function RecentGames({
         <span>Result</span>
         <span>Opponent</span>
         <span data-column="opening">Opening</span>
+        <span data-column="rating">Rating</span>
         <span data-column="time">Time</span>
         <span data-column="ended">Played</span>
         <span />
@@ -202,6 +234,22 @@ function RecentGames({
         const opponentRating = isWhite ? game.BlackElo : game.WhiteElo
         const timeControl = formatTimeControl(game.TimeControl)
         const ended = formatLastActive(game.endTime)
+        const reason = shortTermination(game.Termination)
+        const ownRating = isWhite ? game.WhiteElo : game.BlackElo
+        const { gap, showGap, isUpset } = ratingGap(
+          ownRating,
+          opponentRating,
+          result,
+        )
+        const change = game.ratingChange
+        const changeText =
+          change === null
+            ? null
+            : change > 0
+              ? `+${change}`
+              : change < 0
+                ? `−${-change}`
+                : '±0'
 
         return (
           <Row
@@ -215,14 +263,15 @@ function RecentGames({
             onClick={(event) => {
               if (opensViewer(event)) setViewedGame(game)
             }}
-            aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${ended}. Replay the game.`}
+            aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${reason.toLowerCase()}, ${ended}${isUpset ? ', an upset' : ''}. Replay the game.`}
           >
-            <ResultPill $result={result}>
+            <RowResultPill $result={result}>
               <span>
                 <ResultIcon result={result} />
                 {RESULT_LABELS[result]}
               </span>
-            </ResultPill>
+              <small title={game.Result}>{reason}</small>
+            </RowResultPill>
 
             <Cell>
               <Opponent>
@@ -232,9 +281,13 @@ function RecentGames({
                 />
                 <Ellipsis>{opponent}</Ellipsis>
                 <Muted>{opponentRating}</Muted>
+                {showGap && <RatingGapBadge gap={gap} />}
+                {isUpset && <UpsetTag $result={result}>Upset</UpsetTag>}
               </Opponent>
               <MobileMeta>
-                {[ended, timeControl, game.opening].filter(Boolean).join(' · ')}
+                {[changeText, ended, timeControl, game.opening]
+                  .filter(Boolean)
+                  .join(' · ')}
               </MobileMeta>
             </Cell>
 
@@ -242,6 +295,13 @@ function RecentGames({
               <MutedEllipsis title={game.opening ?? undefined}>
                 {game.opening ?? '—'}
               </MutedEllipsis>
+            </Cell>
+
+            <Cell data-column="rating">
+              <RatingLine>
+                <span>{ownRating || '—'}</span>
+                {change !== null && <RatingChangeBadge change={change} />}
+              </RatingLine>
             </Cell>
 
             <Cell data-column="time">

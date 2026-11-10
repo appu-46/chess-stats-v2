@@ -5,10 +5,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { Chessboard } from 'react-chessboard'
 import {
+  TbCheck,
   TbClock,
   TbCrown,
   TbDoorExit,
   TbFlag,
+  TbLink,
   TbLock,
   TbPlayerPauseFilled,
   TbPlayerPlayFilled,
@@ -277,6 +279,34 @@ const SiteLink = styled.a`
   }
 `
 
+const Links = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+`
+
+// Looks like SiteLink, but copies this game's address on this site.
+const LinkButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: light-dark(var(--brand), var(--brand-soft));
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+`
+
 const Problem = styled.div`
   display: flex;
   flex-direction: column;
@@ -310,12 +340,36 @@ function GameViewer({
   game,
   username,
   platform,
+  shareUrl,
 }: {
   game: TransformedGame
   // The player whose games these are: the board starts from their side.
   username: string
   platform: Platform
+  // The address on this site that reopens the game.
+  shareUrl: string
 }) {
+  const [copied, setCopied] = useState(false)
+
+  // Copies the link; where the clipboard isn't available, hands it to the
+  // device's share sheet instead.
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      if ('share' in navigator) {
+        await navigator
+          .share({
+            url: shareUrl,
+            title: `${game.whitePlayer} vs ${game.blackPlayer}`,
+          })
+          .catch(() => {})
+      }
+    }
+  }
+
   const replay = useMemo((): Replay | null => {
     try {
       return buildReplay(game.moves)
@@ -608,7 +662,13 @@ function GameViewer({
           })}
         </MoveList>
 
-        {siteLink}
+        <Links>
+          {siteLink}
+          <LinkButton type="button" onClick={copyLink}>
+            {copied ? <TbCheck size={15} /> : <TbLink size={15} />}
+            {copied ? 'Link copied' : 'Copy link'}
+          </LinkButton>
+        </Links>
       </Side>
     </Layout>
   )

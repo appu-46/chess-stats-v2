@@ -8,14 +8,14 @@ import {
   useSearch,
 } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6'
 import { FaChartPie, FaGamepad, FaShieldAlt } from 'react-icons/fa'
 import { MdGames } from 'react-icons/md'
 import { SiTarget } from 'react-icons/si'
 import { FiArrowLeft } from 'react-icons/fi'
-import { TbArrowDown, TbArrowUp, TbPlayerPlay } from 'react-icons/tb'
+import { TbPlayerPlay } from 'react-icons/tb'
 import useProfile from '../hooks/useProfile'
 import usePlatform from '../hooks/usePlatform'
 import { platformSearch } from '../helpers/platform'
@@ -29,12 +29,17 @@ import PageHeader from '../ui/PageHeader'
 import {
   RESULT_COLORS,
   RESULT_LABELS,
+  RatingChangeBadge,
+  RatingGapBadge,
   ResultIcon,
   ResultPill,
   SideDot,
+  UpsetTag,
+  ratingGap,
 } from '../ui/GameResult'
 import { formatTimeControl, shortTermination } from '../helpers/gameFormat'
 import PageError from '../ui/PageError'
+import { gameId } from '../helpers/gameLink'
 import GameViewerModal, { opensViewer } from '../ui/GameViewerModal'
 import type { Result } from '../ui/GameResult'
 import type { PlayerProfile } from '../helpers/normalizePlayer'
@@ -379,69 +384,6 @@ const PlayerLine = styled.span<{ $isPlayer: boolean }>`
 
   & > :not(${SideDot}) {
     opacity: ${({ $isPlayer }) => ($isPlayer ? 0.72 : 1)};
-  }
-`
-
-// Points won or lost in the game, after the player's rating.
-const RatingChange = styled.span<{ $change: number }>`
-  flex-shrink: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-
-  && {
-    opacity: 1;
-    color: ${({ $change }) =>
-      $change > 0
-        ? RESULT_COLORS.win
-        : $change < 0
-          ? RESULT_COLORS.loss
-          : 'inherit'};
-  }
-`
-
-// How far the opponent was rated above (amber) or below (grey) the
-// player, shown from RATING_GAP_SHOWN points.
-const RatingGap = styled.span<{ $higher: boolean; $upset: boolean }>`
-  flex-shrink: 0;
-
-  /* Phones: an upset's tag says enough, and the name needs the room. */
-  @media (max-width: 768px) {
-    ${({ $upset }) => $upset && 'display: none;'}
-  }
-
-  display: inline-flex;
-  align-items: center;
-  gap: 0.1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-
-  && {
-    opacity: ${({ $higher }) => ($higher ? 1 : 0.55)};
-    color: ${({ $higher }) =>
-      $higher ? 'light-dark(#b45309, #f5b041)' : 'inherit'};
-  }
-`
-
-// A result that went against the ratings.
-const UpsetTag = styled.span<{ $result: Result }>`
-  flex-shrink: 0;
-  padding: 0.05rem 0.4rem;
-  border-radius: 999px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: color-mix(
-    in srgb,
-    ${({ $result }) => RESULT_COLORS[$result]} 18%,
-    transparent
-  );
-
-  && {
-    opacity: 1;
-    color: ${({ $result }) => RESULT_COLORS[$result]};
   }
 `
 
@@ -915,12 +857,6 @@ function DayGames({
 
 type Filter = 'all' | Result
 
-// An opponent's rating gap is shown from this many points...
-const RATING_GAP_SHOWN = 50
-// ...and beating a player this far above, or losing to one this far
-// below, is marked as an upset.
-const UPSET_GAP = 100
-
 function GameList({
   games,
   username,
@@ -933,8 +869,57 @@ function GameList({
   platform: ReturnType<typeof usePlatform>
 }) {
   const [filter, setFilter] = useState<Filter>('all')
-  const [viewedGame, setViewedGame] = useState<TransformedGame | null>(null)
   const router = useRouter()
+  const navigate = useNavigate({ from: '/games/$username' })
+
+  // The game open in the viewer is named in the URL (?game=<id>), so the
+  // address can be shared and Back closes the viewer.
+  const { game: openGameId } = useSearch({ from: '/games/$username' })
+  const viewedGame =
+    (openGameId && games.find((game) => gameId(game.url) === openGameId)) ||
+    null
+  // Whether the viewer was opened from this list (rather than by landing
+  // on a link to a game): only then is there a list entry to go Back to.
+  const openedHere = useRef(false)
+  // Where the list was scrolled to when the viewer opened. Going Back
+  // closes the viewer, but the router then scrolls to the top; this puts
+  // the list back where it was.
+  const scrollBeforeOpen = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (openGameId || scrollBeforeOpen.current === null) return
+    const top = scrollBeforeOpen.current
+    scrollBeforeOpen.current = null
+    openedHere.current = false
+    // After the router's own scroll handling for this navigation.
+    const frame = requestAnimationFrame(() => window.scrollTo({ top }))
+    return () => cancelAnimationFrame(frame)
+  }, [openGameId])
+
+  function openGame(game: TransformedGame) {
+    openedHere.current = true
+    scrollBeforeOpen.current = window.scrollY
+    navigate({
+      search: (previous) => ({ ...previous, game: gameId(game.url) }),
+      // Keep the day's games that came along from the dashboard chart.
+      state: true,
+      resetScroll: false,
+    })
+  }
+
+  function closeGame() {
+    if (openedHere.current) {
+      openedHere.current = false
+      router.history.back()
+      return
+    }
+    navigate({
+      search: (previous) => ({ ...previous, game: undefined }),
+      state: true,
+      replace: true,
+      resetScroll: false,
+    })
+  }
 
   const counts: Record<Result, number> = { win: 0, loss: 0, draw: 0 }
   for (const game of games) counts[game.resultForPlayer as Result]++
@@ -1083,14 +1068,11 @@ function GameList({
             const timeControl = formatTimeControl(game.TimeControl)
             const endedAt = game.date_time.split(' ')[1]?.slice(0, 5) ?? ''
 
-            // Opponent's rating minus the player's: positive means the
-            // opponent was the stronger one on paper.
-            const ownRating = Number(isWhite ? game.WhiteElo : game.BlackElo)
-            const theirRating = Number(isWhite ? game.BlackElo : game.WhiteElo)
-            const gap = ownRating && theirRating ? theirRating - ownRating : 0
-            const isUpset =
-              (result === 'win' && gap >= UPSET_GAP) ||
-              (result === 'loss' && gap <= -UPSET_GAP)
+            const { gap, showGap, isUpset } = ratingGap(
+              isWhite ? game.WhiteElo : game.BlackElo,
+              isWhite ? game.BlackElo : game.WhiteElo,
+              result,
+            )
             // Older links hold games saved before this was worked out.
             const change = game.ratingChange ?? null
 
@@ -1104,7 +1086,7 @@ function GameList({
                 // A click replays the game here; the link is still there
                 // for opening it on the site in a new tab.
                 onClick={(event) => {
-                  if (opensViewer(event)) setViewedGame(game)
+                  if (opensViewer(event)) openGame(game)
                 }}
                 aria-label={`${RESULT_LABELS[result]} against ${opponent}, ${reason.toLowerCase()}, ${game.moveCount} moves${isUpset ? ', an upset' : ''}. Replay the game.`}
               >
@@ -1144,31 +1126,9 @@ function GameList({
                       <Ellipsis>{name}</Ellipsis>
                       <Rating>{rating}</Rating>
                       {isPlayer && change !== null && (
-                        <RatingChange
-                          $change={change}
-                          title="Rating change in this game"
-                        >
-                          {change > 0
-                            ? `+${change}`
-                            : change < 0
-                              ? `−${-change}`
-                              : '±0'}
-                        </RatingChange>
+                        <RatingChangeBadge change={change} />
                       )}
-                      {!isPlayer && Math.abs(gap) >= RATING_GAP_SHOWN && (
-                        <RatingGap
-                          $higher={gap > 0}
-                          $upset={isUpset}
-                          title={`Rated ${Math.abs(gap)} ${gap > 0 ? 'above' : 'below'} ${isWhite ? game.whitePlayer : game.blackPlayer}`}
-                        >
-                          {gap > 0 ? (
-                            <TbArrowUp size={12} />
-                          ) : (
-                            <TbArrowDown size={12} />
-                          )}
-                          {Math.abs(gap)}
-                        </RatingGap>
-                      )}
+                      {!isPlayer && showGap && <RatingGapBadge gap={gap} />}
                       {!isPlayer && isUpset && (
                         <UpsetTag $result={result}>Upset</UpsetTag>
                       )}
@@ -1211,7 +1171,7 @@ function GameList({
         game={viewedGame}
         username={username}
         platform={platform}
-        onClose={() => setViewedGame(null)}
+        onClose={closeGame}
       />
     </PageContainer>
   )
