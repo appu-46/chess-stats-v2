@@ -69,6 +69,30 @@ export async function getChessProfilesForFavs(favs: Array<FavKey>) {
   return data.filter((row) => wanted.has(`${row.platform}:${row.player_id}`))
 }
 
+// Profiles anyone has opened whose username starts with `term`, for the
+// search suggestions.
+export async function searchChessProfiles(
+  platform: Platform,
+  term: string,
+  limit: number,
+) {
+  // _ is a LIKE wildcard and a legal username character.
+  const pattern = `${term.replace(/[\\%_]/g, '\\$&')}%`
+  const { data, error } = await supabase
+    .from('chess_profile')
+    .select('username, name, title')
+    .eq('platform', platform)
+    .ilike('username', pattern)
+    .limit(limit)
+
+  if (error) throw new Error(error.message)
+  return data as Array<{
+    username: string
+    name: string | null
+    title: string | null
+  }>
+}
+
 export async function upsertChessUser(profile: PlayerProfile) {
   const { country } = profile
   const ChessUser = {

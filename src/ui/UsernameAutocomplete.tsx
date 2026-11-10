@@ -1,14 +1,19 @@
 import { Autocomplete, Loader } from '@mantine/core'
-import { useMemo } from 'react'
 import useLichessAutocomplete from '../hooks/useLichessAutocomplete'
+import useChessComAutocomplete from '../hooks/useChessComAutocomplete'
+import {
+  MAX_SUGGESTIONS,
+  getRecentPlayers,
+  mergeSuggestions,
+} from '../helpers/playerSuggestions'
 import classes from '../css/UsernameAutocomplete.module.css'
 import type { Platform } from '../helpers/platform'
+import type { PlayerSuggestion } from '../helpers/playerSuggestions'
 
-const MAX_SUGGESTIONS = 10
-
-// Suggestions are lichess-only: chess.com has no documented search or
-// autocomplete endpoint, so for chess.com this is a plain text input with
-// the same look.
+// Lichess suggestions come from its autocomplete endpoint. chess.com has
+// none, so its list is put together from other sources (see
+// helpers/playerSuggestions). Both also offer the players looked up before
+// on this device, even before anything is typed.
 function UsernameAutocomplete({
   platform,
   value,
@@ -30,15 +35,28 @@ function UsernameAutocomplete({
   // No border or fill, for use inside a search bar that draws its own.
   bare?: boolean
 }) {
-  const { suggestions, isFetching } = useLichessAutocomplete(
-    value,
-    platform === 'lichess',
-  )
+  const lichess = useLichessAutocomplete(value, platform === 'lichess')
+  const chessCom = useChessComAutocomplete(value, platform === 'chess.com')
+  const isFetching = lichess.isFetching || chessCom.isFetching
 
-  const byName = useMemo(
-    () => new Map(suggestions.map((user) => [user.name, user])),
-    [suggestions],
-  )
+  const needle = value.trim().toLowerCase()
+  const suggestions: Array<PlayerSuggestion> =
+    platform === 'chess.com'
+      ? chessCom.suggestions
+      : mergeSuggestions(value, {
+          recent: getRecentPlayers('lichess'),
+          // Lichess matched these by prefix, but for the debounced term:
+          // drop the ones the latest keystroke has ruled out.
+          cached: lichess.suggestions
+            .filter((user) => user.name.toLowerCase().startsWith(needle))
+            .map((user) => ({
+              username: user.name,
+              title: user.title,
+              online: user.online,
+            })),
+        })
+
+  const byName = new Map(suggestions.map((user) => [user.username, user]))
 
   return (
     <Autocomplete
@@ -48,8 +66,8 @@ function UsernameAutocomplete({
       onBlur={onBlur}
       placeholder={placeholder}
       aria-label={`${platform === 'lichess' ? 'Lichess' : 'Chess.com'} username`}
-      // Lichess already filtered by prefix server-side; don't re-filter.
-      data={suggestions.slice(0, MAX_SUGGESTIONS).map((user) => user.name)}
+      // Already matched and ordered; don't re-filter.
+      data={suggestions.slice(0, MAX_SUGGESTIONS).map((user) => user.username)}
       filter={({ options }) => options}
       autoComplete="off"
       spellCheck={false}
@@ -63,10 +81,12 @@ function UsernameAutocomplete({
           <span
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            {user?.title && (
-              <span className={classes.title}>{user.title}</span>
-            )}
+            {user?.title && <span className={classes.title}>{user.title}</span>}
             {option.value}
+            {user?.name && <span className={classes.name}>{user.name}</span>}
+            {user?.recent && !user.online && (
+              <span className={classes.recent}>Recent</span>
+            )}
             {user?.online && (
               <span
                 aria-label="online"

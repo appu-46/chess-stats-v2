@@ -2,6 +2,9 @@
    its neutral grey "dark" palette; these follow the app's green theme. */
 
 .dropdown {
+  /* Inside a search bar the input is narrower than a suggestion with a
+     title, username and name, so the list may be wider than the input. */
+  min-width: min(19rem, calc(100vw - 5rem));
   padding: 0.3rem;
   background: light-dark(#f6fcf9, #10261d);
   border: 1px solid
@@ -26,4 +29,25 @@
 .title {
   font-weight: 800;
   color: light-dark(#9a5b0b, #e0a64b);
+}
+
+/* The player's real name, after the username. */
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85em;
+  opacity: 0.6;
+}
+
+/* Marks a player looked up before on this device. */
+.recent {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.5;
 }

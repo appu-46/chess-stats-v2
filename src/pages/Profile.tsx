@@ -11,6 +11,7 @@ import { Link, useParams } from '@tanstack/react-router'
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Modal } from '@mantine/core'
+import { rememberPlayer } from '../helpers/playerSuggestions'
 import useProfile from '../hooks/useProfile'
 import PlatformBadge from '../ui/PlatformBadge'
 import Spinner from '../ui/Spinner'
@@ -591,6 +592,7 @@ function Profile() {
   useEffect(() => {
     if (!profile) return
     upsertMutation.mutate(profile)
+    rememberPlayer(profile.platform, profile)
   }, [profile?.platform, profile?.playerId])
 
   // Without the profile there's no page; without the stats (chess.com's

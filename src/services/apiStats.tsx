@@ -41,6 +41,15 @@ export async function apiGames(username: string, year: string, month: string) {
   return data
 }
 
+// Every account holding one title ('GM', 'IM', ...), as lowercase
+// usernames. A few thousand at most.
+export async function apiTitledPlayers(title: string): Promise<Array<string>> {
+  const response = await fetch(`https://api.chess.com/pub/titled/${title}`)
+  if (!response.ok) throw new Error(`Failed to fetch the ${title} list!`)
+  const data = await response.json()
+  return data.players ?? []
+}
+
 export function apiArchive(username: string) {
   return chessComFetch(`${username}/games/archives`, 'game archives')
 }
